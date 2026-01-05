@@ -1,0 +1,109 @@
+﻿@page "/budgets/create"
+@using Microsoft.EntityFrameworkCore
+@using Project_PiggyPro.Domain
+@inject IDbContextFactory<Project_PiggyPro.Data.Project_PiggyProContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create</PageTitle>
+
+<h1>Create</h1>
+
+<h2>Budget</h2>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="Budget" OnValidSubmit="AddBudget" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert"/>
+            <div class="mb-3">
+                <label for="budgetamount" class="form-label">BudgetAmount:</label> 
+                <InputNumber id="budgetamount" @bind-Value="Budget.BudgetAmount" class="form-control" /> 
+                <ValidationMessage For="() => Budget.BudgetAmount" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="startdate" class="form-label">StartDate:</label> 
+                <InputDate id="startdate" @bind-Value="Budget.StartDate" class="form-control" /> 
+                <ValidationMessage For="() => Budget.StartDate" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="enddate" class="form-label">EndDate:</label> 
+                <InputDate id="enddate" @bind-Value="Budget.EndDate" class="form-control" /> 
+                <ValidationMessage For="() => Budget.EndDate" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="budgetperiod" class="form-label">BudgetPeriod:</label> 
+                <InputText id="budgetperiod" @bind-Value="Budget.BudgetPeriod" class="form-control" /> 
+                <ValidationMessage For="() => Budget.BudgetPeriod" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="rulename" class="form-label">RuleName:</label> 
+                <InputText id="rulename" @bind-Value="Budget.RuleName" class="form-control" /> 
+                <ValidationMessage For="() => Budget.RuleName" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="needspercentage" class="form-label">NeedsPercentage:</label> 
+                <InputNumber id="needspercentage" @bind-Value="Budget.NeedsPercentage" class="form-control" /> 
+                <ValidationMessage For="() => Budget.NeedsPercentage" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="wantspercentage" class="form-label">WantsPercentage:</label> 
+                <InputNumber id="wantspercentage" @bind-Value="Budget.WantsPercentage" class="form-control" /> 
+                <ValidationMessage For="() => Budget.WantsPercentage" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="savingspercentage" class="form-label">SavingsPercentage:</label> 
+                <InputNumber id="savingspercentage" @bind-Value="Budget.SavingsPercentage" class="form-control" /> 
+                <ValidationMessage For="() => Budget.SavingsPercentage" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="appuserid" class="form-label">AppUserId:</label> 
+                <InputNumber id="appuserid" @bind-Value="Budget.AppUserId" class="form-control" /> 
+                <ValidationMessage For="() => Budget.AppUserId" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="categoryid" class="form-label">CategoryId:</label> 
+                <InputNumber id="categoryid" @bind-Value="Budget.CategoryId" class="form-control" /> 
+                <ValidationMessage For="() => Budget.CategoryId" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="datecreated" class="form-label">DateCreated:</label> 
+                <InputDate id="datecreated" @bind-Value="Budget.DateCreated" class="form-control" /> 
+                <ValidationMessage For="() => Budget.DateCreated" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="dateupdated" class="form-label">DateUpdated:</label> 
+                <InputDate id="dateupdated" @bind-Value="Budget.DateUpdated" class="form-control" /> 
+                <ValidationMessage For="() => Budget.DateUpdated" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="createdby" class="form-label">CreatedBy:</label> 
+                <InputText id="createdby" @bind-Value="Budget.CreatedBy" class="form-control" /> 
+                <ValidationMessage For="() => Budget.CreatedBy" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="updatedby" class="form-label">UpdatedBy:</label> 
+                <InputText id="updatedby" @bind-Value="Budget.UpdatedBy" class="form-control" /> 
+                <ValidationMessage For="() => Budget.UpdatedBy" class="text-danger" /> 
+            </div>        
+            <button type="submit" class="btn btn-primary">Create</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/budgets">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private Budget Budget { get; set; } = new();
+
+    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task AddBudget()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Budget.Add(Budget);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/budgets");
+    }
+}

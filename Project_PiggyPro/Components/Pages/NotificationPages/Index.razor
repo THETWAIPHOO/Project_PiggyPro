@@ -1,0 +1,43 @@
+﻿@page "/notifications"
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using Project_PiggyPro.Domain
+@using Project_PiggyPro.Data
+@implements IAsyncDisposable
+@inject IDbContextFactory<Project_PiggyPro.Data.Project_PiggyProContext> DbFactory
+
+<PageTitle>Index</PageTitle>
+
+<h1>Index</h1>
+
+<p>
+    <a href="notifications/create">Create New</a>
+</p>
+
+<QuickGrid Class="table" Items="context.Notification">
+    <PropertyColumn Property="notification => notification.Title" />
+    <PropertyColumn Property="notification => notification.Message" />
+    <PropertyColumn Property="notification => notification.NotificationType" />
+    <PropertyColumn Property="notification => notification.AppUserId" />
+    <PropertyColumn Property="notification => notification.DateCreated" />
+    <PropertyColumn Property="notification => notification.DateUpdated" />
+    <PropertyColumn Property="notification => notification.CreatedBy" />
+    <PropertyColumn Property="notification => notification.UpdatedBy" />
+
+    <TemplateColumn Context="notification">
+        <a href="@($"notifications/edit?id={notification.Id}")">Edit</a> |
+        <a href="@($"notifications/details?id={notification.Id}")">Details</a> |
+        <a href="@($"notifications/delete?id={notification.Id}")">Delete</a>
+    </TemplateColumn>
+</QuickGrid>
+
+@code {
+    private Project_PiggyProContext context = default!;
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

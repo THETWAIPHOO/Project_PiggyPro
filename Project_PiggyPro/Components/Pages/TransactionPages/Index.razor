@@ -1,0 +1,45 @@
+﻿@page "/transactions"
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using Project_PiggyPro.Domain
+@using Project_PiggyPro.Data
+@implements IAsyncDisposable
+@inject IDbContextFactory<Project_PiggyPro.Data.Project_PiggyProContext> DbFactory
+
+<PageTitle>Index</PageTitle>
+
+<h1>Index</h1>
+
+<p>
+    <a href="transactions/create">Create New</a>
+</p>
+
+<QuickGrid Class="table" Items="context.Transaction">
+    <PropertyColumn Property="transaction => transaction.Amount" />
+    <PropertyColumn Property="transaction => transaction.TransactionDate" />
+    <PropertyColumn Property="transaction => transaction.TransactionType" />
+    <PropertyColumn Property="transaction => transaction.Description" />
+    <PropertyColumn Property="transaction => transaction.AppUserId" />
+    <PropertyColumn Property="transaction => transaction.CategoryId" />
+    <PropertyColumn Property="transaction => transaction.DateCreated" />
+    <PropertyColumn Property="transaction => transaction.DateUpdated" />
+    <PropertyColumn Property="transaction => transaction.CreatedBy" />
+    <PropertyColumn Property="transaction => transaction.UpdatedBy" />
+
+    <TemplateColumn Context="transaction">
+        <a href="@($"transactions/edit?id={transaction.Id}")">Edit</a> |
+        <a href="@($"transactions/details?id={transaction.Id}")">Details</a> |
+        <a href="@($"transactions/delete?id={transaction.Id}")">Delete</a>
+    </TemplateColumn>
+</QuickGrid>
+
+@code {
+    private Project_PiggyProContext context = default!;
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

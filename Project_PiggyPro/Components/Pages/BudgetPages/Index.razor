@@ -1,0 +1,49 @@
+﻿@page "/budgets"
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using Project_PiggyPro.Domain
+@using Project_PiggyPro.Data
+@implements IAsyncDisposable
+@inject IDbContextFactory<Project_PiggyPro.Data.Project_PiggyProContext> DbFactory
+
+<PageTitle>Index</PageTitle>
+
+<h1>Index</h1>
+
+<p>
+    <a href="budgets/create">Create New</a>
+</p>
+
+<QuickGrid Class="table" Items="context.Budget">
+    <PropertyColumn Property="budget => budget.BudgetAmount" />
+    <PropertyColumn Property="budget => budget.StartDate" />
+    <PropertyColumn Property="budget => budget.EndDate" />
+    <PropertyColumn Property="budget => budget.BudgetPeriod" />
+    <PropertyColumn Property="budget => budget.RuleName" />
+    <PropertyColumn Property="budget => budget.NeedsPercentage" />
+    <PropertyColumn Property="budget => budget.WantsPercentage" />
+    <PropertyColumn Property="budget => budget.SavingsPercentage" />
+    <PropertyColumn Property="budget => budget.AppUserId" />
+    <PropertyColumn Property="budget => budget.CategoryId" />
+    <PropertyColumn Property="budget => budget.DateCreated" />
+    <PropertyColumn Property="budget => budget.DateUpdated" />
+    <PropertyColumn Property="budget => budget.CreatedBy" />
+    <PropertyColumn Property="budget => budget.UpdatedBy" />
+
+    <TemplateColumn Context="budget">
+        <a href="@($"budgets/edit?id={budget.Id}")">Edit</a> |
+        <a href="@($"budgets/details?id={budget.Id}")">Details</a> |
+        <a href="@($"budgets/delete?id={budget.Id}")">Delete</a>
+    </TemplateColumn>
+</QuickGrid>
+
+@code {
+    private Project_PiggyProContext context = default!;
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

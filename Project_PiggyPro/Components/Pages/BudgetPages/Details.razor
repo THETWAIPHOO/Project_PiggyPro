@@ -1,0 +1,72 @@
+﻿@page "/budgets/details"
+@using Microsoft.EntityFrameworkCore
+@using Project_PiggyPro.Domain
+@inject IDbContextFactory<Project_PiggyPro.Data.Project_PiggyProContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Details</PageTitle>
+
+<h1>Details</h1>
+
+<div>
+    <h2>Budget</h2>
+    <hr />
+    @if (budget is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">BudgetAmount</dt>
+            <dd class="col-sm-10">@budget.BudgetAmount</dd>
+            <dt class="col-sm-2">StartDate</dt>
+            <dd class="col-sm-10">@budget.StartDate</dd>
+            <dt class="col-sm-2">EndDate</dt>
+            <dd class="col-sm-10">@budget.EndDate</dd>
+            <dt class="col-sm-2">BudgetPeriod</dt>
+            <dd class="col-sm-10">@budget.BudgetPeriod</dd>
+            <dt class="col-sm-2">RuleName</dt>
+            <dd class="col-sm-10">@budget.RuleName</dd>
+            <dt class="col-sm-2">NeedsPercentage</dt>
+            <dd class="col-sm-10">@budget.NeedsPercentage</dd>
+            <dt class="col-sm-2">WantsPercentage</dt>
+            <dd class="col-sm-10">@budget.WantsPercentage</dd>
+            <dt class="col-sm-2">SavingsPercentage</dt>
+            <dd class="col-sm-10">@budget.SavingsPercentage</dd>
+            <dt class="col-sm-2">AppUserId</dt>
+            <dd class="col-sm-10">@budget.AppUserId</dd>
+            <dt class="col-sm-2">CategoryId</dt>
+            <dd class="col-sm-10">@budget.CategoryId</dd>
+            <dt class="col-sm-2">DateCreated</dt>
+            <dd class="col-sm-10">@budget.DateCreated</dd>
+            <dt class="col-sm-2">DateUpdated</dt>
+            <dd class="col-sm-10">@budget.DateUpdated</dd>
+            <dt class="col-sm-2">CreatedBy</dt>
+            <dd class="col-sm-10">@budget.CreatedBy</dd>
+            <dt class="col-sm-2">UpdatedBy</dt>
+            <dd class="col-sm-10">@budget.UpdatedBy</dd>
+        </dl>
+        <div>
+            <a href="@($"/budgets/edit?id={budget.Id}")">Edit</a> |
+            <a href="@($"/budgets")">Back to List</a>
+        </div>
+    }
+</div>
+
+@code {
+    private Budget? budget;
+
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        budget = await context.Budget.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (budget is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}

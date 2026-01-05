@@ -1,0 +1,124 @@
+﻿@page "/notifications/edit"
+@using Microsoft.EntityFrameworkCore
+@using Project_PiggyPro.Domain
+@inject IDbContextFactory<Project_PiggyPro.Data.Project_PiggyProContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit</PageTitle>
+
+<h1>Edit</h1>
+
+<h2>Notification</h2>
+<hr />
+@if (Notification is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="Notification" OnValidSubmit="UpdateNotification" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary role="alert"/>
+                <input type="hidden" name="Notification.Id" value="@Notification.Id" />
+                <div class="mb-3">
+                    <label for="title" class="form-label">Title:</label>
+                    <InputText id="title" @bind-Value="Notification.Title" class="form-control" />
+                    <ValidationMessage For="() => Notification.Title" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="message" class="form-label">Message:</label>
+                    <InputText id="message" @bind-Value="Notification.Message" class="form-control" />
+                    <ValidationMessage For="() => Notification.Message" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="notificationtype" class="form-label">NotificationType:</label>
+                    <InputText id="notificationtype" @bind-Value="Notification.NotificationType" class="form-control" />
+                    <ValidationMessage For="() => Notification.NotificationType" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="appuserid" class="form-label">AppUserId:</label>
+                    <InputNumber id="appuserid" @bind-Value="Notification.AppUserId" class="form-control" />
+                    <ValidationMessage For="() => Notification.AppUserId" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="datecreated" class="form-label">DateCreated:</label>
+                    <InputDate id="datecreated" @bind-Value="Notification.DateCreated" class="form-control" />
+                    <ValidationMessage For="() => Notification.DateCreated" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="dateupdated" class="form-label">DateUpdated:</label>
+                    <InputDate id="dateupdated" @bind-Value="Notification.DateUpdated" class="form-control" />
+                    <ValidationMessage For="() => Notification.DateUpdated" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="createdby" class="form-label">CreatedBy:</label>
+                    <InputText id="createdby" @bind-Value="Notification.CreatedBy" class="form-control" />
+                    <ValidationMessage For="() => Notification.CreatedBy" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="updatedby" class="form-label">UpdatedBy:</label>
+                    <InputText id="updatedby" @bind-Value="Notification.UpdatedBy" class="form-control" />
+                    <ValidationMessage For="() => Notification.UpdatedBy" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/notifications">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private Notification? Notification { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        Notification ??= await context.Notification.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (Notification is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task UpdateNotification()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Attach(Notification!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!NotificationExists(Notification!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/notifications");
+    }
+
+    private bool NotificationExists(int id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.Notification.Any(e => e.Id == id);
+    }
+}

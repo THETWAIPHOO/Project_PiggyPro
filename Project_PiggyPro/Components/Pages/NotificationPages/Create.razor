@@ -1,0 +1,79 @@
+﻿@page "/notifications/create"
+@using Microsoft.EntityFrameworkCore
+@using Project_PiggyPro.Domain
+@inject IDbContextFactory<Project_PiggyPro.Data.Project_PiggyProContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create</PageTitle>
+
+<h1>Create</h1>
+
+<h2>Notification</h2>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="Notification" OnValidSubmit="AddNotification" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert"/>
+            <div class="mb-3">
+                <label for="title" class="form-label">Title:</label> 
+                <InputText id="title" @bind-Value="Notification.Title" class="form-control" /> 
+                <ValidationMessage For="() => Notification.Title" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="message" class="form-label">Message:</label> 
+                <InputText id="message" @bind-Value="Notification.Message" class="form-control" /> 
+                <ValidationMessage For="() => Notification.Message" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="notificationtype" class="form-label">NotificationType:</label> 
+                <InputText id="notificationtype" @bind-Value="Notification.NotificationType" class="form-control" /> 
+                <ValidationMessage For="() => Notification.NotificationType" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="appuserid" class="form-label">AppUserId:</label> 
+                <InputNumber id="appuserid" @bind-Value="Notification.AppUserId" class="form-control" /> 
+                <ValidationMessage For="() => Notification.AppUserId" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="datecreated" class="form-label">DateCreated:</label> 
+                <InputDate id="datecreated" @bind-Value="Notification.DateCreated" class="form-control" /> 
+                <ValidationMessage For="() => Notification.DateCreated" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="dateupdated" class="form-label">DateUpdated:</label> 
+                <InputDate id="dateupdated" @bind-Value="Notification.DateUpdated" class="form-control" /> 
+                <ValidationMessage For="() => Notification.DateUpdated" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="createdby" class="form-label">CreatedBy:</label> 
+                <InputText id="createdby" @bind-Value="Notification.CreatedBy" class="form-control" /> 
+                <ValidationMessage For="() => Notification.CreatedBy" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="updatedby" class="form-label">UpdatedBy:</label> 
+                <InputText id="updatedby" @bind-Value="Notification.UpdatedBy" class="form-control" /> 
+                <ValidationMessage For="() => Notification.UpdatedBy" class="text-danger" /> 
+            </div>        
+            <button type="submit" class="btn btn-primary">Create</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/notifications">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private Notification Notification { get; set; } = new();
+
+    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task AddNotification()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Notification.Add(Notification);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/notifications");
+    }
+}

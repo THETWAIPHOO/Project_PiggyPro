@@ -1,0 +1,62 @@
+﻿@page "/appusers/details"
+@using Microsoft.EntityFrameworkCore
+@using Project_PiggyPro.Domain
+@inject IDbContextFactory<Project_PiggyPro.Data.Project_PiggyProContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Details</PageTitle>
+
+<h1>Details</h1>
+
+<div>
+    <h2>AppUser</h2>
+    <hr />
+    @if (appuser is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">Email</dt>
+            <dd class="col-sm-10">@appuser.Email</dd>
+            <dt class="col-sm-2">PasswordHash</dt>
+            <dd class="col-sm-10">@appuser.PasswordHash</dd>
+            <dt class="col-sm-2">FirstName</dt>
+            <dd class="col-sm-10">@appuser.FirstName</dd>
+            <dt class="col-sm-2">LastName</dt>
+            <dd class="col-sm-10">@appuser.LastName</dd>
+            <dt class="col-sm-2">IsEmailVerified</dt>
+            <dd class="col-sm-10">@appuser.IsEmailVerified</dd>
+            <dt class="col-sm-2">DateCreated</dt>
+            <dd class="col-sm-10">@appuser.DateCreated</dd>
+            <dt class="col-sm-2">DateUpdated</dt>
+            <dd class="col-sm-10">@appuser.DateUpdated</dd>
+            <dt class="col-sm-2">CreatedBy</dt>
+            <dd class="col-sm-10">@appuser.CreatedBy</dd>
+            <dt class="col-sm-2">UpdatedBy</dt>
+            <dd class="col-sm-10">@appuser.UpdatedBy</dd>
+        </dl>
+        <div>
+            <a href="@($"/appusers/edit?id={appuser.Id}")">Edit</a> |
+            <a href="@($"/appusers")">Back to List</a>
+        </div>
+    }
+</div>
+
+@code {
+    private AppUser? appuser;
+
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        appuser = await context.AppUser.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (appuser is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}
