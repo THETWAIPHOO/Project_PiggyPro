@@ -4,8 +4,7 @@
     {
         public string? CategoryName { get; set; }
         public string? CategoryType { get; set; }
-
-        public int AppUserId { get; set; }
+        public bool IsSystemCategory { get; set; }
     }
     
 }
