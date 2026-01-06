@@ -17,6 +17,9 @@ namespace Project_PiggyPro.Data
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfiguration(new CategorySeed());
+            modelBuilder.ApplyConfiguration(new RoleSeed());
+            modelBuilder.ApplyConfiguration(new UserSeed());
+            modelBuilder.ApplyConfiguration(new UserRoleSeed());
         }
     }
 }

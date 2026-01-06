@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-namespace CarRentalManagement.Configurations.Entities
+namespace Project_PiggyPro.Configurations.Entities
 {
     public class UserRoleSeed : IEntityTypeConfiguration<IdentityUserRole<string>>
     {
