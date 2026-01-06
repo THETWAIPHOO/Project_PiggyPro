@@ -11,7 +11,7 @@ builder.Services.AddDbContextFactory<Project_PiggyProContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Project_PiggyProContext") ?? throw new InvalidOperationException("Connection string 'Project_PiggyProContext' not found.")));
 
 builder.Services.AddQuickGridEntityFrameworkAdapter();
-
+builder.Services.AddMvc();
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 // Add services to the container.
