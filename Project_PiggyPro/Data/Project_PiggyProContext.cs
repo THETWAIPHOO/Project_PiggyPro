@@ -8,7 +8,7 @@ namespace Project_PiggyPro.Data
 {
     public class Project_PiggyProContext(DbContextOptions<Project_PiggyProContext> options) : IdentityDbContext<Project_PiggyProUser>(options)
     {
-        public DbSet<Project_PiggyPro.Domain.AppUser> AppUser { get; set; } = default!;
+        
         public DbSet<Project_PiggyPro.Domain.Budget> Budget { get; set; } = default!;
         public DbSet<Project_PiggyPro.Domain.Category> Category { get; set; } = default!;
         public DbSet<Project_PiggyPro.Domain.Goal> Goal { get; set; } = default!;
