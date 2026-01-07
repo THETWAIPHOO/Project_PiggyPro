@@ -21,7 +21,7 @@ namespace Project_PiggyPro.Configurations.Entities
                     UserName = "admin@localhost.com",
                     NormalizedUserName = "ADMIN@LOCALHOST.COM",
                     PasswordHash = hasher.HashPassword(null, "P@ssword1"),
-                    EmailConfirmed = true // Set to true, otherwise you won't be able to login 
+                    EmailConfirmed = true  
                 }
                 );
         }

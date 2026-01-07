@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Project_PiggyPro.Data;
 
@@ -11,9 +12,11 @@ using Project_PiggyPro.Data;
 namespace Project_PiggyPro.Migrations
 {
     [DbContext(typeof(Project_PiggyProContext))]
-    partial class Project_PiggyProContextModelSnapshot : ModelSnapshot
+    [Migration("20260107020048_SeedUserRole2")]
+    partial class SeedUserRole2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -252,7 +255,6 @@ namespace Project_PiggyPro.Migrations
                             Id = "3781efa7-66dc-47f0-860f-e506d04102e4",
                             AccessFailedCount = 0,
                             ConcurrencyStamp = "95d7a980-b215-4607-a640-2920ecd57ee3",
-                            ConcurrencyStamp = "c6415123-1903-4817-8ce9-c86677444f75",
                             Email = "admin@localhost.com",
                             EmailConfirmed = true,
                             FirstName = "Admin",
