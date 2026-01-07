@@ -1,8 +1,7 @@
-﻿using CarRentalManagement.Configurations.Entities;
+﻿using Project_PiggyPro.Configurations.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Project_PiggyPro.Configurations.Entities;
-using Project_PiggyPro.Data;
+
 
 namespace Project_PiggyPro.Data
 {

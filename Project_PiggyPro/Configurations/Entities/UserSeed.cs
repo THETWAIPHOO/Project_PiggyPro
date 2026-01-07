@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace CarRentalManagement.Configurations.Entities
+namespace Project_PiggyPro.Configurations.Entities
 {
     public class UserSeed : IEntityTypeConfiguration<Project_PiggyProUser>
     {
@@ -21,7 +21,7 @@ namespace CarRentalManagement.Configurations.Entities
                     UserName = "admin@localhost.com",
                     NormalizedUserName = "ADMIN@LOCALHOST.COM",
                     PasswordHash = hasher.HashPassword(null, "P@ssword1"),
-                    EmailConfirmed = true // Set to true, otherwise you won't be able to login 
+                    EmailConfirmed = true  
                 }
                 );
         }

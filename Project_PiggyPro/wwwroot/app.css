@@ -15,15 +15,6 @@ body {
     background-color: #ffffff;
 }
 
-/* Optional: Add background pattern or image */
-/* Uncomment if you want a subtle background
-body {
-    background-color: #fafafa;
-    background-image: url('/images/pattern.png');
-    background-size: 300px 300px;
-    background-repeat: repeat;
-}
-*/
 
 a {
     transition: all 0.3s ease;
