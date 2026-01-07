@@ -11,6 +11,11 @@ namespace Project_PiggyPro.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+<<<<<<< HEAD
+=======
+            
+
+>>>>>>> just edit.
             migrationBuilder.UpdateData(
                 table: "AspNetUsers",
                 keyColumn: "Id",
