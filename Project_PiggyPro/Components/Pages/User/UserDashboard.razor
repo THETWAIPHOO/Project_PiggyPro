@@ -1,0 +1,241 @@
+﻿@page "/User/UserDashboard"
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Authorization
+@using Project_PiggyPro.Configurations.Entities
+@using Project_PiggyPro.Data
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Identity
+@inject Project_PiggyProContext DbContext
+@inject UserManager<Project_PiggyProUser> UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Dashboard - PiggyPro</PageTitle>
+
+<!-- Welcome Section -->
+<div class="welcome-section">
+    <h1 class="welcome-title">Welcome back, @userName! 👋</h1>
+    <p class="welcome-subtitle">Here's your financial overview for @currentMonth</p>
+</div>
+
+<!-- Summary Cards -->
+<div class="summary-grid">
+    <div class="summary-card">
+        <div class="card-title">Total Income</div>
+        <div class="card-value income">$@totalIncome.ToString("N2")</div>
+        <div class="card-subtitle">This month</div>
+    </div>
+
+    <div class="summary-card">
+        <div class="card-title">Total Expenses</div>
+        <div class="card-value expense">$@totalExpenses.ToString("N2")</div>
+        <div class="card-subtitle">This month</div>
+    </div>
+
+    <div class="summary-card">
+        <div class="card-title">Net Balance</div>
+        <div class="card-value">$@netBalance.ToString("N2")</div>
+        <div class="card-change @(percentageChange >= 0 ? "positive" : "negative")">
+            @(percentageChange >= 0 ? "+" : "")@percentageChange.ToString("N0")% vs last month
+        </div>
+    </div>
+
+    <div class="summary-card">
+        <div class="card-title">Budget Status</div>
+        <div class="card-value">@budgetUsedPercentage%</div>
+        <div class="card-subtitle">of budget used</div>
+        <div class="progress-bar-container">
+            <div class="progress-bar @GetBudgetStatusClass()" style="width: @budgetUsedPercentage%"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="charts-grid">
+    <div class="chart-card">
+        <div class="chart-title">Spending Overview</div>
+        <div class="chart-placeholder">[Line Chart: Spending Trend Over Time]</div>
+    </div>
+
+    <div class="chart-card">
+        <div class="chart-title">Top Categories</div>
+        <div class="chart-placeholder">[Pie Chart: Expense by Category]</div>
+    </div>
+</div>
+
+<!-- Recent Transactions -->
+<div class="transactions-section">
+    <div class="section-header">
+        <h2 class="section-title">Recent Transactions</h2>
+        <a href="/transactions" class="btn-link">View All</a>
+    </div>
+
+    @if (recentTransactions.Any())
+    {
+        <table class="transactions-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Category</th>
+                    <th>Amount</th>
+                    <th>Type</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var transaction in recentTransactions)
+                {
+                    <tr>
+                        <td>@transaction.Date.ToString("MMM dd, yyyy")</td>
+                        <td>@transaction.Description</td>
+                        <td>@transaction.CategoryName</td>
+                        <td class="@(transaction.Type == "Income" ? "amount-income" : "amount-expense")">
+                            @(transaction.Type == "Income" ? "+" : "-")$@transaction.Amount.ToString("N2")
+                        </td>
+                        <td>
+                            <span class="badge @(transaction.Type == "Income" ? "badge-income" : "badge-expense")">
+                                @transaction.Type
+                            </span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p class="text-muted">No transactions yet. <a href="/transactions/create">Add your first transaction</a></p>
+    }
+</div>
+
+@code {
+    private string currentUserId = string.Empty;
+    private string userName = "User";
+    private string currentMonth = DateTime.Now.ToString("MMMM yyyy");
+
+    private decimal totalIncome = 0;
+    private decimal totalExpenses = 0;
+    private decimal netBalance = 0;
+    private int budgetUsedPercentage = 0;
+    private decimal percentageChange = 0;
+
+    private List<TransactionViewModel> recentTransactions = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetCurrentUser();
+
+        if (!string.IsNullOrEmpty(currentUserId))
+        {
+            await LoadDashboardData();
+        }
+    }
+
+    private async Task GetCurrentUser()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            currentUserId = UserManager.GetUserId(user);
+            userName = user.Identity.Name ?? "User";
+        }
+    }
+
+    private async Task LoadDashboardData()
+    {
+        var startOfMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+        var endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
+
+        // Calculate total income for current month
+        totalIncome = await DbContext.Transaction
+            .Where(t => t.CreatedBy == currentUserId
+                && t.DateCreated >= startOfMonth
+                && t.DateCreated <= endOfMonth)
+            .Where(t => DbContext.Category.Any(c => c.Id == t.CategoryId && c.CategoryType == "Income"))
+            .SumAsync(t => (decimal?)t.Amount) ?? 0;
+
+        // Calculate total expenses for current month
+        totalExpenses = await DbContext.Transaction
+            .Where(t => t.CreatedBy == currentUserId
+                && t.DateCreated >= startOfMonth
+                && t.DateCreated <= endOfMonth)
+            .Where(t => DbContext.Category.Any(c => c.Id == t.CategoryId && c.CategoryType == "Expense"))
+            .SumAsync(t => (decimal?)t.Amount) ?? 0;
+
+        // Calculate net balance
+        netBalance = totalIncome - totalExpenses;
+
+        // Calculate budget usage percentage
+        var totalBudget = await DbContext.Budget
+            .Where(b => b.CreatedBy == currentUserId)
+            .SumAsync(b => (decimal?)b.BudgetAmount) ?? 0;
+
+        if (totalBudget > 0)
+        {
+            budgetUsedPercentage = (int)((totalExpenses / totalBudget) * 100);
+        }
+
+        // Calculate percentage change vs last month
+        var lastMonthStart = startOfMonth.AddMonths(-1);
+        var lastMonthEnd = startOfMonth.AddDays(-1);
+
+        var lastMonthIncome = await DbContext.Transaction
+            .Where(t => t.CreatedBy == currentUserId
+                && t.DateCreated >= lastMonthStart
+                && t.DateCreated <= lastMonthEnd)
+            .Where(t => DbContext.Category.Any(c => c.Id == t.CategoryId && c.CategoryType == "Income"))
+            .SumAsync(t => (decimal?)t.Amount) ?? 0;
+
+        var lastMonthExpenses = await DbContext.Transaction
+            .Where(t => t.CreatedBy == currentUserId
+                && t.DateCreated >= lastMonthStart
+                && t.DateCreated <= lastMonthEnd)
+            .Where(t => DbContext.Category.Any(c => c.Id == t.CategoryId && c.CategoryType == "Expense"))
+            .SumAsync(t => (decimal?)t.Amount) ?? 0;
+
+        var lastMonthBalance = lastMonthIncome - lastMonthExpenses;
+
+        if (lastMonthBalance != 0)
+        {
+            percentageChange = ((netBalance - lastMonthBalance) / Math.Abs(lastMonthBalance)) * 100;
+        }
+
+        // Get recent transactions (last 5)
+        var transactions = await DbContext.Transaction
+            .Where(t => t.CreatedBy == currentUserId)
+            .OrderByDescending(t => t.DateCreated)
+            .Take(5)
+            .ToListAsync();
+
+        foreach (var t in transactions)
+        {
+            var category = await DbContext.Category.FindAsync(t.CategoryId);
+            recentTransactions.Add(new TransactionViewModel
+            {
+                Date = t.DateCreated,
+                Description = t.Description ?? "",
+                CategoryName = category?.CategoryName ?? "Unknown",
+                Amount = t.Amount,
+                Type = category?.CategoryType ?? "Expense"
+            });
+        }
+    }
+
+    private string GetBudgetStatusClass()
+    {
+        if (budgetUsedPercentage >= 90) return "danger";
+        if (budgetUsedPercentage >= 75) return "warning";
+        return "";
+    }
+
+    // Helper class for transaction display
+    public class TransactionViewModel
+    {
+        public DateTime Date { get; set; }
+        public string Description { get; set; } = string.Empty;
+        public string CategoryName { get; set; } = string.Empty;
+        public decimal Amount { get; set; }
+        public string Type { get; set; } = string.Empty;
+    }
+}

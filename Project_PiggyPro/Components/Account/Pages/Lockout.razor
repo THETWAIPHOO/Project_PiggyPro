@@ -1,4 +1,7 @@
 ﻿@page "/Account/Lockout"
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore.Metadata.Internal
+@using Project_PiggyPro.Data
 
 <PageTitle>Locked out</PageTitle>
 
@@ -6,3 +9,16 @@
     <h1 class="text-danger">Locked out</h1>
     <p class="text-danger">This account has been locked out, please try again later.</p>
 </header>
+@code {
+    [Inject]
+    private SignInManager<Project_PiggyProUser> SignInManager { get; set; } = default!;
+    [Inject]
+    private NavigationManager Navigation { get; set; } = default!;
+    protected override async Task OnInitializedAsync()
+        =>
+    await SignInManager.SignOutAsync();
+    private void RedirectToHome()
+    {
+        Navigation.NavigateTo("/", true); // Redirect to home after logout
+    }
+}

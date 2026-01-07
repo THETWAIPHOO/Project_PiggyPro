@@ -4,11 +4,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Project_PiggyPro.Data;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Project_PiggyPro.Components.Account;
 
 var builder = WebApplication.CreateBuilder(args);
+
 builder.Services.AddDbContextFactory<Project_PiggyProContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Project_PiggyProContext") ?? throw new InvalidOperationException("Connection string 'Project_PiggyProContext' not found.")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("Project_PiggyProContext")
+        ?? throw new InvalidOperationException("Connection string 'Project_PiggyProContext' not found.")));
 
 builder.Services.AddQuickGridEntityFrameworkAdapter();
 builder.Services.AddMvc();
@@ -19,21 +22,15 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddCascadingAuthenticationState();
-
 builder.Services.AddScoped<IdentityUserAccessor>();
-
 builder.Services.AddScoped<IdentityRedirectManager>();
-
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 
-builder.Services.AddAuthentication(options =>
-    {
-        options.DefaultScheme = IdentityConstants.ApplicationScheme;
-        options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
-    })
-    .AddIdentityCookies();
+// REMOVED the duplicate AddAuthentication block
 
-builder.Services.AddIdentityCore<Project_PiggyProUser>(options => options.SignIn.RequireConfirmedAccount = true)
+// Keep only this Identity configuration
+builder.Services.AddIdentity<Project_PiggyProUser, IdentityRole>(options =>
+    options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<Project_PiggyProContext>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
@@ -46,19 +43,17 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
     app.UseMigrationsEndPoint();
 }
 
 app.UseHttpsRedirection();
-
 app.UseStaticFiles();
 app.UseAntiforgery();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
-app.MapAdditionalIdentityEndpoints();;
+app.MapAdditionalIdentityEndpoints();
 
 app.Run();
