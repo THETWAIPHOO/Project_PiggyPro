@@ -1,0 +1,207 @@
+﻿@page "/admin/dashboard"
+@attribute [Authorize(Roles = "Administrator")]
+@using Microsoft.AspNetCore.Authorization
+@using Project_PiggyPro.Services
+@inject AdminService AdminService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Admin Dashboard - PiggyPro</PageTitle>
+
+<!-- Admin Navigation Bar -->
+<nav class="admin-navbar">
+    <div class="admin-nav-content">
+        <div class="admin-brand">
+            <span class="pig-icon">🐷</span>
+            <span class="brand-text">PiggyPro - ADMIN</span>
+        </div>
+        
+        <div class="admin-nav-buttons">
+            <NavLink href="/admin/dashboard" class="admin-nav-btn" Match="NavLinkMatch.All">
+                Admin Dashboard
+            </NavLink>
+            <NavLink href="/admin/users" class="admin-nav-btn">
+                User Management
+            </NavLink>
+            <NavLink href="/admin/analytics" class="admin-nav-btn">
+                System Analytics
+            </NavLink>
+            <form action="Account/Logout" method="post">
+                <AntiforgeryToken />
+                <button type="submit" class="admin-nav-btn logout-btn">
+                    Logout
+                </button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<div class="admin-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>System Overview</h1>
+        <p>Monitor platform health and user activity</p>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="loading-spinner">
+            <p>Loading dashboard data...</p>
+        </div>
+    }
+    else
+    {
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+            <!-- Total Users Card -->
+            <div class="stat-card">
+                <h3 class="stat-title">Total Users</h3>
+                <div class="stat-value">@totalUsers.ToString("N0")</div>
+                <p class="stat-change positive">↑ @newUsersThisWeek new this week</p>
+            </div>
+
+            <!-- Active Users Card -->
+            <div class="stat-card">
+                <h3 class="stat-title">Active Users (Today)</h3>
+                <div class="stat-value">@activeUsersToday</div>
+                <p class="stat-subtitle">@activeUsersPercentage% of total</p>
+            </div>
+
+            <!-- Total Transactions Card -->
+            <div class="stat-card">
+                <h3 class="stat-title">Total Transactions</h3>
+                <div class="stat-value">@totalTransactions.ToString("N0")</div>
+                <p class="stat-subtitle">Across all users</p>
+            </div>
+
+            <!-- System Status Card -->
+            <div class="stat-card">
+                <h3 class="stat-title">System Status</h3>
+                <div class="status-badge @(systemStatus.IsHealthy ? "healthy" : "unhealthy")">
+                    @systemStatus.Message
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-section">
+            <!-- User Growth Chart -->
+            <div class="chart-container">
+                <h2 class="section-title">User Growth</h2>
+                <div class="chart-placeholder">
+                    <p class="chart-label">[Line Chart: User Registration Over Time]</p>
+                    <p class="chart-info">Total Users: @totalUsers</p>
+                </div>
+            </div>
+
+            <!-- User Activity Chart -->
+            <div class="chart-container small">
+                <h2 class="section-title">User Activity</h2>
+                <div class="chart-placeholder">
+                    <p class="chart-label">[Pie Chart: Active vs Inactive Users]</p>
+                    <p class="chart-info">Active: @activeUsersToday / @totalUsers</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent User Registrations Table -->
+        <div class="table-section">
+            <h2 class="section-title">Recent User Registrations</h2>
+            
+            <div class="table-container">
+                @if (recentUsers.Any())
+                {
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>User ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Registration Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var user in recentUsers)
+                            {
+                                <tr>
+                                    <td>#@user.Id.Substring(0, 8)</td>
+                                    <td>@user.UserName</td>
+                                    <td>@user.Email</td>
+                                    <td>@user.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                    <td>
+                                        <span class="badge @(user.IsActive ? "active" : "inactive")">
+                                            @(user.IsActive ? "Active" : "Inactive")
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="action-btn" @onclick="() => ViewUser(user.Id)">
+                                            View
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p class="no-data">No users found.</p>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private bool isLoading = true;
+    private int totalUsers = 0;
+    private int newUsersThisWeek = 0;
+    private int activeUsersToday = 0;
+    private decimal activeUsersPercentage = 0;
+    private int totalTransactions = 0;
+    private SystemStatus systemStatus = new() { IsHealthy = true, Message = "HEALTHY" };
+    private List<RecentUserDto> recentUsers = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDashboardData();
+    }
+
+    private async Task LoadDashboardData()
+    {
+        isLoading = true;
+        
+        try
+        {
+            // Load all statistics
+            totalUsers = await AdminService.GetTotalUsersAsync();
+            newUsersThisWeek = await AdminService.GetNewUsersThisWeekAsync();
+            activeUsersToday = await AdminService.GetActiveUsersTodayAsync();
+            activeUsersPercentage = await AdminService.GetActiveUsersPercentageAsync();
+            totalTransactions = await AdminService.GetTotalTransactionsAsync();
+            systemStatus = await AdminService.GetSystemStatusAsync();
+            recentUsers = await AdminService.GetRecentUsersAsync(10);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading dashboard data: {ex.Message}");
+            systemStatus = new SystemStatus 
+            { 
+                IsHealthy = false, 
+                Message = "ERROR",
+                ErrorMessage = ex.Message 
+            };
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ViewUser(string userId)
+    {
+        // Navigate to user detail page
+        NavigationManager.NavigateTo($"/admin/users/{userId}");
+    }
+}

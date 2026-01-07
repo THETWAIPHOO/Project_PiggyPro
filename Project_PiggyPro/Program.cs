@@ -1,11 +1,12 @@
-using Project_PiggyPro.Components;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Project_PiggyPro.Data;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Project_PiggyPro.Components;
 using Project_PiggyPro.Components.Account;
+using Project_PiggyPro.Data;
+using Project_PiggyPro.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,7 +37,7 @@ builder.Services.AddIdentity<Project_PiggyProUser, IdentityRole>(options =>
     .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<Project_PiggyProUser>, IdentityNoOpEmailSender>();
-
+builder.Services.AddScoped<AdminService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
