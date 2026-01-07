@@ -1,6 +1,8 @@
 ﻿@page "/admin/dashboard"
+@layout AdminLayout
 @attribute [Authorize(Roles = "Administrator")]
 @using Microsoft.AspNetCore.Authorization
+@using Project_PiggyPro.Components.Layout
 @using Project_PiggyPro.Services
 @inject AdminService AdminService
 @inject NavigationManager NavigationManager
