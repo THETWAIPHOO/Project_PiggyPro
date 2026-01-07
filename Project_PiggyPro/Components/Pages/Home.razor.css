@@ -11,34 +11,6 @@
     position: relative;
 }
 
-/* Optional: Add background image */
-/* Uncomment and add your image to wwwroot/images/hero-bg.jpg
-.hero-section {
-    background-image: 
-        linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
-        url('/images/hero-bg.jpg');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-}
-
-.hero-content h1,
-.hero-content p {
-    color: white;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
-}
-
-.btn-outline {
-    border-color: white;
-    color: white;
-}
-
-.btn-outline:hover {
-    background: white;
-    color: #333;
-}
-*/
-
 .hero-content h1 {
     font-size: 3rem;
     font-weight: 700;

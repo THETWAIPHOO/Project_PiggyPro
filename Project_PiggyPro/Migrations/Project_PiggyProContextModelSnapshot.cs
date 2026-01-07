@@ -252,6 +252,7 @@ namespace Project_PiggyPro.Migrations
                             Id = "3781efa7-66dc-47f0-860f-e506d04102e4",
                             AccessFailedCount = 0,
                             ConcurrencyStamp = "95d7a980-b215-4607-a640-2920ecd57ee3",
+                            ConcurrencyStamp = "c6415123-1903-4817-8ce9-c86677444f75",
                             Email = "admin@localhost.com",
                             EmailConfirmed = true,
                             FirstName = "Admin",
