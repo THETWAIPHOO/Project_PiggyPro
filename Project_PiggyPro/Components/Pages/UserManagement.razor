@@ -1,0 +1,425 @@
+﻿@page "/admin/users"
+@rendermode InteractiveServer
+@layout AdminLayout
+@attribute [Authorize(Roles = "Administrator")]
+@using Microsoft.AspNetCore.Authorization
+@using Project_PiggyPro.Components.Layout
+@using Project_PiggyPro.Services
+@inject AdminService AdminService
+@inject NavigationManager NavigationManager
+
+<PageTitle>User Management - PiggyPro</PageTitle>
+
+<!-- Admin Navigation Bar -->
+<nav class="admin-navbar">
+    <div class="admin-nav-content">
+        <div class="admin-brand">
+            <span class="pig-icon">🐷</span>
+            <span class="brand-text">PiggyPro - ADMIN</span>
+        </div>
+
+        <div class="admin-nav-buttons">
+            <NavLink href="/admin/dashboard" class="admin-nav-btn">
+                Admin Dashboard
+            </NavLink>
+            <NavLink href="/admin/users" class="admin-nav-btn" Match="NavLinkMatch.All">
+                User Management
+            </NavLink>
+            <NavLink href="/admin/analytics" class="admin-nav-btn">
+                System Analytics
+            </NavLink>
+
+            <a href="/Account/Logout" class="admin-nav-btn logout-btn">
+                Logout
+            </a>
+        </div>
+    </div>
+</nav>
+
+<div class="admin-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>User Management</h1>
+        <p>View and manage registered users</p>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="loading-spinner">
+            <p>Loading users...</p>
+        </div>
+    }
+    else
+    {
+        <!-- Search and Filter Section -->
+        <div class="search-filter-section">
+            <input type="text"
+                   class="search-input"
+                   placeholder="Search by name or email..."
+                   value="@searchTerm"
+                   @oninput="OnSearchInput" />
+
+            <select class="filter-dropdown" value="@selectedUserFilter" @onchange="OnUserFilterChanged">
+                <option value="all">All Users</option>
+                <option value="active">Active Users</option>
+                <option value="inactive">Inactive Users</option>
+            </select>
+
+            <select class="filter-dropdown" value="@selectedRoleFilter" @onchange="OnRoleFilterChanged">
+                <option value="all">All Roles</option>
+                <option value="administrator">Admin</option>
+                <option value="user">User</option>
+                <option value="manager">Manager</option>
+            </select>
+
+            <button class="search-btn" @onclick="SearchUsers">
+                Search
+            </button>
+
+            @if (HasActiveFilters())
+            {
+                <button class="clear-btn" @onclick="ClearFilters">
+                    Clear Filters
+                </button>
+            }
+        </div>
+       
+        <!-- Users Table -->
+        <div class="table-section">
+            <div class="table-container">
+                @if (filteredUsers.Any())
+                {
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>User ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Registration Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var user in GetPagedUsers())
+                            {
+                                <tr>
+                                    <td>#@user.Id.Substring(0, Math.Min(4, user.Id.Length))</td>
+                                    <td>@user.UserName</td>
+                                    <td>@user.Email</td>
+                                    <td>
+                                        @if (user.Roles.Any())
+                                        {
+                                            <span class="role-badge">@string.Join(", ", user.Roles)</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">User</span>
+                                        }
+                                    </td>
+                                    <td>@user.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                    <td>
+                                        <span class="status-badge @(user.IsActive ? "active" : "inactive")">
+                                            @(user.IsActive ? "Active" : "Inactive")
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="action-btn view-btn" @onclick="() => ViewUser(user.Id)">
+                                                View
+                                            </button>
+                                            <button class="action-btn edit-btn" @onclick="() => EditUser(user.Id)">
+                                                Edit
+                                            </button>
+                                            @if (IsAdminUser(user))
+                                            {
+                                                <button class="action-btn protected-btn" disabled>
+                                                    Protected
+                                                </button>
+                                            }
+                                            else if (user.IsActive)
+                                            {
+                                                <button class="action-btn deactivate-btn" @onclick="() => DeactivateUser(user.Id)">
+                                                    Deactivate
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button class="action-btn activate-btn" @onclick="() => ActivateUser(user.Id)">
+                                                    Activate
+                                                </button>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+
+                    <!-- Pagination Info and Controls -->
+                    <div class="pagination-container">
+                        <div class="pagination-info">
+                            Showing @GetDisplayRange() of @filteredUsers.Count users (Page @currentPage of @totalPages)
+                        </div>
+
+                        <div class="pagination">
+                            <button class="page-btn"
+                                    @onclick="@(() => ChangePage(currentPage - 1))"
+                                    disabled="@(currentPage <= 1)"
+                                    style="cursor: pointer;">
+                                Previous
+                            </button>
+
+                            <button class="page-number @(currentPage == 1 ? "active" : "")"
+                                    @onclick="@(() => ChangePage(1))"
+                                    style="cursor: pointer;">
+                                1
+                            </button>
+
+                            @if (totalPages >= 2)
+                            {
+                                <button class="page-number @(currentPage == 2 ? "active" : "")"
+                                        @onclick="@(() => ChangePage(2))"
+                                        style="cursor: pointer;">
+                                    2
+                                </button>
+                            }
+
+                            @if (totalPages >= 3)
+                            {
+                                <button class="page-number @(currentPage == 3 ? "active" : "")"
+                                        @onclick="@(() => ChangePage(3))"
+                                        style="cursor: pointer;">
+                                    3
+                                </button>
+                            }
+
+                            <button class="page-btn"
+                                    @onclick="@(() => ChangePage(currentPage + 1))"
+                                    disabled="@(currentPage >= totalPages)"
+                                    style="cursor: pointer;">
+                                Next
+                            </button>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="no-data">
+                        <p>@GetNoDataMessage()</p>
+                        @if (HasActiveFilters())
+                        {
+                            <button class="clear-btn" @onclick="ClearFilters">Clear Filters</button>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Feature Notes -->
+        <div class="feature-notes">
+            <p>→ Complete user list with search and filter capabilities</p>
+            <p>→ View detailed user information, edit profiles, activate/deactivate accounts</p>
+            <p>→ Admin accounts are protected from accidental deactivation</p>
+            <p>→ Role-based display (User vs Admin)</p>
+        </div>
+    }
+</div>
+
+@code {
+    private bool isLoading = true;
+    private List<UserDto> allUsers = new();
+    private List<UserDto> filteredUsers = new();
+    private string searchTerm = "";
+    private string selectedUserFilter = "all";
+    private string selectedRoleFilter = "all";
+    private int currentPage = 1;
+    private int pageSize = 4;
+    private int totalPages => filteredUsers.Count == 0 ? 1 : (int)Math.Ceiling(filteredUsers.Count / (double)pageSize);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+
+        try
+        {
+            var userManagement = await AdminService.GetUsersAsync(1, 1000, "");
+            allUsers = userManagement.Users;
+
+            Console.WriteLine($"✅ Loaded {allUsers.Count} total users");
+
+            ApplyFilters();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Error loading users: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void OnSearchInput(ChangeEventArgs e)
+    {
+        searchTerm = e.Value?.ToString() ?? "";
+        Console.WriteLine($"🔍 Search input changed: '{searchTerm}'");
+        ApplyFilters();
+    }
+
+    private void ApplyFilters()
+    {
+        Console.WriteLine("=== APPLYING FILTERS ===");
+
+        var filtered = allUsers.AsEnumerable();
+
+        // Apply search filter
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var search = searchTerm.Trim();
+            filtered = filtered.Where(u =>
+                (u.UserName?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (u.Email?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false));
+
+            Console.WriteLine($"  Search '{searchTerm}': {filtered.Count()} results");
+        }
+
+        // Apply status filter
+        if (selectedUserFilter != "all")
+        {
+            filtered = filtered.Where(u =>
+                selectedUserFilter == "active" ? u.IsActive : !u.IsActive);
+
+            Console.WriteLine($"  Status '{selectedUserFilter}': {filtered.Count()} results");
+        }
+
+        // Apply role filter
+        if (selectedRoleFilter != "all")
+        {
+            filtered = filtered.Where(u =>
+                u.Roles.Any(r => r.Equals(selectedRoleFilter, StringComparison.OrdinalIgnoreCase)));
+
+            Console.WriteLine($"  Role '{selectedRoleFilter}': {filtered.Count()} results");
+        }
+
+        filteredUsers = filtered.ToList();
+
+        Console.WriteLine($"✅ Final: {filteredUsers.Count} users, {totalPages} pages");
+
+        // Reset to page 1 when filters change
+        currentPage = 1;
+
+        StateHasChanged();
+    }
+
+    private void SearchUsers()
+    {
+        Console.WriteLine($"🔍 Search button clicked");
+        ApplyFilters();
+    }
+
+    private void OnUserFilterChanged(ChangeEventArgs e)
+    {
+        selectedUserFilter = e.Value?.ToString() ?? "all";
+        Console.WriteLine($"📊 User filter: {selectedUserFilter}");
+        ApplyFilters();
+    }
+
+    private void OnRoleFilterChanged(ChangeEventArgs e)
+    {
+        selectedRoleFilter = e.Value?.ToString() ?? "all";
+        Console.WriteLine($"👥 Role filter: {selectedRoleFilter}");
+        ApplyFilters();
+    }
+
+    private void ClearFilters()
+    {
+        Console.WriteLine("🗑️ Clearing filters");
+        searchTerm = "";
+        selectedUserFilter = "all";
+        selectedRoleFilter = "all";
+        ApplyFilters();
+    }
+
+    private bool HasActiveFilters()
+    {
+        return !string.IsNullOrWhiteSpace(searchTerm) ||
+               selectedUserFilter != "all" ||
+               selectedRoleFilter != "all";
+    }
+
+    private string GetNoDataMessage()
+    {
+        if (HasActiveFilters())
+        {
+            return "No users found matching your search criteria.";
+        }
+        return "No users found in the system.";
+    }
+
+    private void ChangePage(int page)
+    {
+        // Simple validation
+        if (page < 1 || page > totalPages)
+        {
+            return;
+        }
+
+        // Just set the page
+        currentPage = page;
+    }
+
+    private List<UserDto> GetPagedUsers()
+    {
+        var skip = (currentPage - 1) * pageSize;
+        return filteredUsers.Skip(skip).Take(pageSize).ToList();
+    }
+
+    private string GetDisplayRange()
+    {
+        if (filteredUsers.Count == 0) return "0";
+
+        var start = (currentPage - 1) * pageSize + 1;
+        var end = Math.Min(currentPage * pageSize, filteredUsers.Count);
+        return $"{start}-{end}";
+    }
+
+    private bool IsAdminUser(UserDto user)
+    {
+        return user.Roles.Any(r =>
+            r.Equals("Admin", StringComparison.OrdinalIgnoreCase) ||
+            r.Equals("ADIMINISTRATOR", StringComparison.OrdinalIgnoreCase) ||
+            r.Equals("Administrator", StringComparison.OrdinalIgnoreCase));
+    }
+
+    private void ViewUser(string userId)
+    {
+        Console.WriteLine($"👁️ View user: {userId}");
+        NavigationManager.NavigateTo($"/admin/users/view/{userId}");
+    }
+
+    private void EditUser(string userId)
+    {
+        Console.WriteLine($"✏️ Edit user: {userId}");
+        NavigationManager.NavigateTo($"/admin/users/edit/{userId}");
+    }
+
+    private async Task DeactivateUser(string userId)
+    {
+        Console.WriteLine($"🚫 Deactivate user: {userId}");
+        // TODO: Implement
+    }
+
+    private async Task ActivateUser(string userId)
+    {
+        Console.WriteLine($"✅ Activate user: {userId}");
+        // TODO: Implement
+    }
+}

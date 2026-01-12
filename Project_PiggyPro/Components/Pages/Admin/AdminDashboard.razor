@@ -1,11 +1,12 @@
 ﻿@page "/admin/dashboard"
+@rendermode InteractiveServer
 @layout AdminLayout
 @attribute [Authorize(Roles = "Administrator")]
 @using Microsoft.AspNetCore.Authorization
 @using Project_PiggyPro.Components.Layout
 @using Project_PiggyPro.Services
 @inject AdminService AdminService
-@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Admin Dashboard - PiggyPro</PageTitle>
 
@@ -16,7 +17,7 @@
             <span class="pig-icon">🐷</span>
             <span class="brand-text">PiggyPro - ADMIN</span>
         </div>
-        
+
         <div class="admin-nav-buttons">
             <NavLink href="/admin/dashboard" class="admin-nav-btn" Match="NavLinkMatch.All">
                 Admin Dashboard
@@ -27,12 +28,10 @@
             <NavLink href="/admin/analytics" class="admin-nav-btn">
                 System Analytics
             </NavLink>
-            <form action="Account/Logout" method="post">
-                <AntiforgeryToken />
-                <button type="submit" class="admin-nav-btn logout-btn">
-                    Logout
-                </button>
-            </form>
+
+            <a href="/Account/Logout" class="admin-nav-btn logout-btn">
+                Logout
+            </a>
         </div>
     </div>
 </nav>
@@ -47,110 +46,102 @@
     @if (isLoading)
     {
         <div class="loading-spinner">
-            <p>Loading dashboard data...</p>
+            <p>Loading dashboard...</p>
         </div>
     }
     else
     {
         <!-- Statistics Cards -->
         <div class="stats-grid">
-            <!-- Total Users Card -->
+            <!-- Total Users -->
             <div class="stat-card">
-                <h3 class="stat-title">Total Users</h3>
-                <div class="stat-value">@totalUsers.ToString("N0")</div>
-                <p class="stat-change positive">↑ @newUsersThisWeek new this week</p>
+                <h3 class="stat-title">TOTAL USERS</h3>
+                <div class="stat-value">@totalUsers</div>
+                <p class="stat-subtitle">↑ @newUsersThisWeek new this week</p>
             </div>
 
-            <!-- Active Users Card -->
+            <!-- Active Users -->
             <div class="stat-card">
-                <h3 class="stat-title">Active Users (Today)</h3>
+                <h3 class="stat-title">ACTIVE USERS (TODAY)</h3>
                 <div class="stat-value">@activeUsersToday</div>
                 <p class="stat-subtitle">@activeUsersPercentage% of total</p>
             </div>
 
-            <!-- Total Transactions Card -->
+            <!-- Total Transactions -->
             <div class="stat-card">
-                <h3 class="stat-title">Total Transactions</h3>
-                <div class="stat-value">@totalTransactions.ToString("N0")</div>
+                <h3 class="stat-title">TOTAL TRANSACTIONS</h3>
+                <div class="stat-value">@totalTransactions</div>
                 <p class="stat-subtitle">Across all users</p>
             </div>
 
-            <!-- System Status Card -->
+            <!-- System Status -->
             <div class="stat-card">
-                <h3 class="stat-title">System Status</h3>
+                <h3 class="stat-title">SYSTEM STATUS</h3>
                 <div class="status-badge @(systemStatus.IsHealthy ? "healthy" : "unhealthy")">
-                    @systemStatus.Message
+                    @(systemStatus.IsHealthy ? "HEALTHY" : "UNHEALTHY")
                 </div>
+                @if (!string.IsNullOrEmpty(systemStatus.Message))
+                {
+                    <p class="stat-subtitle">@systemStatus.Message</p>
+                }
             </div>
         </div>
 
         <!-- Charts Section -->
-        <div class="charts-section">
+        <div class="charts-grid">
             <!-- User Growth Chart -->
-            <div class="chart-container">
-                <h2 class="section-title">User Growth</h2>
-                <div class="chart-placeholder">
-                    <p class="chart-label">[Line Chart: User Registration Over Time]</p>
-                    <p class="chart-info">Total Users: @totalUsers</p>
+            <div class="chart-card">
+                <h2 class="chart-title">User Growth</h2>
+                <div class="chart-container">
+                    <canvas id="userGrowthChart"></canvas>
                 </div>
+                <p class="chart-info">Total Users: @totalUsers</p>
             </div>
 
             <!-- User Activity Chart -->
-            <div class="chart-container small">
-                <h2 class="section-title">User Activity</h2>
-                <div class="chart-placeholder">
-                    <p class="chart-label">[Pie Chart: Active vs Inactive Users]</p>
-                    <p class="chart-info">Active: @activeUsersToday / @totalUsers</p>
+            <div class="chart-card">
+                <h2 class="chart-title">User Activity</h2>
+                <div class="chart-container">
+                    <canvas id="userActivityChart"></canvas>
                 </div>
+                <p class="chart-info">Active: @userActivityData.ActiveUsers / @totalUsers</p>
             </div>
         </div>
 
-        <!-- Recent User Registrations Table -->
+        <!-- Recent Users Table -->
         <div class="table-section">
-            <h2 class="section-title">Recent User Registrations</h2>
-            
-            <div class="table-container">
-                @if (recentUsers.Any())
-                {
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>User ID</th>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Registration Date</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var user in recentUsers)
-                            {
-                                <tr>
-                                    <td>#@user.Id.Substring(0, 8)</td>
-                                    <td>@user.UserName</td>
-                                    <td>@user.Email</td>
-                                    <td>@user.CreatedAt.ToString("MMM dd, yyyy")</td>
-                                    <td>
-                                        <span class="badge @(user.IsActive ? "active" : "inactive")">
-                                            @(user.IsActive ? "Active" : "Inactive")
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <button class="action-btn" @onclick="() => ViewUser(user.Id)">
-                                            View
-                                        </button>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                }
-                else
-                {
-                    <p class="no-data">No users found.</p>
-                }
-            </div>
+            <h2 class="section-title">Recent Registrations</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>User ID</th>
+                        <th>Email</th>
+                        <th>Username</th>
+                        <th>Registration Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in recentUsers)
+                    {
+                        <tr>
+                            <td>#@user.Id.Substring(0, 8)</td>
+                            <td>@user.Email</td>
+                            <td>@user.UserName</td>
+                            <td>@user.CreatedAt.ToString("MMM dd, yyyy")</td>
+                            <td>
+                                <span class="badge @(user.IsActive ? "active" : "inactive")">
+                                    @(user.IsActive ? "Active" : "Inactive")
+                                </span>
+                            </td>
+                            <td>
+                                <button class="action-btn" @onclick="() => ViewUser(user.Id)">View</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
     }
 </div>
@@ -160,50 +151,206 @@
     private int totalUsers = 0;
     private int newUsersThisWeek = 0;
     private int activeUsersToday = 0;
-    private decimal activeUsersPercentage = 0;
+    private int activeUsersPercentage = 0;
     private int totalTransactions = 0;
-    private SystemStatus systemStatus = new() { IsHealthy = true, Message = "HEALTHY" };
+    private SystemStatus systemStatus = new();
     private List<RecentUserDto> recentUsers = new();
+    private UserGrowthData userGrowthData = new();
+    private UserActivityData userActivityData = new();
 
     protected override async Task OnInitializedAsync()
     {
         await LoadDashboardData();
     }
+    private bool chartsRendered = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!isLoading && !chartsRendered)
+        {
+            chartsRendered = true;
+            await RenderCharts();
+        }
+    }
+
 
     private async Task LoadDashboardData()
     {
         isLoading = true;
-        
+
         try
         {
-            // Load all statistics
+            // Load all dashboard data
             totalUsers = await AdminService.GetTotalUsersAsync();
             newUsersThisWeek = await AdminService.GetNewUsersThisWeekAsync();
             activeUsersToday = await AdminService.GetActiveUsersTodayAsync();
-            activeUsersPercentage = await AdminService.GetActiveUsersPercentageAsync();
             totalTransactions = await AdminService.GetTotalTransactionsAsync();
             systemStatus = await AdminService.GetSystemStatusAsync();
-            recentUsers = await AdminService.GetRecentUsersAsync(10);
+            recentUsers = await AdminService.GetRecentUsersAsync(5);
+            userGrowthData = await AdminService.GetUserGrowthDataAsync(7);
+            userActivityData = await AdminService.GetUserActivityDataAsync();
+
+            // Calculate percentage
+            activeUsersPercentage = totalUsers > 0
+                ? (int)Math.Round((double)activeUsersToday / totalUsers * 100)
+                : 0;
+
+            Console.WriteLine($"✅ Dashboard loaded: {totalUsers} users, {activeUsersToday} active");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading dashboard data: {ex.Message}");
-            systemStatus = new SystemStatus 
-            { 
-                IsHealthy = false, 
-                Message = "ERROR",
-                ErrorMessage = ex.Message 
-            };
+            Console.WriteLine($"❌ Error loading dashboard: {ex.Message}");
         }
         finally
         {
             isLoading = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task RenderCharts()
+    {
+        try
+        {
+            Console.WriteLine("🎨 Starting to render charts...");
+
+            // Add a small delay to ensure DOM is ready
+            await Task.Delay(500);
+
+            // Check if Chart.js is loaded
+            var chartExists = await JSRuntime.InvokeAsync<bool>("eval", "typeof Chart !== 'undefined'");
+            Console.WriteLine($"Chart.js loaded: {chartExists}");
+
+            if (!chartExists)
+            {
+                Console.WriteLine("❌ Chart.js not loaded!");
+                return;
+            }
+
+            Console.WriteLine($"📊 Rendering line chart with {userGrowthData.Data.Count} data points");
+
+            // Render User Growth Chart (Line Chart)
+            await JSRuntime.InvokeVoidAsync("chartHelpers.createLineChart",
+                "userGrowthChart",
+                userGrowthData.Labels.ToArray(),
+                userGrowthData.Data.ToArray(),
+                "New Users");
+
+            Console.WriteLine($"🥧 Rendering pie chart: Active={userActivityData.ActiveUsers}, Inactive={userActivityData.InactiveUsers}");
+
+            // Render User Activity Chart (Pie Chart)
+            await JSRuntime.InvokeVoidAsync("chartHelpers.createPieChart",
+                "userActivityChart",
+                new[] { "Active Users", "Inactive Users" },
+                new[] { userActivityData.ActiveUsers, userActivityData.InactiveUsers },
+                new[] { "#10b981", "#ef4444" });
+
+            Console.WriteLine("✅ Charts rendered successfully");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Error rendering charts: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
         }
     }
 
     private void ViewUser(string userId)
     {
-        // Navigate to user detail page
-        NavigationManager.NavigateTo($"/admin/users/{userId}");
+        Console.WriteLine($"View user: {userId}");
+        // TODO: Navigate to user detail page
     }
 }
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    window.chartHelpers = {
+        createLineChart: function (canvasId, labels, data, label) {
+            console.log('Creating line chart:', canvasId);
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) {
+                console.error('Canvas not found:', canvasId);
+                return;
+            }
+
+            const ctx = canvas.getContext('2d');
+
+            if (canvas.chart) {
+                canvas.chart.destroy();
+            }
+
+            canvas.chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: label,
+                        data: data,
+                        borderColor: '#333',
+                        backgroundColor: 'rgba(51, 51, 51, 0.1)',
+                        tension: 0.3,
+                        fill: true,
+                        pointBackgroundColor: '#333',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+            console.log('Line chart created successfully');
+        },
+
+        createPieChart: function (canvasId, labels, data, colors) {
+            console.log('Creating pie chart:', canvasId);
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) {
+                console.error('Canvas not found:', canvasId);
+                return;
+            }
+
+            const ctx = canvas.getContext('2d');
+
+            if (canvas.chart) {
+                canvas.chart.destroy();
+            }
+
+            canvas.chart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors,
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+            console.log('Pie chart created successfully');
+        }
+    };
+</script>
