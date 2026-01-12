@@ -10,7 +10,7 @@
         public decimal NeedsPercentage { get; set; } = 50;
         public decimal WantsPercentage { get; set; } = 30;
         public decimal SavingsPercentage { get; set; } = 20;
-        public int AppUserId { get; set; }
+        public string AppUserId { get; set; } = string.Empty;
         public int CategoryId { get; set; }
     }
 

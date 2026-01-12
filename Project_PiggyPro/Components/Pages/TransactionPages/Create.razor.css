@@ -1,0 +1,196 @@
+﻿/* Transaction Create Page Styles */
+
+.transaction-create-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.page-header {
+    margin-bottom: 2rem;
+}
+
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+.subtitle {
+    color: #666;
+    font-size: 1rem;
+}
+
+.transaction-form-card {
+    background: white;
+    border: 2px solid #333;
+    border-radius: 8px;
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label-custom {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #333;
+    font-size: 1rem;
+}
+
+/* Transaction Type Toggle */
+.type-toggle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.type-btn {
+    padding: 1rem;
+    border: 2px solid #333;
+    background: white;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #333;
+}
+
+    .type-btn:hover {
+        background: #f8f8f8;
+    }
+
+    .type-btn.active.income {
+        background: #2e7d32 !important;
+        color: white !important;
+        border-color: #2e7d32 !important;
+    }
+
+    .type-btn.active.expense {
+        background: #c62828 !important;
+        color: white !important;
+        border-color: #c62828 !important;
+    }
+
+/* Form Controls */
+.form-control-custom {
+    width: 100%;
+    padding: 0.875rem;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+    .form-control-custom:focus {
+        outline: none;
+        border-color: #333;
+    }
+
+    .form-control-custom.textarea {
+        resize: vertical;
+        min-height: 100px;
+        font-family: inherit;
+    }
+
+/* Form Actions */
+.form-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.btn-save {
+    padding: 1rem;
+    background: #333;
+    color: white;
+    border: 2px solid #333;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+    .btn-save:hover {
+        background: #555;
+        border-color: #555;
+    }
+
+.btn-cancel {
+    padding: 1rem;
+    background: white;
+    color: #333;
+    border: 2px solid #333;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+    .btn-cancel:hover {
+        background: #f8f8f8;
+    }
+
+/* Quick Tips */
+.quick-tips {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+    .quick-tips h4 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #333;
+    }
+
+    .quick-tips ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .quick-tips li {
+        padding: 0.5rem 0;
+        color: #666;
+        font-size: 0.95rem;
+    }
+
+        .quick-tips li:before {
+            content: "✓ ";
+            color: #2e7d32;
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+
+/* Validation */
+::deep .text-danger {
+    color: #c62828;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .transaction-create-container {
+        padding: 1rem;
+    }
+
+    .transaction-form-card {
+        padding: 1.5rem;
+    }
+
+    .form-actions {
+        grid-template-columns: 1fr;
+    }
+}

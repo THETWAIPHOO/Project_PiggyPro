@@ -12,8 +12,8 @@ using Project_PiggyPro.Data;
 namespace Project_PiggyPro.Migrations
 {
     [DbContext(typeof(Project_PiggyProContext))]
-    [Migration("20260107020048_SeedUserRole2")]
-    partial class SeedUserRole2
+    [Migration("20260112065442_AddFirstLastNameToUser")]
+    partial class AddFirstLastNameToUser
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -191,6 +191,9 @@ namespace Project_PiggyPro.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
@@ -199,9 +202,14 @@ namespace Project_PiggyPro.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("FirstName")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("LastLoginDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("LastName")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("LockoutEnabled")
@@ -254,7 +262,8 @@ namespace Project_PiggyPro.Migrations
                         {
                             Id = "3781efa7-66dc-47f0-860f-e506d04102e4",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "95d7a980-b215-4607-a640-2920ecd57ee3",
+                            ConcurrencyStamp = "4fdcc62c-6845-4697-887d-5be13312f972",
+                            CreatedAt = new DateTime(2026, 1, 12, 6, 54, 42, 81, DateTimeKind.Utc).AddTicks(4929),
                             Email = "admin@localhost.com",
                             EmailConfirmed = true,
                             FirstName = "Admin",
@@ -262,9 +271,9 @@ namespace Project_PiggyPro.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@LOCALHOST.COM",
                             NormalizedUserName = "ADMIN@LOCALHOST.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEG2pdmL066VX3q8FqdzcMEHt4MOobhF3a/3JwVSIJ7Q9i6yxrv3v1OIVR/t0Sm9arA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEK+Vv29AIVnpbq0sSZyccH9k5kSZtkJ1z0nIUzORikHTOKzY9tiiRdvxGwiyVZvGhQ==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "66d9a487-59d1-4388-85da-7fa028316d2e",
+                            SecurityStamp = "720b3e5f-7f50-440f-935f-b27f5b37addd",
                             TwoFactorEnabled = false,
                             UserName = "admin@localhost.com"
                         });
@@ -278,8 +287,9 @@ namespace Project_PiggyPro.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AppUserId")
-                        .HasColumnType("int");
+                    b.Property<string>("AppUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<double>("BudgetAmount")
                         .HasColumnType("float");
@@ -334,6 +344,9 @@ namespace Project_PiggyPro.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AppUserId")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("CategoryName")
                         .HasColumnType("nvarchar(max)");
 
@@ -366,8 +379,8 @@ namespace Project_PiggyPro.Migrations
                             CategoryName = "Housing & Rent",
                             CategoryType = "Expense",
                             CreatedBy = "System",
-                            DateCreated = new DateTime(2026, 1, 7, 10, 0, 47, 19, DateTimeKind.Local).AddTicks(8251),
-                            DateUpdated = new DateTime(2026, 1, 7, 10, 0, 47, 19, DateTimeKind.Local).AddTicks(8262),
+                            DateCreated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4359),
+                            DateUpdated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4382),
                             IsSystemCategory = true,
                             UpdatedBy = "System"
                         },
@@ -377,8 +390,8 @@ namespace Project_PiggyPro.Migrations
                             CategoryName = "Groceries",
                             CategoryType = "Expense",
                             CreatedBy = "System",
-                            DateCreated = new DateTime(2026, 1, 7, 10, 0, 47, 19, DateTimeKind.Local).AddTicks(8265),
-                            DateUpdated = new DateTime(2026, 1, 7, 10, 0, 47, 19, DateTimeKind.Local).AddTicks(8265),
+                            DateCreated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4385),
+                            DateUpdated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4385),
                             IsSystemCategory = true,
                             UpdatedBy = "System"
                         },
@@ -388,8 +401,8 @@ namespace Project_PiggyPro.Migrations
                             CategoryName = "Utilities",
                             CategoryType = "Expense",
                             CreatedBy = "System",
-                            DateCreated = new DateTime(2026, 1, 7, 10, 0, 47, 19, DateTimeKind.Local).AddTicks(8267),
-                            DateUpdated = new DateTime(2026, 1, 7, 10, 0, 47, 19, DateTimeKind.Local).AddTicks(8268),
+                            DateCreated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4387),
+                            DateUpdated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4387),
                             IsSystemCategory = true,
                             UpdatedBy = "System"
                         },
@@ -399,8 +412,8 @@ namespace Project_PiggyPro.Migrations
                             CategoryName = "Transportation",
                             CategoryType = "Expense",
                             CreatedBy = "System",
-                            DateCreated = new DateTime(2026, 1, 7, 10, 0, 47, 19, DateTimeKind.Local).AddTicks(8269),
-                            DateUpdated = new DateTime(2026, 1, 7, 10, 0, 47, 19, DateTimeKind.Local).AddTicks(8269),
+                            DateCreated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4388),
+                            DateUpdated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4389),
                             IsSystemCategory = true,
                             UpdatedBy = "System"
                         },
@@ -410,8 +423,8 @@ namespace Project_PiggyPro.Migrations
                             CategoryName = "Healthcare",
                             CategoryType = "Expense",
                             CreatedBy = "System",
-                            DateCreated = new DateTime(2026, 1, 7, 10, 0, 47, 19, DateTimeKind.Local).AddTicks(8271),
-                            DateUpdated = new DateTime(2026, 1, 7, 10, 0, 47, 19, DateTimeKind.Local).AddTicks(8271),
+                            DateCreated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4390),
+                            DateUpdated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4391),
                             IsSystemCategory = true,
                             UpdatedBy = "System"
                         },
@@ -421,8 +434,8 @@ namespace Project_PiggyPro.Migrations
                             CategoryName = "Dining Out",
                             CategoryType = "Expense",
                             CreatedBy = "System",
-                            DateCreated = new DateTime(2026, 1, 7, 10, 0, 47, 19, DateTimeKind.Local).AddTicks(8272),
-                            DateUpdated = new DateTime(2026, 1, 7, 10, 0, 47, 19, DateTimeKind.Local).AddTicks(8273),
+                            DateCreated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4392),
+                            DateUpdated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4392),
                             IsSystemCategory = true,
                             UpdatedBy = "System"
                         },
@@ -432,8 +445,8 @@ namespace Project_PiggyPro.Migrations
                             CategoryName = "Entertainment",
                             CategoryType = "Expense",
                             CreatedBy = "System",
-                            DateCreated = new DateTime(2026, 1, 7, 10, 0, 47, 19, DateTimeKind.Local).AddTicks(8274),
-                            DateUpdated = new DateTime(2026, 1, 7, 10, 0, 47, 19, DateTimeKind.Local).AddTicks(8274),
+                            DateCreated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4393),
+                            DateUpdated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4394),
                             IsSystemCategory = true,
                             UpdatedBy = "System"
                         },
@@ -443,8 +456,8 @@ namespace Project_PiggyPro.Migrations
                             CategoryName = "Shopping",
                             CategoryType = "Expense",
                             CreatedBy = "System",
-                            DateCreated = new DateTime(2026, 1, 7, 10, 0, 47, 19, DateTimeKind.Local).AddTicks(8275),
-                            DateUpdated = new DateTime(2026, 1, 7, 10, 0, 47, 19, DateTimeKind.Local).AddTicks(8276),
+                            DateCreated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4395),
+                            DateUpdated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4396),
                             IsSystemCategory = true,
                             UpdatedBy = "System"
                         },
@@ -454,8 +467,8 @@ namespace Project_PiggyPro.Migrations
                             CategoryName = "Hobbies",
                             CategoryType = "Expense",
                             CreatedBy = "System",
-                            DateCreated = new DateTime(2026, 1, 7, 10, 0, 47, 19, DateTimeKind.Local).AddTicks(8277),
-                            DateUpdated = new DateTime(2026, 1, 7, 10, 0, 47, 19, DateTimeKind.Local).AddTicks(8277),
+                            DateCreated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4397),
+                            DateUpdated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4397),
                             IsSystemCategory = true,
                             UpdatedBy = "System"
                         },
@@ -465,8 +478,8 @@ namespace Project_PiggyPro.Migrations
                             CategoryName = "Savings",
                             CategoryType = "Expense",
                             CreatedBy = "System",
-                            DateCreated = new DateTime(2026, 1, 7, 10, 0, 47, 19, DateTimeKind.Local).AddTicks(8279),
-                            DateUpdated = new DateTime(2026, 1, 7, 10, 0, 47, 19, DateTimeKind.Local).AddTicks(8279),
+                            DateCreated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4399),
+                            DateUpdated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4399),
                             IsSystemCategory = true,
                             UpdatedBy = "System"
                         },
@@ -476,8 +489,8 @@ namespace Project_PiggyPro.Migrations
                             CategoryName = "Investments",
                             CategoryType = "Expense",
                             CreatedBy = "System",
-                            DateCreated = new DateTime(2026, 1, 7, 10, 0, 47, 19, DateTimeKind.Local).AddTicks(8280),
-                            DateUpdated = new DateTime(2026, 1, 7, 10, 0, 47, 19, DateTimeKind.Local).AddTicks(8281),
+                            DateCreated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4400),
+                            DateUpdated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4401),
                             IsSystemCategory = true,
                             UpdatedBy = "System"
                         },
@@ -487,8 +500,8 @@ namespace Project_PiggyPro.Migrations
                             CategoryName = "Emergency Fund",
                             CategoryType = "Expense",
                             CreatedBy = "System",
-                            DateCreated = new DateTime(2026, 1, 7, 10, 0, 47, 19, DateTimeKind.Local).AddTicks(8282),
-                            DateUpdated = new DateTime(2026, 1, 7, 10, 0, 47, 19, DateTimeKind.Local).AddTicks(8282),
+                            DateCreated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4402),
+                            DateUpdated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4403),
                             IsSystemCategory = true,
                             UpdatedBy = "System"
                         },
@@ -498,8 +511,8 @@ namespace Project_PiggyPro.Migrations
                             CategoryName = "Other Expenses",
                             CategoryType = "Expense",
                             CreatedBy = "System",
-                            DateCreated = new DateTime(2026, 1, 7, 10, 0, 47, 19, DateTimeKind.Local).AddTicks(8283),
-                            DateUpdated = new DateTime(2026, 1, 7, 10, 0, 47, 19, DateTimeKind.Local).AddTicks(8284),
+                            DateCreated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4404),
+                            DateUpdated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4404),
                             IsSystemCategory = true,
                             UpdatedBy = "System"
                         },
@@ -509,8 +522,8 @@ namespace Project_PiggyPro.Migrations
                             CategoryName = "Salary",
                             CategoryType = "Income",
                             CreatedBy = "System",
-                            DateCreated = new DateTime(2026, 1, 7, 10, 0, 47, 19, DateTimeKind.Local).AddTicks(8285),
-                            DateUpdated = new DateTime(2026, 1, 7, 10, 0, 47, 19, DateTimeKind.Local).AddTicks(8285),
+                            DateCreated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4405),
+                            DateUpdated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4406),
                             IsSystemCategory = true,
                             UpdatedBy = "System"
                         },
@@ -520,8 +533,8 @@ namespace Project_PiggyPro.Migrations
                             CategoryName = "Freelance",
                             CategoryType = "Income",
                             CreatedBy = "System",
-                            DateCreated = new DateTime(2026, 1, 7, 10, 0, 47, 19, DateTimeKind.Local).AddTicks(8287),
-                            DateUpdated = new DateTime(2026, 1, 7, 10, 0, 47, 19, DateTimeKind.Local).AddTicks(8287),
+                            DateCreated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4407),
+                            DateUpdated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4408),
                             IsSystemCategory = true,
                             UpdatedBy = "System"
                         },
@@ -531,8 +544,8 @@ namespace Project_PiggyPro.Migrations
                             CategoryName = "Investment Income",
                             CategoryType = "Income",
                             CreatedBy = "System",
-                            DateCreated = new DateTime(2026, 1, 7, 10, 0, 47, 19, DateTimeKind.Local).AddTicks(8288),
-                            DateUpdated = new DateTime(2026, 1, 7, 10, 0, 47, 19, DateTimeKind.Local).AddTicks(8289),
+                            DateCreated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4409),
+                            DateUpdated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4409),
                             IsSystemCategory = true,
                             UpdatedBy = "System"
                         },
@@ -542,8 +555,8 @@ namespace Project_PiggyPro.Migrations
                             CategoryName = "Gift/Bonus",
                             CategoryType = "Income",
                             CreatedBy = "System",
-                            DateCreated = new DateTime(2026, 1, 7, 10, 0, 47, 19, DateTimeKind.Local).AddTicks(8290),
-                            DateUpdated = new DateTime(2026, 1, 7, 10, 0, 47, 19, DateTimeKind.Local).AddTicks(8290),
+                            DateCreated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4411),
+                            DateUpdated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4411),
                             IsSystemCategory = true,
                             UpdatedBy = "System"
                         },
@@ -553,8 +566,8 @@ namespace Project_PiggyPro.Migrations
                             CategoryName = "Other Income",
                             CategoryType = "Income",
                             CreatedBy = "System",
-                            DateCreated = new DateTime(2026, 1, 7, 10, 0, 47, 19, DateTimeKind.Local).AddTicks(8291),
-                            DateUpdated = new DateTime(2026, 1, 7, 10, 0, 47, 19, DateTimeKind.Local).AddTicks(8292),
+                            DateCreated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4412),
+                            DateUpdated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4413),
                             IsSystemCategory = true,
                             UpdatedBy = "System"
                         });
@@ -568,8 +581,9 @@ namespace Project_PiggyPro.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AppUserId")
-                        .HasColumnType("int");
+                    b.Property<string>("AppUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");
@@ -611,8 +625,9 @@ namespace Project_PiggyPro.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AppUserId")
-                        .HasColumnType("int");
+                    b.Property<string>("AppUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");
@@ -651,8 +666,9 @@ namespace Project_PiggyPro.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("AppUserId")
-                        .HasColumnType("int");
+                    b.Property<string>("AppUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");

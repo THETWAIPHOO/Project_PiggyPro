@@ -7,7 +7,7 @@ namespace Project_PiggyPro.Data
     {
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? LastLoginDate { get; set; }
-        public string? FirstName { get; set; }
-        public string? LastName { get; set; }
+        public string FirstName { get; set; } = "";
+        public string LastName { get; set; } = "";
     }
 }

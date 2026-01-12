@@ -7,7 +7,7 @@
         public decimal CurrentAmount { get; set; }
         public DateTime TargetDate { get; set; }
         public string? GoalStatus { get; set; }
-        public int AppUserId { get; set; }
+        public string AppUserId { get; set; } = string.Empty;
 
     }
     

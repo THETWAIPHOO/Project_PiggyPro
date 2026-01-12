@@ -1,6 +1,10 @@
-﻿@page "/User/UserDashboard"
+﻿
+<!-- Your dashboard content -->
+@page "/User/UserDashboard"
+@layout UserLayout
 @attribute [Authorize]
 @using Microsoft.AspNetCore.Authorization
+@using Project_PiggyPro.Components.Layout
 @using Project_PiggyPro.Configurations.Entities
 @using Project_PiggyPro.Data
 @using Microsoft.EntityFrameworkCore
@@ -101,10 +105,13 @@
             </tbody>
         </table>
     }
-    else
-    {
-        <p class="text-muted">No transactions yet. <a href="/transactions/create">Add your first transaction</a></p>
-    }
+else
+{
+    <p class="text-muted">
+        No transactions yet.
+        <a href="/transactions/create">Add your first transaction</a>
+    </p>
+}
 </div>
 
 @code {
@@ -133,14 +140,20 @@
     private async Task GetCurrentUser()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
+        var claimsUser = authState.User;
 
-        if (user.Identity?.IsAuthenticated == true)
+        if (claimsUser.Identity?.IsAuthenticated == true)
         {
-            currentUserId = UserManager.GetUserId(user);
-            userName = user.Identity.Name ?? "User";
+            var user = await UserManager.GetUserAsync(claimsUser);
+
+            if (user != null)
+            {
+                currentUserId = user.Id;
+                userName = $"{user.FirstName} {user.LastName}";
+            }
         }
     }
+
 
     private async Task LoadDashboardData()
     {

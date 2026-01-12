@@ -23,720 +23,729 @@ namespace Project_PiggyPro.Migrations
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
-            {
-                b.Property<string>("Id")
-                    .HasColumnType("nvarchar(450)");
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
 
-                b.Property<string>("ConcurrencyStamp")
-                    .IsConcurrencyToken()
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<string>("Name")
-                    .HasMaxLength(256)
-                    .HasColumnType("nvarchar(256)");
+                    b.Property<string>("Name")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
-                b.Property<string>("NormalizedName")
-                    .HasMaxLength(256)
-                    .HasColumnType("nvarchar(256)");
+                    b.Property<string>("NormalizedName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
-                b.HasKey("Id");
+                    b.HasKey("Id");
 
-                b.HasIndex("NormalizedName")
-                    .IsUnique()
-                    .HasDatabaseName("RoleNameIndex")
-                    .HasFilter("[NormalizedName] IS NOT NULL");
+                    b.HasIndex("NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("RoleNameIndex")
+                        .HasFilter("[NormalizedName] IS NOT NULL");
 
-                b.ToTable("AspNetRoles", (string)null);
+                    b.ToTable("AspNetRoles", (string)null);
 
-                b.HasData(
-                    new
-                    {
-                        Id = "ad2bcf0c-20db-474f-8407-5a6b159518ba",
-                        Name = "Administrator",
-                        NormalizedName = "ADMINISTRATOR"
-                    },
-                    new
-                    {
-                        Id = "bd2bcf0c-20db-474f-8407-5a6b159518bb",
-                        Name = "User",
-                        NormalizedName = "USER"
-                    });
-            });
+                    b.HasData(
+                        new
+                        {
+                            Id = "ad2bcf0c-20db-474f-8407-5a6b159518ba",
+                            Name = "Administrator",
+                            NormalizedName = "ADMINISTRATOR"
+                        },
+                        new
+                        {
+                            Id = "bd2bcf0c-20db-474f-8407-5a6b159518bb",
+                            Name = "User",
+                            NormalizedName = "USER"
+                        });
+                });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
-            {
-                b.Property<int>("Id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("int");
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
 
-                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                b.Property<string>("ClaimType")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<string>("ClaimValue")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<string>("RoleId")
-                    .IsRequired()
-                    .HasColumnType("nvarchar(450)");
+                    b.Property<string>("RoleId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
-                b.HasKey("Id");
+                    b.HasKey("Id");
 
-                b.HasIndex("RoleId");
+                    b.HasIndex("RoleId");
 
-                b.ToTable("AspNetRoleClaims", (string)null);
-            });
+                    b.ToTable("AspNetRoleClaims", (string)null);
+                });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
-            {
-                b.Property<int>("Id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("int");
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
 
-                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                b.Property<string>("ClaimType")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<string>("ClaimValue")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<string>("UserId")
-                    .IsRequired()
-                    .HasColumnType("nvarchar(450)");
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
-                b.HasKey("Id");
+                    b.HasKey("Id");
 
-                b.HasIndex("UserId");
+                    b.HasIndex("UserId");
 
-                b.ToTable("AspNetUserClaims", (string)null);
-            });
+                    b.ToTable("AspNetUserClaims", (string)null);
+                });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
-            {
-                b.Property<string>("LoginProvider")
-                    .HasColumnType("nvarchar(450)");
+                {
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("nvarchar(450)");
 
-                b.Property<string>("ProviderKey")
-                    .HasColumnType("nvarchar(450)");
+                    b.Property<string>("ProviderKey")
+                        .HasColumnType("nvarchar(450)");
 
-                b.Property<string>("ProviderDisplayName")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("ProviderDisplayName")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<string>("UserId")
-                    .IsRequired()
-                    .HasColumnType("nvarchar(450)");
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
-                b.HasKey("LoginProvider", "ProviderKey");
+                    b.HasKey("LoginProvider", "ProviderKey");
 
-                b.HasIndex("UserId");
+                    b.HasIndex("UserId");
 
-                b.ToTable("AspNetUserLogins", (string)null);
-            });
+                    b.ToTable("AspNetUserLogins", (string)null);
+                });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
-            {
-                b.Property<string>("UserId")
-                    .HasColumnType("nvarchar(450)");
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
 
-                b.Property<string>("RoleId")
-                    .HasColumnType("nvarchar(450)");
+                    b.Property<string>("RoleId")
+                        .HasColumnType("nvarchar(450)");
 
-                b.HasKey("UserId", "RoleId");
+                    b.HasKey("UserId", "RoleId");
 
-                b.HasIndex("RoleId");
+                    b.HasIndex("RoleId");
 
-                b.ToTable("AspNetUserRoles", (string)null);
+                    b.ToTable("AspNetUserRoles", (string)null);
 
-                b.HasData(
-                    new
-                    {
-                        UserId = "3781efa7-66dc-47f0-860f-e506d04102e4",
-                        RoleId = "ad2bcf0c-20db-474f-8407-5a6b159518ba"
-                    });
-            });
+                    b.HasData(
+                        new
+                        {
+                            UserId = "3781efa7-66dc-47f0-860f-e506d04102e4",
+                            RoleId = "ad2bcf0c-20db-474f-8407-5a6b159518ba"
+                        });
+                });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
-            {
-                b.Property<string>("UserId")
-                    .HasColumnType("nvarchar(450)");
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
 
-                b.Property<string>("LoginProvider")
-                    .HasColumnType("nvarchar(450)");
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("nvarchar(450)");
 
-                b.Property<string>("Name")
-                    .HasColumnType("nvarchar(450)");
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(450)");
 
-                b.Property<string>("Value")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("Value")
+                        .HasColumnType("nvarchar(max)");
 
-                b.HasKey("UserId", "LoginProvider", "Name");
+                    b.HasKey("UserId", "LoginProvider", "Name");
 
-                b.ToTable("AspNetUserTokens", (string)null);
-            });
+                    b.ToTable("AspNetUserTokens", (string)null);
+                });
 
             modelBuilder.Entity("Project_PiggyPro.Data.Project_PiggyProUser", b =>
-            {
-                b.Property<string>("Id")
-                    .HasColumnType("nvarchar(450)");
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
 
-                b.Property<int>("AccessFailedCount")
-                    .HasColumnType("int");
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("int");
 
-                b.Property<string>("ConcurrencyStamp")
-                    .IsConcurrencyToken()
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<DateTime>("CreatedAt")
-                    .HasColumnType("datetime2");
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
-                b.Property<string>("Email")
-                    .HasMaxLength(256)
-                    .HasColumnType("nvarchar(256)");
+                    b.Property<string>("Email")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
-                b.Property<bool>("EmailConfirmed")
-                    .HasColumnType("bit");
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("bit");
 
-                b.Property<string>("FirstName")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<DateTime?>("LastLoginDate")
-                    .HasColumnType("datetime2");
+                    b.Property<DateTime?>("LastLoginDate")
+                        .HasColumnType("datetime2");
 
-                b.Property<string>("LastName")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<bool>("LockoutEnabled")
-                    .HasColumnType("bit");
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("bit");
 
-                b.Property<DateTimeOffset?>("LockoutEnd")
-                    .HasColumnType("datetimeoffset");
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("datetimeoffset");
 
-                b.Property<string>("NormalizedEmail")
-                    .HasMaxLength(256)
-                    .HasColumnType("nvarchar(256)");
+                    b.Property<string>("NormalizedEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
-                b.Property<string>("NormalizedUserName")
-                    .HasMaxLength(256)
-                    .HasColumnType("nvarchar(256)");
+                    b.Property<string>("NormalizedUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
-                b.Property<string>("PasswordHash")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<string>("PhoneNumber")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<bool>("PhoneNumberConfirmed")
-                    .HasColumnType("bit");
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("bit");
 
-                b.Property<string>("SecurityStamp")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("SecurityStamp")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<bool>("TwoFactorEnabled")
-                    .HasColumnType("bit");
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("bit");
 
-                b.Property<string>("UserName")
-                    .HasMaxLength(256)
-                    .HasColumnType("nvarchar(256)");
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
-                b.HasKey("Id");
+                    b.HasKey("Id");
 
-                b.HasIndex("NormalizedEmail")
-                    .HasDatabaseName("EmailIndex");
+                    b.HasIndex("NormalizedEmail")
+                        .HasDatabaseName("EmailIndex");
 
-                b.HasIndex("NormalizedUserName")
-                    .IsUnique()
-                    .HasDatabaseName("UserNameIndex")
-                    .HasFilter("[NormalizedUserName] IS NOT NULL");
+                    b.HasIndex("NormalizedUserName")
+                        .IsUnique()
+                        .HasDatabaseName("UserNameIndex")
+                        .HasFilter("[NormalizedUserName] IS NOT NULL");
 
-                b.ToTable("AspNetUsers", (string)null);
+                    b.ToTable("AspNetUsers", (string)null);
 
-                b.HasData(
-                    new
-                    {
-                        Id = "3781efa7-66dc-47f0-860f-e506d04102e4",
-                        AccessFailedCount = 0,
-                        ConcurrencyStamp = "8366f3e8-b608-4874-ab39-159826ae5669",
-                        CreatedAt = new DateTime(2026, 1, 7, 10, 51, 24, 387, DateTimeKind.Utc).AddTicks(6280),
-                        Email = "admin@localhost.com",
-                        EmailConfirmed = true,
-                        FirstName = "Admin",
-                        LastName = "User",
-                        LockoutEnabled = false,
-                        NormalizedEmail = "ADMIN@LOCALHOST.COM",
-                        NormalizedUserName = "ADMIN@LOCALHOST.COM",
-                        PasswordHash = "AQAAAAIAAYagAAAAEKZpaXREeC2bMc3WwOjapIievdj95g5kmm3dbFCALjCFOlCGbKlMS4yDxIj6n9BkPg==",
-                        PhoneNumberConfirmed = false,
-                        SecurityStamp = "53a25a4c-3950-4409-8863-9dd718d0681b",
-                        TwoFactorEnabled = false,
-                        UserName = "admin@localhost.com"
-                    });
-            });
+                    b.HasData(
+                        new
+                        {
+                            Id = "3781efa7-66dc-47f0-860f-e506d04102e4",
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "4fdcc62c-6845-4697-887d-5be13312f972",
+                            CreatedAt = new DateTime(2026, 1, 12, 6, 54, 42, 81, DateTimeKind.Utc).AddTicks(4929),
+                            Email = "admin@localhost.com",
+                            EmailConfirmed = true,
+                            FirstName = "Admin",
+                            LastName = "User",
+                            LockoutEnabled = false,
+                            NormalizedEmail = "ADMIN@LOCALHOST.COM",
+                            NormalizedUserName = "ADMIN@LOCALHOST.COM",
+                            PasswordHash = "AQAAAAIAAYagAAAAEK+Vv29AIVnpbq0sSZyccH9k5kSZtkJ1z0nIUzORikHTOKzY9tiiRdvxGwiyVZvGhQ==",
+                            PhoneNumberConfirmed = false,
+                            SecurityStamp = "720b3e5f-7f50-440f-935f-b27f5b37addd",
+                            TwoFactorEnabled = false,
+                            UserName = "admin@localhost.com"
+                        });
+                });
 
             modelBuilder.Entity("Project_PiggyPro.Domain.Budget", b =>
-            {
-                b.Property<int>("Id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("int");
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
 
-                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                b.Property<int>("AppUserId")
-                    .HasColumnType("int");
+                    b.Property<string>("AppUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<double>("BudgetAmount")
-                    .HasColumnType("float");
+                    b.Property<double>("BudgetAmount")
+                        .HasColumnType("float");
 
-                b.Property<string>("BudgetPeriod")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("BudgetPeriod")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<int>("CategoryId")
-                    .HasColumnType("int");
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int");
 
-                b.Property<string>("CreatedBy")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<DateTime>("DateCreated")
-                    .HasColumnType("datetime2");
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("datetime2");
 
-                b.Property<DateTime>("DateUpdated")
-                    .HasColumnType("datetime2");
+                    b.Property<DateTime>("DateUpdated")
+                        .HasColumnType("datetime2");
 
-                b.Property<DateTime>("EndDate")
-                    .HasColumnType("datetime2");
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
 
-                b.Property<decimal>("NeedsPercentage")
-                    .HasColumnType("decimal(18,2)");
+                    b.Property<decimal>("NeedsPercentage")
+                        .HasColumnType("decimal(18,2)");
 
-                b.Property<string>("RuleName")
-                    .IsRequired()
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("RuleName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<decimal>("SavingsPercentage")
-                    .HasColumnType("decimal(18,2)");
+                    b.Property<decimal>("SavingsPercentage")
+                        .HasColumnType("decimal(18,2)");
 
-                b.Property<DateTime>("StartDate")
-                    .HasColumnType("datetime2");
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
 
-                b.Property<string>("UpdatedBy")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<decimal>("WantsPercentage")
-                    .HasColumnType("decimal(18,2)");
+                    b.Property<decimal>("WantsPercentage")
+                        .HasColumnType("decimal(18,2)");
 
-                b.HasKey("Id");
+                    b.HasKey("Id");
 
-                b.ToTable("Budget");
-            });
+                    b.ToTable("Budget");
+                });
 
             modelBuilder.Entity("Project_PiggyPro.Domain.Category", b =>
-            {
-                b.Property<int>("Id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("int");
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
 
-                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                b.Property<string>("CategoryName")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("AppUserId")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<string>("CategoryType")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("CategoryName")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<string>("CreatedBy")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("CategoryType")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<DateTime>("DateCreated")
-                    .HasColumnType("datetime2");
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<DateTime>("DateUpdated")
-                    .HasColumnType("datetime2");
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("datetime2");
 
-                b.Property<bool>("IsSystemCategory")
-                    .HasColumnType("bit");
+                    b.Property<DateTime>("DateUpdated")
+                        .HasColumnType("datetime2");
 
-                b.Property<string>("UpdatedBy")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<bool>("IsSystemCategory")
+                        .HasColumnType("bit");
 
-                b.HasKey("Id");
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
 
-                b.ToTable("Category");
+                    b.HasKey("Id");
 
-                b.HasData(
-                    new
-                    {
-                        Id = 1,
-                        CategoryName = "Housing & Rent",
-                        CategoryType = "Expense",
-                        CreatedBy = "System",
-                        DateCreated = new DateTime(2026, 1, 7, 18, 51, 24, 387, DateTimeKind.Local).AddTicks(5928),
-                        DateUpdated = new DateTime(2026, 1, 7, 18, 51, 24, 387, DateTimeKind.Local).AddTicks(5941),
-                        IsSystemCategory = true,
-                        UpdatedBy = "System"
-                    },
-                    new
-                    {
-                        Id = 2,
-                        CategoryName = "Groceries",
-                        CategoryType = "Expense",
-                        CreatedBy = "System",
-                        DateCreated = new DateTime(2026, 1, 7, 18, 51, 24, 387, DateTimeKind.Local).AddTicks(5943),
-                        DateUpdated = new DateTime(2026, 1, 7, 18, 51, 24, 387, DateTimeKind.Local).AddTicks(5944),
-                        IsSystemCategory = true,
-                        UpdatedBy = "System"
-                    },
-                    new
-                    {
-                        Id = 3,
-                        CategoryName = "Utilities",
-                        CategoryType = "Expense",
-                        CreatedBy = "System",
-                        DateCreated = new DateTime(2026, 1, 7, 18, 51, 24, 387, DateTimeKind.Local).AddTicks(5945),
-                        DateUpdated = new DateTime(2026, 1, 7, 18, 51, 24, 387, DateTimeKind.Local).AddTicks(5946),
-                        IsSystemCategory = true,
-                        UpdatedBy = "System"
-                    },
-                    new
-                    {
-                        Id = 4,
-                        CategoryName = "Transportation",
-                        CategoryType = "Expense",
-                        CreatedBy = "System",
-                        DateCreated = new DateTime(2026, 1, 7, 18, 51, 24, 387, DateTimeKind.Local).AddTicks(5947),
-                        DateUpdated = new DateTime(2026, 1, 7, 18, 51, 24, 387, DateTimeKind.Local).AddTicks(5948),
-                        IsSystemCategory = true,
-                        UpdatedBy = "System"
-                    },
-                    new
-                    {
-                        Id = 5,
-                        CategoryName = "Healthcare",
-                        CategoryType = "Expense",
-                        CreatedBy = "System",
-                        DateCreated = new DateTime(2026, 1, 7, 18, 51, 24, 387, DateTimeKind.Local).AddTicks(5949),
-                        DateUpdated = new DateTime(2026, 1, 7, 18, 51, 24, 387, DateTimeKind.Local).AddTicks(5949),
-                        IsSystemCategory = true,
-                        UpdatedBy = "System"
-                    },
-                    new
-                    {
-                        Id = 6,
-                        CategoryName = "Dining Out",
-                        CategoryType = "Expense",
-                        CreatedBy = "System",
-                        DateCreated = new DateTime(2026, 1, 7, 18, 51, 24, 387, DateTimeKind.Local).AddTicks(5951),
-                        DateUpdated = new DateTime(2026, 1, 7, 18, 51, 24, 387, DateTimeKind.Local).AddTicks(5951),
-                        IsSystemCategory = true,
-                        UpdatedBy = "System"
-                    },
-                    new
-                    {
-                        Id = 7,
-                        CategoryName = "Entertainment",
-                        CategoryType = "Expense",
-                        CreatedBy = "System",
-                        DateCreated = new DateTime(2026, 1, 7, 18, 51, 24, 387, DateTimeKind.Local).AddTicks(5952),
-                        DateUpdated = new DateTime(2026, 1, 7, 18, 51, 24, 387, DateTimeKind.Local).AddTicks(5953),
-                        IsSystemCategory = true,
-                        UpdatedBy = "System"
-                    },
-                    new
-                    {
-                        Id = 8,
-                        CategoryName = "Shopping",
-                        CategoryType = "Expense",
-                        CreatedBy = "System",
-                        DateCreated = new DateTime(2026, 1, 7, 18, 51, 24, 387, DateTimeKind.Local).AddTicks(5954),
-                        DateUpdated = new DateTime(2026, 1, 7, 18, 51, 24, 387, DateTimeKind.Local).AddTicks(5954),
-                        IsSystemCategory = true,
-                        UpdatedBy = "System"
-                    },
-                    new
-                    {
-                        Id = 9,
-                        CategoryName = "Hobbies",
-                        CategoryType = "Expense",
-                        CreatedBy = "System",
-                        DateCreated = new DateTime(2026, 1, 7, 18, 51, 24, 387, DateTimeKind.Local).AddTicks(5956),
-                        DateUpdated = new DateTime(2026, 1, 7, 18, 51, 24, 387, DateTimeKind.Local).AddTicks(5956),
-                        IsSystemCategory = true,
-                        UpdatedBy = "System"
-                    },
-                    new
-                    {
-                        Id = 10,
-                        CategoryName = "Savings",
-                        CategoryType = "Expense",
-                        CreatedBy = "System",
-                        DateCreated = new DateTime(2026, 1, 7, 18, 51, 24, 387, DateTimeKind.Local).AddTicks(5957),
-                        DateUpdated = new DateTime(2026, 1, 7, 18, 51, 24, 387, DateTimeKind.Local).AddTicks(5958),
-                        IsSystemCategory = true,
-                        UpdatedBy = "System"
-                    },
-                    new
-                    {
-                        Id = 11,
-                        CategoryName = "Investments",
-                        CategoryType = "Expense",
-                        CreatedBy = "System",
-                        DateCreated = new DateTime(2026, 1, 7, 18, 51, 24, 387, DateTimeKind.Local).AddTicks(5959),
-                        DateUpdated = new DateTime(2026, 1, 7, 18, 51, 24, 387, DateTimeKind.Local).AddTicks(5959),
-                        IsSystemCategory = true,
-                        UpdatedBy = "System"
-                    },
-                    new
-                    {
-                        Id = 12,
-                        CategoryName = "Emergency Fund",
-                        CategoryType = "Expense",
-                        CreatedBy = "System",
-                        DateCreated = new DateTime(2026, 1, 7, 18, 51, 24, 387, DateTimeKind.Local).AddTicks(5960),
-                        DateUpdated = new DateTime(2026, 1, 7, 18, 51, 24, 387, DateTimeKind.Local).AddTicks(5961),
-                        IsSystemCategory = true,
-                        UpdatedBy = "System"
-                    },
-                    new
-                    {
-                        Id = 13,
-                        CategoryName = "Other Expenses",
-                        CategoryType = "Expense",
-                        CreatedBy = "System",
-                        DateCreated = new DateTime(2026, 1, 7, 18, 51, 24, 387, DateTimeKind.Local).AddTicks(5962),
-                        DateUpdated = new DateTime(2026, 1, 7, 18, 51, 24, 387, DateTimeKind.Local).AddTicks(5962),
-                        IsSystemCategory = true,
-                        UpdatedBy = "System"
-                    },
-                    new
-                    {
-                        Id = 14,
-                        CategoryName = "Salary",
-                        CategoryType = "Income",
-                        CreatedBy = "System",
-                        DateCreated = new DateTime(2026, 1, 7, 18, 51, 24, 387, DateTimeKind.Local).AddTicks(5964),
-                        DateUpdated = new DateTime(2026, 1, 7, 18, 51, 24, 387, DateTimeKind.Local).AddTicks(5964),
-                        IsSystemCategory = true,
-                        UpdatedBy = "System"
-                    },
-                    new
-                    {
-                        Id = 15,
-                        CategoryName = "Freelance",
-                        CategoryType = "Income",
-                        CreatedBy = "System",
-                        DateCreated = new DateTime(2026, 1, 7, 18, 51, 24, 387, DateTimeKind.Local).AddTicks(5965),
-                        DateUpdated = new DateTime(2026, 1, 7, 18, 51, 24, 387, DateTimeKind.Local).AddTicks(5966),
-                        IsSystemCategory = true,
-                        UpdatedBy = "System"
-                    },
-                    new
-                    {
-                        Id = 16,
-                        CategoryName = "Investment Income",
-                        CategoryType = "Income",
-                        CreatedBy = "System",
-                        DateCreated = new DateTime(2026, 1, 7, 18, 51, 24, 387, DateTimeKind.Local).AddTicks(5967),
-                        DateUpdated = new DateTime(2026, 1, 7, 18, 51, 24, 387, DateTimeKind.Local).AddTicks(5967),
-                        IsSystemCategory = true,
-                        UpdatedBy = "System"
-                    },
-                    new
-                    {
-                        Id = 17,
-                        CategoryName = "Gift/Bonus",
-                        CategoryType = "Income",
-                        CreatedBy = "System",
-                        DateCreated = new DateTime(2026, 1, 7, 18, 51, 24, 387, DateTimeKind.Local).AddTicks(5968),
-                        DateUpdated = new DateTime(2026, 1, 7, 18, 51, 24, 387, DateTimeKind.Local).AddTicks(5969),
-                        IsSystemCategory = true,
-                        UpdatedBy = "System"
-                    },
-                    new
-                    {
-                        Id = 18,
-                        CategoryName = "Other Income",
-                        CategoryType = "Income",
-                        CreatedBy = "System",
-                        DateCreated = new DateTime(2026, 1, 7, 18, 51, 24, 387, DateTimeKind.Local).AddTicks(5970),
-                        DateUpdated = new DateTime(2026, 1, 7, 18, 51, 24, 387, DateTimeKind.Local).AddTicks(5970),
-                        IsSystemCategory = true,
-                        UpdatedBy = "System"
-                    });
-            });
+                    b.ToTable("Category");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CategoryName = "Housing & Rent",
+                            CategoryType = "Expense",
+                            CreatedBy = "System",
+                            DateCreated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4359),
+                            DateUpdated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4382),
+                            IsSystemCategory = true,
+                            UpdatedBy = "System"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CategoryName = "Groceries",
+                            CategoryType = "Expense",
+                            CreatedBy = "System",
+                            DateCreated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4385),
+                            DateUpdated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4385),
+                            IsSystemCategory = true,
+                            UpdatedBy = "System"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CategoryName = "Utilities",
+                            CategoryType = "Expense",
+                            CreatedBy = "System",
+                            DateCreated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4387),
+                            DateUpdated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4387),
+                            IsSystemCategory = true,
+                            UpdatedBy = "System"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CategoryName = "Transportation",
+                            CategoryType = "Expense",
+                            CreatedBy = "System",
+                            DateCreated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4388),
+                            DateUpdated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4389),
+                            IsSystemCategory = true,
+                            UpdatedBy = "System"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            CategoryName = "Healthcare",
+                            CategoryType = "Expense",
+                            CreatedBy = "System",
+                            DateCreated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4390),
+                            DateUpdated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4391),
+                            IsSystemCategory = true,
+                            UpdatedBy = "System"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            CategoryName = "Dining Out",
+                            CategoryType = "Expense",
+                            CreatedBy = "System",
+                            DateCreated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4392),
+                            DateUpdated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4392),
+                            IsSystemCategory = true,
+                            UpdatedBy = "System"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            CategoryName = "Entertainment",
+                            CategoryType = "Expense",
+                            CreatedBy = "System",
+                            DateCreated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4393),
+                            DateUpdated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4394),
+                            IsSystemCategory = true,
+                            UpdatedBy = "System"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            CategoryName = "Shopping",
+                            CategoryType = "Expense",
+                            CreatedBy = "System",
+                            DateCreated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4395),
+                            DateUpdated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4396),
+                            IsSystemCategory = true,
+                            UpdatedBy = "System"
+                        },
+                        new
+                        {
+                            Id = 9,
+                            CategoryName = "Hobbies",
+                            CategoryType = "Expense",
+                            CreatedBy = "System",
+                            DateCreated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4397),
+                            DateUpdated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4397),
+                            IsSystemCategory = true,
+                            UpdatedBy = "System"
+                        },
+                        new
+                        {
+                            Id = 10,
+                            CategoryName = "Savings",
+                            CategoryType = "Expense",
+                            CreatedBy = "System",
+                            DateCreated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4399),
+                            DateUpdated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4399),
+                            IsSystemCategory = true,
+                            UpdatedBy = "System"
+                        },
+                        new
+                        {
+                            Id = 11,
+                            CategoryName = "Investments",
+                            CategoryType = "Expense",
+                            CreatedBy = "System",
+                            DateCreated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4400),
+                            DateUpdated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4401),
+                            IsSystemCategory = true,
+                            UpdatedBy = "System"
+                        },
+                        new
+                        {
+                            Id = 12,
+                            CategoryName = "Emergency Fund",
+                            CategoryType = "Expense",
+                            CreatedBy = "System",
+                            DateCreated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4402),
+                            DateUpdated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4403),
+                            IsSystemCategory = true,
+                            UpdatedBy = "System"
+                        },
+                        new
+                        {
+                            Id = 13,
+                            CategoryName = "Other Expenses",
+                            CategoryType = "Expense",
+                            CreatedBy = "System",
+                            DateCreated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4404),
+                            DateUpdated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4404),
+                            IsSystemCategory = true,
+                            UpdatedBy = "System"
+                        },
+                        new
+                        {
+                            Id = 14,
+                            CategoryName = "Salary",
+                            CategoryType = "Income",
+                            CreatedBy = "System",
+                            DateCreated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4405),
+                            DateUpdated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4406),
+                            IsSystemCategory = true,
+                            UpdatedBy = "System"
+                        },
+                        new
+                        {
+                            Id = 15,
+                            CategoryName = "Freelance",
+                            CategoryType = "Income",
+                            CreatedBy = "System",
+                            DateCreated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4407),
+                            DateUpdated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4408),
+                            IsSystemCategory = true,
+                            UpdatedBy = "System"
+                        },
+                        new
+                        {
+                            Id = 16,
+                            CategoryName = "Investment Income",
+                            CategoryType = "Income",
+                            CreatedBy = "System",
+                            DateCreated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4409),
+                            DateUpdated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4409),
+                            IsSystemCategory = true,
+                            UpdatedBy = "System"
+                        },
+                        new
+                        {
+                            Id = 17,
+                            CategoryName = "Gift/Bonus",
+                            CategoryType = "Income",
+                            CreatedBy = "System",
+                            DateCreated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4411),
+                            DateUpdated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4411),
+                            IsSystemCategory = true,
+                            UpdatedBy = "System"
+                        },
+                        new
+                        {
+                            Id = 18,
+                            CategoryName = "Other Income",
+                            CategoryType = "Income",
+                            CreatedBy = "System",
+                            DateCreated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4412),
+                            DateUpdated = new DateTime(2026, 1, 12, 14, 54, 42, 81, DateTimeKind.Local).AddTicks(4413),
+                            IsSystemCategory = true,
+                            UpdatedBy = "System"
+                        });
+                });
 
             modelBuilder.Entity("Project_PiggyPro.Domain.Goal", b =>
-            {
-                b.Property<int>("Id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("int");
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
 
-                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                b.Property<int>("AppUserId")
-                    .HasColumnType("int");
+                    b.Property<string>("AppUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<string>("CreatedBy")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<decimal>("CurrentAmount")
-                    .HasColumnType("decimal(18,2)");
+                    b.Property<decimal>("CurrentAmount")
+                        .HasColumnType("decimal(18,2)");
 
-                b.Property<DateTime>("DateCreated")
-                    .HasColumnType("datetime2");
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("datetime2");
 
-                b.Property<DateTime>("DateUpdated")
-                    .HasColumnType("datetime2");
+                    b.Property<DateTime>("DateUpdated")
+                        .HasColumnType("datetime2");
 
-                b.Property<string>("GoalName")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("GoalName")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<string>("GoalStatus")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("GoalStatus")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<decimal>("TargetAmount")
-                    .HasColumnType("decimal(18,2)");
+                    b.Property<decimal>("TargetAmount")
+                        .HasColumnType("decimal(18,2)");
 
-                b.Property<DateTime>("TargetDate")
-                    .HasColumnType("datetime2");
+                    b.Property<DateTime>("TargetDate")
+                        .HasColumnType("datetime2");
 
-                b.Property<string>("UpdatedBy")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
 
-                b.HasKey("Id");
+                    b.HasKey("Id");
 
-                b.ToTable("Goal");
-            });
+                    b.ToTable("Goal");
+                });
 
             modelBuilder.Entity("Project_PiggyPro.Domain.Notification", b =>
-            {
-                b.Property<int>("Id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("int");
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
 
-                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                b.Property<int>("AppUserId")
-                    .HasColumnType("int");
+                    b.Property<string>("AppUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<string>("CreatedBy")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<DateTime>("DateCreated")
-                    .HasColumnType("datetime2");
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("datetime2");
 
-                b.Property<DateTime>("DateUpdated")
-                    .HasColumnType("datetime2");
+                    b.Property<DateTime>("DateUpdated")
+                        .HasColumnType("datetime2");
 
-                b.Property<string>("Message")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("Message")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<string>("NotificationType")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("NotificationType")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<string>("Title")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("Title")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<string>("UpdatedBy")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
 
-                b.HasKey("Id");
+                    b.HasKey("Id");
 
-                b.ToTable("Notification");
-            });
+                    b.ToTable("Notification");
+                });
 
             modelBuilder.Entity("Project_PiggyPro.Domain.Transaction", b =>
-            {
-                b.Property<int>("Id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("int");
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
 
-                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                b.Property<decimal>("Amount")
-                    .HasColumnType("decimal(18,2)");
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
 
-                b.Property<int>("AppUserId")
-                    .HasColumnType("int");
+                    b.Property<string>("AppUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<int>("CategoryId")
-                    .HasColumnType("int");
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int");
 
-                b.Property<string>("CreatedBy")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<DateTime>("DateCreated")
-                    .HasColumnType("datetime2");
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("datetime2");
 
-                b.Property<DateTime>("DateUpdated")
-                    .HasColumnType("datetime2");
+                    b.Property<DateTime>("DateUpdated")
+                        .HasColumnType("datetime2");
 
-                b.Property<string>("Description")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<DateTime>("TransactionDate")
-                    .HasColumnType("datetime2");
+                    b.Property<DateTime>("TransactionDate")
+                        .HasColumnType("datetime2");
 
-                b.Property<string>("TransactionType")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("TransactionType")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<string>("UpdatedBy")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
 
-                b.HasKey("Id");
+                    b.HasKey("Id");
 
-                b.ToTable("Transaction");
-            });
+                    b.ToTable("Transaction");
+                });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
-            {
-                b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
-                    .WithMany()
-                    .HasForeignKey("RoleId")
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .IsRequired();
-            });
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
-            {
-                b.HasOne("Project_PiggyPro.Data.Project_PiggyProUser", null)
-                    .WithMany()
-                    .HasForeignKey("UserId")
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .IsRequired();
-            });
+                {
+                    b.HasOne("Project_PiggyPro.Data.Project_PiggyProUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
-            {
-                b.HasOne("Project_PiggyPro.Data.Project_PiggyProUser", null)
-                    .WithMany()
-                    .HasForeignKey("UserId")
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .IsRequired();
-            });
+                {
+                    b.HasOne("Project_PiggyPro.Data.Project_PiggyProUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
-            {
-                b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
-                    .WithMany()
-                    .HasForeignKey("RoleId")
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .IsRequired();
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                b.HasOne("Project_PiggyPro.Data.Project_PiggyProUser", null)
-                    .WithMany()
-                    .HasForeignKey("UserId")
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .IsRequired();
-            });
+                    b.HasOne("Project_PiggyPro.Data.Project_PiggyProUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
-            {
-                b.HasOne("Project_PiggyPro.Data.Project_PiggyProUser", null)
-                    .WithMany()
-                    .HasForeignKey("UserId")
-                    .OnDelete(DeleteBehavior.Cascade)
-                    .IsRequired();
-            });
+                {
+                    b.HasOne("Project_PiggyPro.Data.Project_PiggyProUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
 #pragma warning restore 612, 618
         }
     }

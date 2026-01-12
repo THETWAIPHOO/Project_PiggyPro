@@ -1,89 +1,170 @@
 ﻿@page "/transactions/create"
+@rendermode InteractiveServer
+@layout UserLayout
+@attribute [Authorize]
 @using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Authorization
+@using Project_PiggyPro.Components.Layout
+@using Project_PiggyPro.Data
 @using Project_PiggyPro.Domain
+@using Project_PiggyPro.Configurations.Entities
 @inject IDbContextFactory<Project_PiggyPro.Data.Project_PiggyProContext> DbFactory
+@inject UserManager<Project_PiggyProUser> UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 
-<PageTitle>Create</PageTitle>
+<PageTitle>Add Transaction - PiggyPro</PageTitle>
 
-<h1>Create</h1>
+<div class="transaction-create-container">
+    <div class="page-header">
+        <h1>Add New Transaction</h1>
+        <p class="subtitle">Record your income or expense</p>
+    </div>
 
-<h2>Transaction</h2>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <EditForm method="post" Model="Transaction" OnValidSubmit="AddTransaction" FormName="create" Enhance>
+    <div class="transaction-form-card">
+        <EditForm Model="Transaction" OnValidSubmit="AddTransaction">
             <DataAnnotationsValidator />
-            <ValidationSummary class="text-danger" role="alert"/>
-            <div class="mb-3">
-                <label for="amount" class="form-label">Amount:</label> 
-                <InputNumber id="amount" @bind-Value="Transaction.Amount" class="form-control" /> 
-                <ValidationMessage For="() => Transaction.Amount" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="transactiondate" class="form-label">TransactionDate:</label> 
-                <InputDate id="transactiondate" @bind-Value="Transaction.TransactionDate" class="form-control" /> 
-                <ValidationMessage For="() => Transaction.TransactionDate" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="transactiontype" class="form-label">TransactionType:</label> 
-                <InputText id="transactiontype" @bind-Value="Transaction.TransactionType" class="form-control" /> 
-                <ValidationMessage For="() => Transaction.TransactionType" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="description" class="form-label">Description:</label> 
-                <InputText id="description" @bind-Value="Transaction.Description" class="form-control" /> 
-                <ValidationMessage For="() => Transaction.Description" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="appuserid" class="form-label">AppUserId:</label> 
-                <InputNumber id="appuserid" @bind-Value="Transaction.AppUserId" class="form-control" /> 
-                <ValidationMessage For="() => Transaction.AppUserId" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="categoryid" class="form-label">CategoryId:</label> 
-                <InputNumber id="categoryid" @bind-Value="Transaction.CategoryId" class="form-control" /> 
-                <ValidationMessage For="() => Transaction.CategoryId" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="datecreated" class="form-label">DateCreated:</label> 
-                <InputDate id="datecreated" @bind-Value="Transaction.DateCreated" class="form-control" /> 
-                <ValidationMessage For="() => Transaction.DateCreated" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="dateupdated" class="form-label">DateUpdated:</label> 
-                <InputDate id="dateupdated" @bind-Value="Transaction.DateUpdated" class="form-control" /> 
-                <ValidationMessage For="() => Transaction.DateUpdated" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="createdby" class="form-label">CreatedBy:</label> 
-                <InputText id="createdby" @bind-Value="Transaction.CreatedBy" class="form-control" /> 
-                <ValidationMessage For="() => Transaction.CreatedBy" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="updatedby" class="form-label">UpdatedBy:</label> 
-                <InputText id="updatedby" @bind-Value="Transaction.UpdatedBy" class="form-control" /> 
-                <ValidationMessage For="() => Transaction.UpdatedBy" class="text-danger" /> 
-            </div>        
-            <button type="submit" class="btn btn-primary">Create</button>
+            <ValidationSummary class="text-danger" role="alert" />
+
+            <!-- Transaction Type Toggle -->
+            <div class="form-group">
+                <label class="form-label-custom">Transaction Type</label>
+                <div class="type-toggle">
+                    <button type="button"
+                            class="type-btn @(selectedType == "Income" ? "active income" : "")"
+                            @onclick="@(() => SelectType("Income"))">
+                        Income
+                    </button>
+                    <button type="button"
+                            class="type-btn @(selectedType == "Expense" ? "active expense" : "")"
+                            @onclick="@(() => SelectType("Expense"))">
+                        Expense
+                    </button>
+                </div>
+            </div>
+
+            <!-- Amount -->
+            <div class="form-group">
+                <label for="amount" class="form-label-custom">Amount ($)</label>
+                <InputNumber id="amount" @bind-Value="Transaction.Amount" class="form-control-custom" placeholder="0.00" />
+                <ValidationMessage For="() => Transaction.Amount" class="text-danger" />
+            </div>
+
+            <!-- Category Dropdown -->
+            <div class="form-group">
+                <label for="category" class="form-label-custom">Category</label>
+                <InputSelect id="category" @bind-Value="Transaction.CategoryId" class="form-control-custom">
+                    <option value="0">Select a category...</option>
+                    @foreach (var category in filteredCategories)
+                    {
+                        <option value="@category.Id">@category.CategoryName</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="() => Transaction.CategoryId" class="text-danger" />
+            </div>
+
+            <!-- Date -->
+            <div class="form-group">
+                <label for="date" class="form-label-custom">Date</label>
+                <InputDate id="date" @bind-Value="Transaction.TransactionDate" class="form-control-custom" />
+                <ValidationMessage For="() => Transaction.TransactionDate" class="text-danger" />
+            </div>
+
+            <!-- Description -->
+            <div class="form-group">
+                <label for="description" class="form-label-custom">Description (Optional)</label>
+                <InputTextArea id="description" @bind-Value="Transaction.Description" class="form-control-custom textarea" placeholder="Add notes about this transaction..." rows="4" />
+            </div>
+
+            <!-- Buttons -->
+            <div class="form-actions">
+                <button type="submit" class="btn-save">Save Transaction</button>
+                <button type="button" class="btn-cancel" @onclick="Cancel">Cancel</button>
+            </div>
         </EditForm>
+
+        <!-- Quick Tips -->
+        <div class="quick-tips">
+            <h4>Quick Tips</h4>
+            <ul>
+                <li>Choose the correct transaction type (Income or Expense)</li>
+                <li>Select an appropriate category to track spending patterns</li>
+                <li>Add descriptions for easier future reference</li>
+            </ul>
+        </div>
     </div>
 </div>
 
-<div>
-    <a href="/transactions">Back to List</a>
-</div>
-
 @code {
-    [SupplyParameterFromForm]
     private Transaction Transaction { get; set; } = new();
+    private List<Category> allCategories = new();
+    private List<Category> filteredCategories = new();
+    private string currentUserId = string.Empty;
+    private string selectedType = "Expense";
 
-    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            currentUserId = UserManager.GetUserId(user);
+        }
+
+        Transaction.TransactionDate = DateTime.Today;
+        Transaction.TransactionType = "Expense";
+        selectedType = "Expense";
+
+        using var context = DbFactory.CreateDbContext();
+        allCategories = await context.Category
+            .Where(c => c.IsSystemCategory == true)
+            .OrderBy(c => c.CategoryName)
+            .ToListAsync();
+
+        FilterCategories();
+    }
+
+    private void SelectType(string type)
+    {
+        selectedType = type;
+        Transaction.TransactionType = type;
+        Transaction.CategoryId = 0;
+        FilterCategories();
+    }
+
+    private void FilterCategories()
+    {
+        filteredCategories = allCategories
+            .Where(c => c.CategoryType == selectedType)
+            .ToList();
+    }
+
     private async Task AddTransaction()
     {
+        if (Transaction.CategoryId == 0)
+        {
+            return;
+        }
+
         using var context = DbFactory.CreateDbContext();
+
+        Transaction.AppUserId = currentUserId;
+        Transaction.TransactionType = selectedType;
+        Transaction.CreatedBy = currentUserId;
+        Transaction.UpdatedBy = currentUserId;
+        Transaction.DateCreated = DateTime.Now;
+        Transaction.DateUpdated = DateTime.Now;
+
         context.Transaction.Add(Transaction);
         await context.SaveChangesAsync();
+
+        NavigationManager.NavigateTo("/transactions");
+    }
+
+    private void Cancel()
+    {
         NavigationManager.NavigateTo("/transactions");
     }
 }

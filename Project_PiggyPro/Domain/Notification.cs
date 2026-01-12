@@ -6,7 +6,7 @@
         public string? Message { get; set; }
         public string? NotificationType { get; set; }
 
-        public int AppUserId { get; set; }
+        public string AppUserId { get; set; } = string.Empty;
     }
     
 }

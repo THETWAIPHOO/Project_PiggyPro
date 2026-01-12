@@ -1,18 +1,24 @@
 ﻿@page "/transactions"
+@layout UserLayout
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Components.QuickGrid
+@using Project_PiggyPro.Components.Layout
 @using Project_PiggyPro.Domain
 @using Project_PiggyPro.Data
 @implements IAsyncDisposable
 @inject IDbContextFactory<Project_PiggyPro.Data.Project_PiggyProContext> DbFactory
 
-<PageTitle>Index</PageTitle>
+<PageTitle>Transactions - PiggyPro</PageTitle>
 
-<h1>Index</h1>
+<div class="page-header">
+    <div>
+        <h1>All Transactions</h1>
+        <p class="subtitle">Manage your income and expenses</p>
+    </div>
+    <a href="/transactions/create" class="btn-primary">+ Add Transaction</a>
+</div>
 
-<p>
-    <a href="transactions/create">Create New</a>
-</p>
+
 
 <QuickGrid Class="table" Items="context.Transaction">
     <PropertyColumn Property="transaction => transaction.Amount" />

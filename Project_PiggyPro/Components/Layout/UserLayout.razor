@@ -1,0 +1,75 @@
+﻿@inherits LayoutComponentBase
+@using Microsoft.AspNetCore.Identity
+@using Project_PiggyPro.Data
+@inject UserManager<Project_PiggyProUser> UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<div class="user-dashboard-page">
+    <!-- User Dashboard Navigation -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="/User/UserDashboard" class="navbar-brand">
+                <span class="pig-icon">🐷</span> PiggyPro
+            </a>
+
+            <div class="nav-menu">
+                <NavLink href="/User/UserDashboard" class="nav-btn" Match="NavLinkMatch.All">
+                    Dashboard
+                </NavLink>
+                <NavLink href="/Transactions" class="nav-btn">
+                    Transactions
+                </NavLink>
+                <NavLink href="/BudgetPages" class="nav-btn">
+                    Budget
+                </NavLink>
+                <NavLink href="/GoalPages" class="nav-btn">
+                    Goals
+                </NavLink>
+                <NavLink href="/Reports" class="nav-btn">
+                    Reports
+                </NavLink>
+            </div>
+
+            <AuthorizeView>
+                <Authorized>
+                    <div class="user-section">
+                        <span class="user-name">@fullName</span>
+                        <form method="post" action="/Account/Logout" style="display: inline;">
+                            <button type="submit" class="btn-logout">Logout</button>
+                        </form>
+                    </div>
+                </Authorized>
+            </AuthorizeView>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        @Body
+    </main>
+</div>
+@code {
+    private string fullName = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUserName();
+    }
+
+    private async Task LoadUserName()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var claimsUser = authState.User;
+
+        if (claimsUser.Identity?.IsAuthenticated == true)
+        {
+            var user = await UserManager.GetUserAsync(claimsUser);
+            if (user != null)
+            {
+                fullName = string.IsNullOrWhiteSpace(user.FirstName)
+                ? user.Email!
+                : $"{user.FirstName} {user.LastName}";
+
+            }
+        }
+    }
+}

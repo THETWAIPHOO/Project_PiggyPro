@@ -8,7 +8,7 @@
 
         public string? TransactionType { get; set; }
         public string? Description { get; set; }
-        public int AppUserId { get; set; }
+        public string AppUserId { get; set; } = string.Empty;
         public int CategoryId { get; set; }
     }
 }
