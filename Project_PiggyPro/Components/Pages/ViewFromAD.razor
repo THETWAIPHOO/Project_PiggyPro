@@ -1,0 +1,253 @@
+﻿@page "/admin/users/viewAD/{UserId}"
+@rendermode InteractiveServer
+@layout AdminLayout
+@attribute [Authorize(Roles = "Administrator")]
+@using Microsoft.AspNetCore.Authorization
+@using Project_PiggyPro.Components.Layout
+@using Project_PiggyPro.Services
+@inject AdminService AdminService
+@inject NavigationManager NavigationManager
+
+<PageTitle>View User - PiggyPro</PageTitle>
+
+<!-- Admin Navigation Bar -->
+<nav class="admin-navbar">
+    <div class="admin-nav-content">
+        <div class="admin-brand">
+            <span class="pig-icon">🐷</span>
+            <span class="brand-text">PiggyPro - ADMIN</span>
+        </div>
+
+        <div class="admin-nav-buttons">
+            <NavLink href="/admin/dashboard" class="admin-nav-btn">
+                Admin Dashboard
+            </NavLink>
+            <NavLink href="/admin/users" class="admin-nav-btn">
+                User Management
+            </NavLink>
+            <NavLink href="/admin/analytics" class="admin-nav-btn">
+                System Analytics
+            </NavLink>
+
+            <a href="/Account/Logout" class="admin-nav-btn logout-btn">
+                Logout
+            </a>
+        </div>
+    </div>
+</nav>
+
+<div class="admin-container">
+    <div class="page-header">
+        <h1>User Details</h1>
+        <p>View user information</p>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="loading-spinner">
+            <p>Loading user details...</p>
+        </div>
+    }
+    else if (user == null)
+    {
+        <div class="error-message">
+            <h2>User Not Found</h2>
+            <p>The user you're looking for doesn't exist.</p>
+            <button class="back-btn" @onclick="GoBack">Back to User Management</button>
+        </div>
+    }
+    else
+    {
+        <div class="user-detail-container">
+            <!-- User Info Card -->
+            <div class="detail-card">
+                <h2 class="section-title">User Information</h2>
+
+                <div class="detail-row">
+                    <span class="detail-label">User ID:</span>
+                    <span class="detail-value">#@user.Id.Substring(0, 8)</span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">First Name:</span>
+                    <span class="detail-value">@(string.IsNullOrEmpty(user.FirstName) ? "Not provided" : user.FirstName)</span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Last Name:</span>
+                    <span class="detail-value">@(string.IsNullOrEmpty(user.LastName) ? "Not provided" : user.LastName)</span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Username:</span>
+                    <span class="detail-value">@user.FullName</span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Email:</span>
+                    <span class="detail-value">@user.Email</span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Email Verified:</span>
+                    <span class="detail-value">
+                        @if (user.EmailConfirmed)
+                        {
+                            <span class="badge verified">✓ Verified</span>
+                        }
+                        else
+                        {
+                            <span class="badge unverified">✗ Not Verified</span>
+                        }
+                    </span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Phone Number:</span>
+                    <span class="detail-value">@(string.IsNullOrEmpty(user.PhoneNumber) ? "Not provided" : user.PhoneNumber)</span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Roles:</span>
+                    <span class="detail-value">
+                        @if (user.Roles.Any())
+                        {
+                            foreach (var role in user.Roles)
+                            {
+                                <span class="role-badge">@role</span>
+                            }
+                        }
+                        else
+                        {
+                            <span class="text-muted">No roles assigned</span>
+                        }
+                    </span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Registration Date:</span>
+                    <span class="detail-value">@user.CreatedAt.ToString("MMMM dd, yyyy 'at' hh:mm tt")</span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Last Login:</span>
+                    <span class="detail-value">
+                        @if (user.LastLoginDate.HasValue)
+                        {
+                            @user.LastLoginDate.Value.ToString("MMMM dd, yyyy 'at' hh:mm tt")
+                        }
+                        else
+                        {
+                            <span class="text-muted">Never logged in</span>
+                        }
+                    </span>
+                </div>
+            </div>
+
+            <!-- Actions Card -->
+            <div class="actions-card">
+                <h2 class="section-title">Actions</h2>
+
+                <button class="action-button edit" @onclick="EditUser">
+                    <span class="bi bi-pencil"></span> Edit User
+                </button>
+
+                @if (IsAdminUser())
+                {
+                    <button class="action-button protected" disabled>
+                        <span class="bi bi-shield-lock"></span> Protected Account
+                    </button>
+                }
+                else
+                {
+                    @if (IsActive())
+                    {
+                        <button class="action-button deactivate" @onclick="ToggleStatus">
+                            <span class="bi bi-x-circle"></span> Deactivate User
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="action-button activate" @onclick="ToggleStatus">
+                            <span class="bi bi-check-circle"></span> Activate User
+                        </button>
+                    }
+                }
+
+                <button class="action-button back" @onclick="GoBack">
+                    <span class="bi bi-arrow-left"></span> Back to List
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string UserId { get; set; } = "";
+
+    private bool isLoading = true;
+    private UserDetailDto? user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUserDetails();
+    }
+
+    private async Task LoadUserDetails()
+    {
+        isLoading = true;
+
+        try
+        {
+            user = await AdminService.GetUserByIdAsync(UserId);
+            Console.WriteLine($"✓ Loaded user: {user?.Email}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"✗ Error loading user: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private bool IsAdminUser()
+    {
+        return user?.Roles.Any(r =>
+            r.Equals("Administrator", StringComparison.OrdinalIgnoreCase)) ?? false;
+    }
+
+    private bool IsActive()
+    {
+        return user?.LastLoginDate >= DateTime.UtcNow.AddDays(-30);
+    }
+
+    private async Task ToggleStatus()
+    {
+        if (user == null) return;
+
+        var success = await AdminService.ToggleUserActiveStatusAsync(UserId);
+
+        if (success)
+        {
+            Console.WriteLine("✓ User status toggled");
+            await LoadUserDetails(); // Reload to show updated status
+        }
+        else
+        {
+            Console.WriteLine("✗ Failed to toggle user status");
+        }
+    }
+
+    private void EditUser()
+    {
+        NavigationManager.NavigateTo($"/admin/users/edit/{UserId}");
+    }
+
+    private void GoBack()
+    {
+        NavigationManager.NavigateTo("/admin/dashboard");
+    }
+}

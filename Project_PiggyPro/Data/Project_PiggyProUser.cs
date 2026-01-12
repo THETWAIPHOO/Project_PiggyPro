@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Project_PiggyPro.Data
 {
@@ -9,5 +10,9 @@ namespace Project_PiggyPro.Data
         public DateTime? LastLoginDate { get; set; }
         public string FirstName { get; set; } = "";
         public string LastName { get; set; } = "";
+        [NotMapped]
+        public string FullName => !string.IsNullOrEmpty(FirstName) && !string.IsNullOrEmpty(LastName)
+        ? $"{FirstName} {LastName}"
+        : UserName ?? "Unknown User";
     }
 }
