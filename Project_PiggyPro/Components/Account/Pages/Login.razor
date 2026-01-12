@@ -1,6 +1,7 @@
 ﻿@page "/Account/Login"
 @layout MainLayout
 @using System.ComponentModel.DataAnnotations
+@using System.Security.Claims
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Identity
 @using Project_PiggyPro.Components.Layout
@@ -89,14 +90,39 @@
 
     public async Task LoginUser()
     {
+        // Get the user first to add claims before signing in
+        var user = await UserManager.FindByEmailAsync(Input.Email);
+
+        if (user != null)
+        {
+            // ✅ Add custom claims for FirstName and LastName
+            var existingClaims = await UserManager.GetClaimsAsync(user);
+
+            // Remove old claims if they exist
+            var firstNameClaim = existingClaims.FirstOrDefault(c => c.Type == "FirstName");
+            var lastNameClaim = existingClaims.FirstOrDefault(c => c.Type == "LastName");
+
+            if (firstNameClaim != null)
+                await UserManager.RemoveClaimAsync(user, firstNameClaim);
+            if (lastNameClaim != null)
+                await UserManager.RemoveClaimAsync(user, lastNameClaim);
+
+            // Add updated claims
+            var claims = new List<Claim>
+            {
+                new Claim("FirstName", user.FirstName ?? ""),
+                new Claim("LastName", user.LastName ?? "")
+            };
+
+            await UserManager.AddClaimsAsync(user, claims);
+        }
+
+        // Now proceed with sign in
         var result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
 
         if (result.Succeeded)
         {
             Logger.LogInformation("User logged in.");
-
-            // Get the logged-in user
-            var user = await UserManager.FindByEmailAsync(Input.Email);
 
             if (user != null)
             {

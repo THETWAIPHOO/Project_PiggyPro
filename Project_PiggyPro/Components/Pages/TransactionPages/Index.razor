@@ -18,8 +18,6 @@
     <a href="/transactions/create" class="btn-primary">+ Add Transaction</a>
 </div>
 
-
-
 <QuickGrid Class="table" Items="context.Transaction">
     <PropertyColumn Property="transaction => transaction.Amount" />
     <PropertyColumn Property="transaction => transaction.TransactionDate" />
@@ -31,11 +29,10 @@
     <PropertyColumn Property="transaction => transaction.DateUpdated" />
     <PropertyColumn Property="transaction => transaction.CreatedBy" />
     <PropertyColumn Property="transaction => transaction.UpdatedBy" />
-
     <TemplateColumn Context="transaction">
-        <a href="@($"transactions/edit?id={transaction.Id}")">Edit</a> |
-        <a href="@($"transactions/details?id={transaction.Id}")">Details</a> |
-        <a href="@($"transactions/delete?id={transaction.Id}")">Delete</a>
+        <a href="@($"transactions/edit?Id={transaction.Id}")">Edit</a> |
+        <a href="@($"transactions/details?Id={transaction.Id}")">Details</a> |
+        <a href="@($"transactions/delete?Id={transaction.Id}")">Delete</a>
     </TemplateColumn>
 </QuickGrid>
 

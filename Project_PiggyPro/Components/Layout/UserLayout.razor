@@ -1,8 +1,7 @@
 ﻿@inherits LayoutComponentBase
-@using Microsoft.AspNetCore.Identity
-@using Project_PiggyPro.Data
-@inject UserManager<Project_PiggyProUser> UserManager
+@using Microsoft.AspNetCore.Components.Authorization
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
 
 <div class="user-dashboard-page">
     <!-- User Dashboard Navigation -->
@@ -11,7 +10,6 @@
             <a href="/User/UserDashboard" class="navbar-brand">
                 <span class="pig-icon">🐷</span> PiggyPro
             </a>
-
             <div class="nav-menu">
                 <NavLink href="/User/UserDashboard" class="nav-btn" Match="NavLinkMatch.All">
                     Dashboard
@@ -29,14 +27,11 @@
                     Reports
                 </NavLink>
             </div>
-
             <AuthorizeView>
                 <Authorized>
                     <div class="user-section">
                         <span class="user-name">@fullName</span>
-                        <form method="post" action="/Account/Logout" style="display: inline;">
-                            <button type="submit" class="btn-logout">Logout</button>
-                        </form>
+                        <a href="/Account/Logout" class="btn-logout">Logout</a>
                     </div>
                 </Authorized>
             </AuthorizeView>
@@ -47,28 +42,34 @@
         @Body
     </main>
 </div>
+
 @code {
-    private string fullName = "";
+    private string fullName = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadUserName();
+        await LoadUserNameFromClaims();
     }
 
-    private async Task LoadUserName()
+    private async Task LoadUserNameFromClaims()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var claimsUser = authState.User;
+        var user = authState.User;
 
-        if (claimsUser.Identity?.IsAuthenticated == true)
+        if (user?.Identity?.IsAuthenticated == true)
         {
-            var user = await UserManager.GetUserAsync(claimsUser);
-            if (user != null)
-            {
-                fullName = string.IsNullOrWhiteSpace(user.FirstName)
-                ? user.Email!
-                : $"{user.FirstName} {user.LastName}";
+            // Read FirstName and LastName from claims
+            var firstName = user.FindFirst("FirstName")?.Value;
+            var lastName = user.FindFirst("LastName")?.Value;
 
+            if (!string.IsNullOrWhiteSpace(firstName))
+            {
+                fullName = $"{firstName} {lastName}".Trim();
+            }
+            else
+            {
+                // Fallback to email
+                fullName = user.Identity?.Name ?? "User";
             }
         }
     }
