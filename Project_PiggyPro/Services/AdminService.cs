@@ -23,12 +23,14 @@ namespace Project_PiggyPro.Services
 
             var query = context.Users.AsQueryable();
 
-            // Apply search filter
+            // Apply search filter - now includes FirstName and LastName
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
                 query = query.Where(u =>
                     u.Email!.Contains(searchTerm) ||
-                    u.UserName!.Contains(searchTerm));
+                    u.UserName!.Contains(searchTerm) ||
+                    u.FirstName!.Contains(searchTerm) ||
+                    u.LastName!.Contains(searchTerm));
             }
 
             var totalUsers = await query.CountAsync();
@@ -42,6 +44,8 @@ namespace Project_PiggyPro.Services
                 {
                     Id = u.Id,
                     UserName = u.UserName ?? "",
+                    FirstName = u.FirstName,
+                    LastName = u.LastName,
                     Email = u.Email ?? "",
                     EmailConfirmed = u.EmailConfirmed,
                     CreatedAt = u.CreatedAt,
@@ -86,6 +90,8 @@ namespace Project_PiggyPro.Services
             {
                 Id = user.Id,
                 UserName = user.UserName ?? "",
+                FirstName = user.FirstName,
+                LastName = user.LastName,
                 Email = user.Email ?? "",
                 EmailConfirmed = user.EmailConfirmed,
                 PhoneNumber = user.PhoneNumber,
@@ -163,11 +169,11 @@ namespace Project_PiggyPro.Services
         }
 
         // Get recent user registrations
-        public async Task<List<RecentUserDto>> GetRecentUsersAsync(int count = 5)
+        public async Task<List<RecentUserDto>> GetRecentUsersAsync(int count = 10)
         {
             using var context = await _contextFactory.CreateDbContextAsync();
 
-            var users = await context.Users
+            return await context.Users
                 .OrderByDescending(u => u.CreatedAt)
                 .Take(count)
                 .Select(u => new RecentUserDto
@@ -175,13 +181,14 @@ namespace Project_PiggyPro.Services
                     Id = u.Id,
                     Email = u.Email ?? "",
                     UserName = u.UserName ?? "",
+                    FirstName = u.FirstName,
+                    LastName = u.LastName,
                     CreatedAt = u.CreatedAt,
-                    IsActive = u.LastLoginDate >= DateTime.UtcNow.AddDays(-7)
+                    IsActive = u.LastLoginDate >= DateTime.UtcNow.AddDays(-30)
                 })
                 .ToListAsync();
-
-            return users;
         }
+
         // Get user registration data for the last 7 days
         public async Task<UserGrowthData> GetUserGrowthDataAsync(int days = 7)
         {
@@ -251,6 +258,81 @@ namespace Project_PiggyPro.Services
                 };
             }
         }
+        // Toggle user active status
+        public async Task<bool> ToggleUserActiveStatusAsync(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return false;
+
+            // Toggle LastLoginDate to control IsActive status
+            if (user.LastLoginDate >= DateTime.UtcNow.AddDays(-30))
+            {
+                // Make inactive
+                user.LastLoginDate = DateTime.UtcNow.AddDays(-31);
+            }
+            else
+            {
+                // Make active
+                user.LastLoginDate = DateTime.UtcNow;
+            }
+
+            var result = await _userManager.UpdateAsync(user);
+            return result.Succeeded;
+        }
+
+        // Update user information
+        public async Task<bool> UpdateUserAsync(string userId, string userName, string email)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return false;
+
+            user.UserName = userName;
+            user.Email = email;
+            user.NormalizedUserName = userName.ToUpper();
+            user.NormalizedEmail = email.ToUpper();
+
+            var result = await _userManager.UpdateAsync(user);
+            return result.Succeeded;
+        }
+
+        // Delete user (optional)
+        public async Task<bool> DeleteUserAsync(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return false;
+
+            // Check if user is admin - don't allow deletion
+            var roles = await _userManager.GetRolesAsync(user);
+            if (roles.Any(r => r.Equals("Administrator", StringComparison.OrdinalIgnoreCase)))
+            {
+                return false;
+            }
+
+            var result = await _userManager.DeleteAsync(user);
+            return result.Succeeded;
+        }
+        // Update user information
+        public async Task<bool> UpdateUserAsync(
+            string userId,
+            string firstName,
+            string lastName,
+            string email,
+            string? phoneNumber,
+            bool emailConfirmed)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return false;
+
+            user.FirstName = firstName;
+            user.LastName = lastName;
+            user.Email = email;
+            user.NormalizedEmail = email.ToUpper();
+            user.PhoneNumber = phoneNumber;
+            user.EmailConfirmed = emailConfirmed;
+
+            var result = await _userManager.UpdateAsync(user);
+            return result.Succeeded;
+        }
     }
 
     // DTOs (Data Transfer Objects)
@@ -267,40 +349,61 @@ namespace Project_PiggyPro.Services
     {
         public string Id { get; set; } = "";
         public string UserName { get; set; } = "";
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
         public string Email { get; set; } = "";
         public bool EmailConfirmed { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? LastLoginDate { get; set; }
         public bool IsActive { get; set; }
         public List<string> Roles { get; set; } = new();
+
+        // Computed property for display
+        public string DisplayName => !string.IsNullOrEmpty(FirstName) && !string.IsNullOrEmpty(LastName)
+            ? $"{FirstName} {LastName}"
+            : UserName;
     }
 
     public class UserDetailDto
     {
         public string Id { get; set; } = "";
         public string UserName { get; set; } = "";
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
         public string Email { get; set; } = "";
         public bool EmailConfirmed { get; set; }
         public string? PhoneNumber { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? LastLoginDate { get; set; }
         public List<string> Roles { get; set; } = new();
+
+        // Computed property for display
+        public string FullName => !string.IsNullOrEmpty(FirstName) && !string.IsNullOrEmpty(LastName)
+            ? $"{FirstName} {LastName}"
+            : UserName;
     }
 
+    public class RecentUserDto
+    {
+        public string Id { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string UserName { get; set; } = "";
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public bool IsActive { get; set; }
+
+        // Computed property for display
+        public string DisplayName => !string.IsNullOrEmpty(FirstName) && !string.IsNullOrEmpty(LastName)
+            ? $"{FirstName} {LastName}"
+            : UserName;
+    }
     public class UserStatsDto
     {
         public int TotalUsers { get; set; }
         public int ActiveUsers { get; set; }
         public int NewUsersThisMonth { get; set; }
         public int VerifiedUsers { get; set; }
-    }
-    public class RecentUserDto
-    {
-        public string Id { get; set; } = "";
-        public string Email { get; set; } = "";
-        public string UserName { get; set; } = "";
-        public DateTime CreatedAt { get; set; }
-        public bool IsActive { get; set; }
     }
 
     public class SystemStatus

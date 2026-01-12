@@ -83,7 +83,81 @@
                 </button>
             }
         </div>
-       
+        <div class="admin-container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1>User Management</h1>
+                <p>View and manage registered users</p>
+            </div>
+
+            <!-- Action Message -->
+            @if (!string.IsNullOrEmpty(actionMessage))
+            {
+                <div class="action-notification @actionMessageType">
+                    @if (actionMessageType == "success")
+                    {
+                        <span class="bi bi-check-circle"></span>
+                    }
+                    else
+                    {
+                        <span class="bi bi-exclamation-triangle"></span>
+                    }
+                    <span>@actionMessage</span>
+                    <button class="close-notification" @onclick="() => actionMessage = null">×</button>
+                </div>
+            }
+
+            <!-- Confirmation Dialog -->
+            @if (!string.IsNullOrEmpty(confirmUserId))
+            {
+                <div class="confirmation-overlay" @onclick="CancelConfirmation">
+                    <div class="confirmation-dialog" @onclick:stopPropagation="true">
+                        <h3 class="confirmation-title">
+                            @if (confirmAction == "deactivate")
+                            {
+                                <span class="bi bi-exclamation-triangle"></span>
+                                <span>Deactivate User</span>
+                            }
+                            else
+                            {
+                                <span class="bi bi-check-circle"></span>
+                                <span>Activate User</span>
+                            }
+                        </h3>
+                        <p class="confirmation-message">
+                            @{
+                                var user = filteredUsers.FirstOrDefault(u => u.Id == confirmUserId);
+                                var userName = user?.DisplayName ?? "this user";
+                            }
+                            @if (confirmAction == "deactivate")
+                            {
+                                <text>Are you sure you want to deactivate <strong>@userName</strong>? They will no longer be able to access the system.</text>
+                            }
+                            else
+                            {
+                                <text>Are you sure you want to activate <strong>@userName</strong>? They will be able to access the system again.</text>
+                            }
+                        </p>
+                        <div class="confirmation-actions">
+                            <button class="confirm-btn @(confirmAction == "deactivate" ? "danger" : "success")"
+                                    @onclick="ConfirmToggleStatus">
+                                @(confirmAction == "deactivate" ? "Deactivate" : "Activate")
+                            </button>
+                            <button class="cancel-confirm-btn" @onclick="CancelConfirmation">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Rest of your page content -->
+            @if (isLoading)
+            {
+                <!-- ... -->
+            }
+            <!-- ... -->
+        </div>
         <!-- Users Table -->
         <div class="table-section">
             <div class="table-container">
@@ -106,7 +180,17 @@
                             {
                                 <tr>
                                     <td>#@user.Id.Substring(0, Math.Min(4, user.Id.Length))</td>
-                                    <td>@user.UserName</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(user.FirstName) || !string.IsNullOrEmpty(user.LastName))
+                                        {
+                                            <strong>@user.DisplayName</strong>
+                                            <br />
+                                        }
+                                        else
+                                        {
+                                            @user.UserName
+                                        }
+                                    </td>
                                     <td>@user.Email</td>
                                     <td>
                                         @if (user.Roles.Any())
@@ -237,6 +321,10 @@
     private int currentPage = 1;
     private int pageSize = 4;
     private int totalPages => filteredUsers.Count == 0 ? 1 : (int)Math.Ceiling(filteredUsers.Count / (double)pageSize);
+    private string? actionMessage = null;
+    private string? actionMessageType = null; // "success" or "error"
+    private string? confirmUserId = null;
+    private string? confirmAction = null; // "activate" or "deactivate"
 
     protected override async Task OnInitializedAsync()
     {
@@ -280,13 +368,15 @@
 
         var filtered = allUsers.AsEnumerable();
 
-        // Apply search filter
+        // Apply search filter - searches FirstName, LastName, Username, and Email
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
             var search = searchTerm.Trim();
             filtered = filtered.Where(u =>
                 (u.UserName?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                (u.Email?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false));
+                (u.Email?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (u.FirstName?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (u.LastName?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false));
 
             Console.WriteLine($"  Search '{searchTerm}': {filtered.Count()} results");
         }
@@ -410,16 +500,66 @@
         Console.WriteLine($"✏️ Edit user: {userId}");
         NavigationManager.NavigateTo($"/admin/users/edit/{userId}");
     }
+    private void ShowConfirmation(string userId, string action)
+    {
+        confirmUserId = userId;
+        confirmAction = action;
+    }
+
+    private void CancelConfirmation()
+    {
+        confirmUserId = null;
+        confirmAction = null;
+    }
+
+    private async Task ConfirmToggleStatus()
+    {
+        if (string.IsNullOrEmpty(confirmUserId)) return;
+
+        var user = filteredUsers.FirstOrDefault(u => u.Id == confirmUserId);
+        if (user == null) return;
+
+        var success = await AdminService.ToggleUserActiveStatusAsync(confirmUserId);
+
+        if (success)
+        {
+            var action = confirmAction == "activate" ? "activated" : "deactivated";
+            actionMessage = $"User {user.DisplayName} has been {action} successfully.";
+            actionMessageType = "success";
+
+            Console.WriteLine($"✓ User {confirmUserId} {action}");
+
+            // Reload data to reflect changes
+            await LoadData();
+
+            // Hide message after 3 seconds
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(3000);
+                actionMessage = null;
+                await InvokeAsync(StateHasChanged);
+            });
+        }
+        else
+        {
+            actionMessage = "Failed to update user status. Admin users cannot be deactivated.";
+            actionMessageType = "error";
+
+            Console.WriteLine($"✗ Failed to toggle user {confirmUserId}");
+        }
+
+        // Close confirmation dialog
+        confirmUserId = null;
+        confirmAction = null;
+    }
 
     private async Task DeactivateUser(string userId)
     {
-        Console.WriteLine($"🚫 Deactivate user: {userId}");
-        // TODO: Implement
+        ShowConfirmation(userId, "deactivate");
     }
 
     private async Task ActivateUser(string userId)
     {
-        Console.WriteLine($"✅ Activate user: {userId}");
-        // TODO: Implement
+        ShowConfirmation(userId, "activate");
     }
 }
