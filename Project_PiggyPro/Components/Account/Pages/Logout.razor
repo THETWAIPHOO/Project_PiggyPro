@@ -1,0 +1,25 @@
+﻿@page "/Account/Logout"
+
+@using Microsoft.AspNetCore.Identity
+@using Project_PiggyPro.Data
+
+@inject SignInManager<Project_PiggyProUser> SignInManager
+@inject NavigationManager NavigationManager
+
+<PageTitle>Logging out...</PageTitle>
+
+<div style="text-align: center; padding: 4rem;">
+    <h2>Logging out...</h2>
+    <p>Please wait while we log you out.</p>
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        // Sign out the user
+        await SignInManager.SignOutAsync();
+
+        // Redirect to home page
+        NavigationManager.NavigateTo("/", forceLoad: true);
+    }
+}
