@@ -80,26 +80,31 @@
 }
 
 .user-name {
-    font-weight: 600;
-    font-size: 1rem;
-    color: #333;
-    padding: 0.875rem 1.5rem;
-    border: 2px solid #ddd;
-    border-radius: 4px;
-    background: white;
-}
-
-.btn-logout {
-    padding: 0.875rem 2rem;
+    padding: 0.875rem 1.5rem; /* Reduced from 2rem */
     background: white;
     color: #333;
     border: 2px solid #333;
     border-radius: 4px;
-    cursor: pointer;
+    text-decoration: none;
     font-weight: 600;
     font-size: 1rem;
     transition: all 0.2s;
-    font-family: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.btn-logout {
+    padding: 0.875rem 1.5rem; /* Reduced from 2rem */
+    background: white;
+    color: #333;
+    border: 2px solid #333;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.2s;
+    cursor: pointer;
+    white-space: nowrap;
 }
 
     .btn-logout:hover {
@@ -113,21 +118,4 @@
     padding: 2rem 3rem;
 }
 
-```
 
----
-
-## Important Notes:
-
-**Use `::deep`** for child components like `NavLink`:
-- `::deep .nav-btn` → styles NavLink components
-- Without `::deep`, scoped CSS won't style child components
-
----
-
-## Your File Structure Should Be:
-```
-Components/
-└── Layout/
-├── UserLayout.razor ← Your layout component
-└── UserLayout.razor.css ← Your scoped CSS (NEW)

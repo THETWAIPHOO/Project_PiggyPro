@@ -1,4 +1,5 @@
 ﻿@page "/User/UserDashboard"
+@rendermode InteractiveServer
 @layout UserLayout
 @attribute [Authorize]
 
@@ -11,6 +12,7 @@
 @inject Project_PiggyProContext DbContext
 @inject UserManager<Project_PiggyProUser> UserManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Dashboard - PiggyPro</PageTitle>
 
@@ -56,12 +58,16 @@
 <div class="charts-grid">
     <div class="chart-card">
         <div class="chart-title">Spending Overview</div>
-        <div class="chart-placeholder">[Line Chart: Spending Trend Over Time]</div>
+        <div class="chart-container">
+            <canvas id="spendingChart"></canvas>
+        </div>
     </div>
 
     <div class="chart-card">
         <div class="chart-title">Top Categories</div>
-        <div class="chart-placeholder">[Pie Chart: Expense by Category]</div>
+        <div class="chart-container">
+            <canvas id="categoryChart"></canvas>
+        </div>
     </div>
 </div>
 
@@ -125,6 +131,10 @@
     private decimal percentageChange = 0;
 
     private List<TransactionViewModel> recentTransactions = new();
+    private List<DailySpending> dailySpendingData = new();
+    private List<CategoryExpense> categoryExpenseData = new();
+
+    private bool dataLoaded = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -133,20 +143,26 @@
 
         if (claimsUser?.Identity?.IsAuthenticated == true)
         {
-            // Get user id from CLAIMS (no DB call)
             currentUserId = UserManager.GetUserId(claimsUser) ?? string.Empty;
 
-            // Get the actual user object to access FirstName and LastName
             var user = await UserManager.GetUserAsync(claimsUser);
             if (user != null)
             {
-                // Set full name or email as fallback
                 userName = string.IsNullOrWhiteSpace(user.FirstName)
                     ? (user.Email ?? "User")
                     : $"{user.FirstName} {user.LastName}".Trim();
             }
 
             await LoadDashboardData();
+            dataLoaded = true;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && dataLoaded)
+        {
+            await RenderCharts();
         }
     }
 
@@ -224,6 +240,127 @@
                 Type = category?.CategoryType ?? "Expense"
             });
         }
+
+        // Load chart data
+        await LoadChartData(startOfMonth, endOfMonth);
+    }
+
+    private async Task LoadChartData(DateTime startOfMonth, DateTime endOfMonth)
+    {
+        // Daily spending for line chart (last 30 days)
+        var last30Days = DateTime.Now.AddDays(-30);
+
+        var expenseTransactions = await DbContext.Transaction
+            .Where(t => t.CreatedBy == currentUserId
+                && t.DateCreated >= last30Days)
+            .Where(t => DbContext.Category.Any(c => c.Id == t.CategoryId && c.CategoryType == "Expense"))
+            .OrderBy(t => t.DateCreated)
+            .ToListAsync();
+
+        dailySpendingData = expenseTransactions
+            .GroupBy(t => t.DateCreated.Date)
+            .Select(g => new DailySpending
+            {
+                Date = g.Key,
+                Amount = g.Sum(t => t.Amount)
+            })
+            .OrderBy(d => d.Date)
+            .ToList();
+
+        // Category expenses for pie chart (this month)
+        var categoryExpenses = await DbContext.Transaction
+            .Where(t => t.CreatedBy == currentUserId
+                && t.DateCreated >= startOfMonth
+                && t.DateCreated <= endOfMonth)
+            .Where(t => DbContext.Category.Any(c => c.Id == t.CategoryId && c.CategoryType == "Expense"))
+            .ToListAsync();
+
+        var groupedByCategory = categoryExpenses
+            .GroupBy(t => t.CategoryId)
+            .Select(g => new
+            {
+                CategoryId = g.Key,
+                Total = g.Sum(t => t.Amount)
+            })
+            .OrderByDescending(c => c.Total)
+            .Take(5)
+            .ToList();
+
+        categoryExpenseData.Clear();
+        foreach (var item in groupedByCategory)
+        {
+            var category = await DbContext.Category.FindAsync(item.CategoryId);
+            categoryExpenseData.Add(new CategoryExpense
+            {
+                CategoryName = category?.CategoryName ?? "Unknown",
+                Amount = item.Total
+            });
+        }
+
+        Console.WriteLine($"Loaded {dailySpendingData.Count} days of spending data");
+        Console.WriteLine($"Loaded {categoryExpenseData.Count} categories");
+    }
+
+    private async Task RenderCharts()
+    {
+        try
+        {
+            Console.WriteLine("=== ATTEMPTING TO RENDER DASHBOARD CHARTS ===");
+
+            // Wait for canvases to be in DOM
+            await Task.Delay(500);
+
+            // Check if canvases exist
+            var canvas1Exists = await JSRuntime.InvokeAsync<bool>("eval",
+                "document.getElementById('spendingChart') !== null");
+            var canvas2Exists = await JSRuntime.InvokeAsync<bool>("eval",
+                "document.getElementById('categoryChart') !== null");
+
+            Console.WriteLine($"Spending Chart Canvas: {canvas1Exists}");
+            Console.WriteLine($"Category Chart Canvas: {canvas2Exists}");
+
+            if (!canvas1Exists || !canvas2Exists)
+            {
+                Console.WriteLine("❌ Canvases not found - aborting");
+                return;
+            }
+
+            // Prepare spending chart data
+            var spendingLabels = dailySpendingData.Select(d => d.Date.ToString("MMM dd")).ToArray();
+            var spendingValues = dailySpendingData.Select(d => (double)d.Amount).ToArray();
+
+            Console.WriteLine($"Spending data: {spendingValues.Length} points");
+
+            // Prepare category chart data
+            var categoryLabels = categoryExpenseData.Select(c => c.CategoryName).ToArray();
+            var categoryValues = categoryExpenseData.Select(c => (double)c.Amount).ToArray();
+
+            Console.WriteLine($"Category data: {categoryValues.Length} categories");
+
+            // Render Line Chart
+            Console.WriteLine("Rendering spending line chart...");
+            await JSRuntime.InvokeVoidAsync("chartHelpers.createLineChart",
+                "spendingChart",
+                spendingLabels,
+                spendingValues,
+                "Daily Spending");
+
+            // Render Pie Chart
+            Console.WriteLine("Rendering category pie chart...");
+            var colors = new[] { "#e91e63", "#2196f3", "#4caf50", "#ff9800", "#9c27b0" };
+            await JSRuntime.InvokeVoidAsync("chartHelpers.createPieChart",
+                "categoryChart",
+                categoryLabels,
+                categoryValues,
+                colors);
+
+            Console.WriteLine("✅ ALL DASHBOARD CHARTS RENDERED SUCCESSFULLY");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Error rendering dashboard charts: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+        }
     }
 
     private string GetBudgetStatusClass()
@@ -240,5 +377,17 @@
         public string CategoryName { get; set; } = string.Empty;
         public decimal Amount { get; set; }
         public string Type { get; set; } = string.Empty;
+    }
+
+    public class DailySpending
+    {
+        public DateTime Date { get; set; }
+        public decimal Amount { get; set; }
+    }
+
+    public class CategoryExpense
+    {
+        public string CategoryName { get; set; } = string.Empty;
+        public decimal Amount { get; set; }
     }
 }

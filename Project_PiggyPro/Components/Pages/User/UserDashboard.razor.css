@@ -1,0 +1,291 @@
+﻿/* UserDashboard.razor.css */
+
+.welcome-section {
+    margin-bottom: 2rem;
+}
+
+.welcome-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0 0 0.5rem 0;
+}
+
+.welcome-subtitle {
+    color: #666;
+    font-size: 1rem;
+    margin: 0;
+}
+
+/* Summary Cards Grid */
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.summary-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+    .summary-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+.card-title {
+    font-size: 0.875rem;
+    color: #666;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.card-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 0.5rem;
+}
+
+    .card-value.income {
+        color: #4caf50;
+    }
+
+    .card-value.expense {
+        color: #f44336;
+    }
+
+.card-subtitle {
+    font-size: 0.875rem;
+    color: #999;
+}
+
+.card-change {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+}
+
+    .card-change.positive {
+        color: #4caf50;
+    }
+
+    .card-change.negative {
+        color: #f44336;
+    }
+
+.progress-bar-container {
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 0.75rem;
+}
+
+.progress-bar {
+    height: 100%;
+    background: #4caf50;
+    transition: width 0.3s ease;
+}
+
+    .progress-bar.warning {
+        background: #ff9800;
+    }
+
+    .progress-bar.danger {
+        background: #f44336;
+    }
+
+/* Charts Grid */
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.chart-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.chart-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 1.5rem;
+}
+
+.chart-container {
+    position: relative;
+    height: 300px;
+}
+
+.chart-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    background: #f5f5f5;
+    border-radius: 8px;
+    color: #999;
+    font-style: italic;
+}
+
+/* Transactions Section */
+.transactions-section {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0;
+}
+
+.btn-link {
+    color: #e91e63;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: color 0.2s;
+}
+
+    .btn-link:hover {
+        color: #c2185b;
+        text-decoration: underline;
+    }
+
+.transactions-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+    .transactions-table thead {
+        background: #f5f5f5;
+    }
+
+    .transactions-table th {
+        text-align: left;
+        padding: 0.75rem;
+        font-weight: 600;
+        color: #666;
+        font-size: 0.875rem;
+        border-bottom: 2px solid #e0e0e0;
+    }
+
+    .transactions-table td {
+        padding: 0.75rem;
+        border-bottom: 1px solid #e0e0e0;
+        font-size: 0.9rem;
+    }
+
+    .transactions-table tbody tr:hover {
+        background: #f9f9f9;
+    }
+
+.amount-income {
+    color: #4caf50;
+    font-weight: 600;
+}
+
+.amount-expense {
+    color: #f44336;
+    font-weight: 600;
+}
+
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.badge-income {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.badge-expense {
+    background: #ffebee;
+    color: #c62828;
+}
+
+.text-muted {
+    color: #999;
+    text-align: center;
+    padding: 2rem;
+}
+
+    .text-muted a {
+        color: #e91e63;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+        .text-muted a:hover {
+            text-decoration: underline;
+        }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .welcome-title {
+        font-size: 1.5rem;
+    }
+
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .chart-container {
+        height: 250px;
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .transactions-table {
+        font-size: 0.8rem;
+    }
+
+        .transactions-table th,
+        .transactions-table td {
+            padding: 0.5rem;
+        }
+}
+
+@media (max-width: 480px) {
+    .card-value {
+        font-size: 1.5rem;
+    }
+
+    .chart-container {
+        height: 200px;
+    }
+}
