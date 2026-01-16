@@ -1,6 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Project_PiggyPro.Data;
-using Microsoft.AspNetCore.Identity;
 
 namespace Project_PiggyPro.Services
 {
@@ -16,14 +16,17 @@ namespace Project_PiggyPro.Services
             _contextFactory = contextFactory;
             _userManager = userManager;
         }
-        // Get all users with pagination
+
+        // ============= USER MANAGEMENT =============
+
+        // Get paginated users with search
         public async Task<UserManagementDto> GetUsersAsync(int page = 1, int pageSize = 10, string searchTerm = "")
         {
             using var context = await _contextFactory.CreateDbContextAsync();
 
             var query = context.Users.AsQueryable();
 
-            // Apply search filter - now includes FirstName and LastName
+            // Apply search filter
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
                 query = query.Where(u =>
@@ -50,7 +53,8 @@ namespace Project_PiggyPro.Services
                     EmailConfirmed = u.EmailConfirmed,
                     CreatedAt = u.CreatedAt,
                     LastLoginDate = u.LastLoginDate,
-                    IsActive = u.LastLoginDate >= DateTime.UtcNow.AddDays(-30)
+                    // Check if user is locked out
+                    IsActive = u.LockoutEnd == null || u.LockoutEnd <= DateTimeOffset.UtcNow
                 })
                 .ToListAsync();
 
@@ -101,28 +105,82 @@ namespace Project_PiggyPro.Services
             };
         }
 
-        // Get user statistics
-        public async Task<UserStatsDto> GetUserStatsAsync()
+        // Toggle user active status - BLOCKS USER FROM LOGIN
+        public async Task<bool> ToggleUserActiveStatusAsync(string userId)
         {
-            using var context = await _contextFactory.CreateDbContextAsync();
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return false;
 
-            var totalUsers = await context.Users.CountAsync();
-            var activeUsers = await context.Users
-                .CountAsync(u => u.LastLoginDate >= DateTime.UtcNow.AddDays(-30));
-            var newUsersThisMonth = await context.Users
-                .CountAsync(u => u.CreatedAt >= DateTime.UtcNow.AddDays(-30));
-            var verifiedUsers = await context.Users
-                .CountAsync(u => u.EmailConfirmed);
-
-            return new UserStatsDto
+            // Check if user is admin - don't allow deactivation
+            var roles = await _userManager.GetRolesAsync(user);
+            if (roles.Any(r => r.Equals("Administrator", StringComparison.OrdinalIgnoreCase)))
             {
-                TotalUsers = totalUsers,
-                ActiveUsers = activeUsers,
-                NewUsersThisMonth = newUsersThisMonth,
-                VerifiedUsers = verifiedUsers
-            };
+                return false; // Cannot deactivate admin
+            }
+
+            // Toggle lockout status
+            if (user.LockoutEnd == null || user.LockoutEnd <= DateTimeOffset.UtcNow)
+            {
+                // Currently active - LOCK the account
+                user.LockoutEnabled = true;
+                user.LockoutEnd = DateTimeOffset.MaxValue; // Lock indefinitely
+                user.LastLoginDate = DateTime.UtcNow.AddDays(-31); // Mark as inactive
+            }
+            else
+            {
+                // Currently locked - UNLOCK the account
+                user.LockoutEnabled = false;
+                user.LockoutEnd = null;
+                user.LastLoginDate = DateTime.UtcNow; // Mark as active
+            }
+
+            var result = await _userManager.UpdateAsync(user);
+            return result.Succeeded;
         }
-        // Get total number of users
+
+        // Update user information
+        public async Task<bool> UpdateUserAsync(
+            string userId,
+            string firstName,
+            string lastName,
+            string email,
+            string? phoneNumber,
+            bool emailConfirmed)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return false;
+
+            user.FirstName = firstName;
+            user.LastName = lastName;
+            user.Email = email;
+            user.NormalizedEmail = email.ToUpper();
+            user.PhoneNumber = phoneNumber;
+            user.EmailConfirmed = emailConfirmed;
+
+            var result = await _userManager.UpdateAsync(user);
+            return result.Succeeded;
+        }
+
+        // Delete user (optional)
+        public async Task<bool> DeleteUserAsync(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return false;
+
+            // Check if user is admin - don't allow deletion
+            var roles = await _userManager.GetRolesAsync(user);
+            if (roles.Any(r => r.Equals("Administrator", StringComparison.OrdinalIgnoreCase)))
+            {
+                return false;
+            }
+
+            var result = await _userManager.DeleteAsync(user);
+            return result.Succeeded;
+        }
+
+        // ============= DASHBOARD STATISTICS =============
+
+        // Get total users count
         public async Task<int> GetTotalUsersAsync()
         {
             using var context = await _contextFactory.CreateDbContextAsync();
@@ -132,43 +190,52 @@ namespace Project_PiggyPro.Services
         // Get new users this week
         public async Task<int> GetNewUsersThisWeekAsync()
         {
-            var oneWeekAgo = DateTime.UtcNow.AddDays(-7);
             using var context = await _contextFactory.CreateDbContextAsync();
-
-            return await context.Users
-                .Where(u => u.CreatedAt >= oneWeekAgo)
-                .CountAsync();
+            var weekAgo = DateTime.UtcNow.AddDays(-7);
+            return await context.Users.CountAsync(u => u.CreatedAt >= weekAgo);
         }
 
-        // Get active users today (users who logged in today)
+        // Get active users today (logged in within 24 hours)
         public async Task<int> GetActiveUsersTodayAsync()
         {
-            var today = DateTime.UtcNow.Date;
             using var context = await _contextFactory.CreateDbContextAsync();
-
-            return await context.Users
-                .Where(u => u.LastLoginDate >= today)
-                .CountAsync();
+            var yesterday = DateTime.UtcNow.AddDays(-1);
+            return await context.Users.CountAsync(u => u.LastLoginDate >= yesterday);
         }
 
-        // Get total transactions
+        // Get total transactions count
         public async Task<int> GetTotalTransactionsAsync()
         {
             using var context = await _contextFactory.CreateDbContextAsync();
             return await context.Transaction.CountAsync();
         }
 
-        // Get percentage of active users
-        public async Task<decimal> GetActiveUsersPercentageAsync()
+        // Get system status
+        public async Task<SystemStatus> GetSystemStatusAsync()
         {
-            var totalUsers = await GetTotalUsersAsync();
-            if (totalUsers == 0) return 0;
+            try
+            {
+                using var context = await _contextFactory.CreateDbContextAsync();
+                // Try to query database
+                await context.Users.CountAsync();
 
-            var activeUsers = await GetActiveUsersTodayAsync();
-            return Math.Round((decimal)activeUsers / totalUsers * 100, 0);
+                return new SystemStatus
+                {
+                    IsHealthy = true,
+                    Message = "All systems operational"
+                };
+            }
+            catch
+            {
+                return new SystemStatus
+                {
+                    IsHealthy = false,
+                    Message = "Database connection issue"
+                };
+            }
         }
 
-        // Get recent user registrations
+        // Get recent users
         public async Task<List<RecentUserDto>> GetRecentUsersAsync(int count = 10)
         {
             using var context = await _contextFactory.CreateDbContextAsync();
@@ -184,10 +251,11 @@ namespace Project_PiggyPro.Services
                     FirstName = u.FirstName,
                     LastName = u.LastName,
                     CreatedAt = u.CreatedAt,
-                    IsActive = u.LastLoginDate >= DateTime.UtcNow.AddDays(-30)
+                    IsActive = u.LockoutEnd == null || u.LockoutEnd <= DateTimeOffset.UtcNow
                 })
                 .ToListAsync();
         }
+        // ============= CHART DATA FOR ADMIN DASHBOARD =============
 
         // Get user registration data for the last 7 days
         public async Task<UserGrowthData> GetUserGrowthDataAsync(int days = 7)
@@ -220,11 +288,13 @@ namespace Project_PiggyPro.Services
         {
             using var context = await _contextFactory.CreateDbContextAsync();
 
+            // Active = not locked out
             var activeCount = await context.Users
-                .CountAsync(u => u.LastLoginDate >= DateTime.UtcNow.AddDays(-30));
+                .CountAsync(u => u.LockoutEnd == null || u.LockoutEnd <= DateTimeOffset.UtcNow);
 
+            // Inactive = locked out
             var inactiveCount = await context.Users
-                .CountAsync(u => u.LastLoginDate == null || u.LastLoginDate < DateTime.UtcNow.AddDays(-30));
+                .CountAsync(u => u.LockoutEnd != null && u.LockoutEnd > DateTimeOffset.UtcNow);
 
             return new UserActivityData
             {
@@ -232,110 +302,10 @@ namespace Project_PiggyPro.Services
                 InactiveUsers = inactiveCount
             };
         }
-
-        // Check system health (simple version)
-        public async Task<SystemStatus> GetSystemStatusAsync()
-        {
-            try
-            {
-                using var context = await _contextFactory.CreateDbContextAsync();
-                // Try to query database
-                await context.Users.AnyAsync();
-
-                return new SystemStatus
-                {
-                    IsHealthy = true,
-                    Message = "HEALTHY"
-                };
-            }
-            catch (Exception ex)
-            {
-                return new SystemStatus
-                {
-                    IsHealthy = false,
-                    Message = "UNHEALTHY",
-                    ErrorMessage = ex.Message
-                };
-            }
-        }
-        // Toggle user active status
-        public async Task<bool> ToggleUserActiveStatusAsync(string userId)
-        {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null) return false;
-
-            // Toggle LastLoginDate to control IsActive status
-            if (user.LastLoginDate >= DateTime.UtcNow.AddDays(-30))
-            {
-                // Make inactive
-                user.LastLoginDate = DateTime.UtcNow.AddDays(-31);
-            }
-            else
-            {
-                // Make active
-                user.LastLoginDate = DateTime.UtcNow;
-            }
-
-            var result = await _userManager.UpdateAsync(user);
-            return result.Succeeded;
-        }
-
-        // Update user information
-        public async Task<bool> UpdateUserAsync(string userId, string userName, string email)
-        {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null) return false;
-
-            user.UserName = userName;
-            user.Email = email;
-            user.NormalizedUserName = userName.ToUpper();
-            user.NormalizedEmail = email.ToUpper();
-
-            var result = await _userManager.UpdateAsync(user);
-            return result.Succeeded;
-        }
-
-        // Delete user (optional)
-        public async Task<bool> DeleteUserAsync(string userId)
-        {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null) return false;
-
-            // Check if user is admin - don't allow deletion
-            var roles = await _userManager.GetRolesAsync(user);
-            if (roles.Any(r => r.Equals("Administrator", StringComparison.OrdinalIgnoreCase)))
-            {
-                return false;
-            }
-
-            var result = await _userManager.DeleteAsync(user);
-            return result.Succeeded;
-        }
-        // Update user information
-        public async Task<bool> UpdateUserAsync(
-            string userId,
-            string firstName,
-            string lastName,
-            string email,
-            string? phoneNumber,
-            bool emailConfirmed)
-        {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null) return false;
-
-            user.FirstName = firstName;
-            user.LastName = lastName;
-            user.Email = email;
-            user.NormalizedEmail = email.ToUpper();
-            user.PhoneNumber = phoneNumber;
-            user.EmailConfirmed = emailConfirmed;
-
-            var result = await _userManager.UpdateAsync(user);
-            return result.Succeeded;
-        }
     }
 
-    // DTOs (Data Transfer Objects)
+    // ============= DTOs =============
+
     public class UserManagementDto
     {
         public List<UserDto> Users { get; set; } = new();
@@ -398,20 +368,6 @@ namespace Project_PiggyPro.Services
             ? $"{FirstName} {LastName}"
             : UserName;
     }
-    public class UserStatsDto
-    {
-        public int TotalUsers { get; set; }
-        public int ActiveUsers { get; set; }
-        public int NewUsersThisMonth { get; set; }
-        public int VerifiedUsers { get; set; }
-    }
-
-    public class SystemStatus
-    {
-        public bool IsHealthy { get; set; }
-        public string Message { get; set; } = "";
-        public string? ErrorMessage { get; set; }
-    }
     public class UserGrowthData
     {
         public List<string> Labels { get; set; } = new();
@@ -422,5 +378,10 @@ namespace Project_PiggyPro.Services
     {
         public int ActiveUsers { get; set; }
         public int InactiveUsers { get; set; }
+    }
+    public class SystemStatus
+    {
+        public bool IsHealthy { get; set; }
+        public string Message { get; set; } = "";
     }
 }

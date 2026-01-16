@@ -43,6 +43,67 @@
         <p>View and manage registered users</p>
     </div>
 
+    <!-- Action Message -->
+    @if (!string.IsNullOrEmpty(actionMessage))
+    {
+        <div class="action-notification @actionMessageType">
+            @if (actionMessageType == "success")
+            {
+                <span class="bi bi-check-circle"></span>
+            }
+            else
+            {
+                <span class="bi bi-exclamation-triangle"></span>
+            }
+            <span>@actionMessage</span>
+            <button class="close-notification" @onclick="() => actionMessage = null">×</button>
+        </div>
+    }
+
+    <!-- Confirmation Dialog -->
+    @if (!string.IsNullOrEmpty(confirmUserId))
+    {
+        <div class="confirmation-overlay" @onclick="CancelConfirmation">
+            <div class="confirmation-dialog" @onclick:stopPropagation="true">
+                <h3 class="confirmation-title">
+                    @if (confirmAction == "deactivate")
+                    {
+                        <span class="bi bi-exclamation-triangle"></span>
+                        <span>Block User Access</span>
+                    }
+                    else
+                    {
+                        <span class="bi bi-check-circle"></span>
+                        <span>Restore User Access</span>
+                    }
+                </h3>
+                <p class="confirmation-message">
+                    @{
+                        var user = filteredUsers.FirstOrDefault(u => u.Id == confirmUserId);
+                        var userName = user?.DisplayName ?? "this user";
+                    }
+                    @if (confirmAction == "deactivate")
+                    {
+                        <text>Are you sure you want to <strong>block</strong> <strong>@userName</strong>? They will be immediately logged out and unable to log back in until you restore their access.</text>
+                    }
+                    else
+                    {
+                        <text>Are you sure you want to <strong>restore access</strong> for <strong>@userName</strong>? They will be able to log in again.</text>
+                    }
+                </p>
+                <div class="confirmation-actions">
+                    <button class="confirm-btn @(confirmAction == "deactivate" ? "danger" : "success")"
+                            @onclick="ConfirmToggleStatus">
+                        @(confirmAction == "deactivate" ? "Block User" : "Restore Access")
+                    </button>
+                    <button class="cancel-confirm-btn" @onclick="CancelConfirmation">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+
     @if (isLoading)
     {
         <div class="loading-spinner">
@@ -62,7 +123,7 @@
             <select class="filter-dropdown" value="@selectedUserFilter" @onchange="OnUserFilterChanged">
                 <option value="all">All Users</option>
                 <option value="active">Active Users</option>
-                <option value="inactive">Inactive Users</option>
+                <option value="inactive">Blocked Users</option>
             </select>
 
             <select class="filter-dropdown" value="@selectedRoleFilter" @onchange="OnRoleFilterChanged">
@@ -83,81 +144,7 @@
                 </button>
             }
         </div>
-        <div class="admin-container">
-            <!-- Page Header -->
-            <div class="page-header">
-                <h1>User Management</h1>
-                <p>View and manage registered users</p>
-            </div>
 
-            <!-- Action Message -->
-            @if (!string.IsNullOrEmpty(actionMessage))
-            {
-                <div class="action-notification @actionMessageType">
-                    @if (actionMessageType == "success")
-                    {
-                        <span class="bi bi-check-circle"></span>
-                    }
-                    else
-                    {
-                        <span class="bi bi-exclamation-triangle"></span>
-                    }
-                    <span>@actionMessage</span>
-                    <button class="close-notification" @onclick="() => actionMessage = null">×</button>
-                </div>
-            }
-
-            <!-- Confirmation Dialog -->
-            @if (!string.IsNullOrEmpty(confirmUserId))
-            {
-                <div class="confirmation-overlay" @onclick="CancelConfirmation">
-                    <div class="confirmation-dialog" @onclick:stopPropagation="true">
-                        <h3 class="confirmation-title">
-                            @if (confirmAction == "deactivate")
-                            {
-                                <span class="bi bi-exclamation-triangle"></span>
-                                <span>Deactivate User</span>
-                            }
-                            else
-                            {
-                                <span class="bi bi-check-circle"></span>
-                                <span>Activate User</span>
-                            }
-                        </h3>
-                        <p class="confirmation-message">
-                            @{
-                                var user = filteredUsers.FirstOrDefault(u => u.Id == confirmUserId);
-                                var userName = user?.DisplayName ?? "this user";
-                            }
-                            @if (confirmAction == "deactivate")
-                            {
-                                <text>Are you sure you want to deactivate <strong>@userName</strong>? They will no longer be able to access the system.</text>
-                            }
-                            else
-                            {
-                                <text>Are you sure you want to activate <strong>@userName</strong>? They will be able to access the system again.</text>
-                            }
-                        </p>
-                        <div class="confirmation-actions">
-                            <button class="confirm-btn @(confirmAction == "deactivate" ? "danger" : "success")"
-                                    @onclick="ConfirmToggleStatus">
-                                @(confirmAction == "deactivate" ? "Deactivate" : "Activate")
-                            </button>
-                            <button class="cancel-confirm-btn" @onclick="CancelConfirmation">
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            }
-
-            <!-- Rest of your page content -->
-            @if (isLoading)
-            {
-                <!-- ... -->
-            }
-            <!-- ... -->
-        </div>
         <!-- Users Table -->
         <div class="table-section">
             <div class="table-container">
@@ -183,8 +170,7 @@
                                     <td>
                                         @if (!string.IsNullOrEmpty(user.FirstName) || !string.IsNullOrEmpty(user.LastName))
                                         {
-                                            <strong>@user.DisplayName</strong>
-                                            <br />
+                                            @user.DisplayName
                                         }
                                         else
                                         {
@@ -204,8 +190,8 @@
                                     </td>
                                     <td>@user.CreatedAt.ToString("MMM dd, yyyy")</td>
                                     <td>
-                                        <span class="status-badge @(user.IsActive ? "active" : "inactive")">
-                                            @(user.IsActive ? "Active" : "Inactive")
+                                        <span class="status-badge @(user.IsActive ? "active" : "blocked")">
+                                            @(user.IsActive ? "Active" : "Blocked")
                                         </span>
                                     </td>
                                     <td>
@@ -225,13 +211,13 @@
                                             else if (user.IsActive)
                                             {
                                                 <button class="action-btn deactivate-btn" @onclick="() => DeactivateUser(user.Id)">
-                                                    Deactivate
+                                                    Block Access
                                                 </button>
                                             }
                                             else
                                             {
                                                 <button class="action-btn activate-btn" @onclick="() => ActivateUser(user.Id)">
-                                                    Activate
+                                                    Restore Access
                                                 </button>
                                             }
                                         </div>
@@ -304,9 +290,9 @@
         <!-- Feature Notes -->
         <div class="feature-notes">
             <p>→ Complete user list with search and filter capabilities</p>
-            <p>→ View detailed user information, edit profiles, activate/deactivate accounts</p>
-            <p>→ Admin accounts are protected from accidental deactivation</p>
-            <p>→ Role-based display (User vs Admin)</p>
+            <p>→ View detailed user information, edit profiles, block/restore user access</p>
+            <p>→ Admin accounts are protected from being blocked</p>
+            <p>→ Blocked users cannot log in until access is restored</p>
         </div>
     }
 </div>
@@ -368,7 +354,7 @@
 
         var filtered = allUsers.AsEnumerable();
 
-        // Apply search filter - searches FirstName, LastName, Username, and Email
+        // Apply search filter
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
             var search = searchTerm.Trim();
@@ -456,13 +442,11 @@
 
     private void ChangePage(int page)
     {
-        // Simple validation
         if (page < 1 || page > totalPages)
         {
             return;
         }
 
-        // Just set the page
         currentPage = page;
     }
 
@@ -485,7 +469,6 @@
     {
         return user.Roles.Any(r =>
             r.Equals("Admin", StringComparison.OrdinalIgnoreCase) ||
-            r.Equals("ADIMINISTRATOR", StringComparison.OrdinalIgnoreCase) ||
             r.Equals("Administrator", StringComparison.OrdinalIgnoreCase));
     }
 
@@ -500,6 +483,7 @@
         Console.WriteLine($"✏️ Edit user: {userId}");
         NavigationManager.NavigateTo($"/admin/users/edit/{userId}");
     }
+
     private void ShowConfirmation(string userId, string action)
     {
         confirmUserId = userId;
@@ -523,8 +507,12 @@
 
         if (success)
         {
-            var action = confirmAction == "activate" ? "activated" : "deactivated";
-            actionMessage = $"User {user.DisplayName} has been {action} successfully.";
+            var action = confirmAction == "activate" ? "restored" : "blocked";
+            var details = confirmAction == "activate"
+                ? "They can now log in again."
+                : "They have been logged out and cannot log back in.";
+
+            actionMessage = $"User {user.DisplayName} has been {action}. {details}";
             actionMessageType = "success";
 
             Console.WriteLine($"✓ User {confirmUserId} {action}");
@@ -532,17 +520,17 @@
             // Reload data to reflect changes
             await LoadData();
 
-            // Hide message after 3 seconds
+            // Hide message after 5 seconds
             _ = Task.Run(async () =>
             {
-                await Task.Delay(3000);
+                await Task.Delay(5000);
                 actionMessage = null;
                 await InvokeAsync(StateHasChanged);
             });
         }
         else
         {
-            actionMessage = "Failed to update user status. Admin users cannot be deactivated.";
+            actionMessage = "Failed to update user status. Admin users cannot be blocked.";
             actionMessageType = "error";
 
             Console.WriteLine($"✗ Failed to toggle user {confirmUserId}");

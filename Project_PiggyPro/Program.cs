@@ -38,6 +38,8 @@ builder.Services.AddIdentity<Project_PiggyProUser, IdentityRole>(options =>
 
 builder.Services.AddSingleton<IEmailSender<Project_PiggyProUser>, IdentityNoOpEmailSender>();
 builder.Services.AddScoped<AdminService>();
+builder.Services.AddScoped<ReportsService>();
+builder.Services.AddScoped<GoalService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

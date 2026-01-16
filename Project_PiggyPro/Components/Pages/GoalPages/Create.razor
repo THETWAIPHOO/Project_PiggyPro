@@ -1,87 +1,100 @@
 ﻿@page "/goals/create"
 @using Microsoft.EntityFrameworkCore
 @using Project_PiggyPro.Domain
+@using Microsoft.AspNetCore.Components.Authorization
 @inject IDbContextFactory<Project_PiggyPro.Data.Project_PiggyProContext> DbFactory
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
-<PageTitle>Create</PageTitle>
+<PageTitle>Create Goal</PageTitle>
 
-<h1>Create</h1>
+<h1>Create New Goal</h1>
 
-<h2>Goal</h2>
 <hr />
 <div class="row">
-    <div class="col-md-4">
+    <div class="col-md-6">
         <EditForm method="post" Model="Goal" OnValidSubmit="AddGoal" FormName="create" Enhance>
             <DataAnnotationsValidator />
-            <ValidationSummary class="text-danger" role="alert"/>
+            <ValidationSummary class="text-danger" role="alert" />
+
             <div class="mb-3">
-                <label for="goalname" class="form-label">GoalName:</label> 
-                <InputText id="goalname" @bind-Value="Goal.GoalName" class="form-control" /> 
-                <ValidationMessage For="() => Goal.GoalName" class="text-danger" /> 
-            </div>        
+                <label for="goalname" class="form-label">Goal Name:</label>
+                <InputText id="goalname" @bind-Value="Goal.GoalName" class="form-control" placeholder="e.g., New Laptop, Vacation, Emergency Fund" />
+                <ValidationMessage For="() => Goal.GoalName" class="text-danger" />
+            </div>
+
             <div class="mb-3">
-                <label for="targetamount" class="form-label">TargetAmount:</label> 
-                <InputNumber id="targetamount" @bind-Value="Goal.TargetAmount" class="form-control" /> 
-                <ValidationMessage For="() => Goal.TargetAmount" class="text-danger" /> 
-            </div>        
+                <label for="description" class="form-label">Description:</label>
+                <InputTextArea id="description" @bind-Value="Goal.Description" class="form-control" rows="3" placeholder="Optional description of your goal" />
+                <ValidationMessage For="() => Goal.Description" class="text-danger" />
+            </div>
+
             <div class="mb-3">
-                <label for="currentamount" class="form-label">CurrentAmount:</label> 
-                <InputNumber id="currentamount" @bind-Value="Goal.CurrentAmount" class="form-control" /> 
-                <ValidationMessage For="() => Goal.CurrentAmount" class="text-danger" /> 
-            </div>        
+                <label for="targetamount" class="form-label">Target Amount:</label>
+                <InputNumber id="targetamount" @bind-Value="Goal.TargetAmount" class="form-control" />
+                <ValidationMessage For="() => Goal.TargetAmount" class="text-danger" />
+            </div>
+
             <div class="mb-3">
-                <label for="targetdate" class="form-label">TargetDate:</label> 
-                <InputDate id="targetdate" @bind-Value="Goal.TargetDate" class="form-control" /> 
-                <ValidationMessage For="() => Goal.TargetDate" class="text-danger" /> 
-            </div>        
+                <label for="targetdate" class="form-label">Target Date:</label>
+                <InputDate id="targetdate" @bind-Value="Goal.TargetDate" class="form-control" />
+                <ValidationMessage For="() => Goal.TargetDate" class="text-danger" />
+            </div>
+
             <div class="mb-3">
-                <label for="goalstatus" class="form-label">GoalStatus:</label> 
-                <InputText id="goalstatus" @bind-Value="Goal.GoalStatus" class="form-control" /> 
-                <ValidationMessage For="() => Goal.GoalStatus" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="appuserid" class="form-label">AppUserId:</label> 
-                <InputNumber id="appuserid" @bind-Value="Goal.AppUserId" class="form-control" /> 
-                <ValidationMessage For="() => Goal.AppUserId" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="datecreated" class="form-label">DateCreated:</label> 
-                <InputDate id="datecreated" @bind-Value="Goal.DateCreated" class="form-control" /> 
-                <ValidationMessage For="() => Goal.DateCreated" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="dateupdated" class="form-label">DateUpdated:</label> 
-                <InputDate id="dateupdated" @bind-Value="Goal.DateUpdated" class="form-control" /> 
-                <ValidationMessage For="() => Goal.DateUpdated" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="createdby" class="form-label">CreatedBy:</label> 
-                <InputText id="createdby" @bind-Value="Goal.CreatedBy" class="form-control" /> 
-                <ValidationMessage For="() => Goal.CreatedBy" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="updatedby" class="form-label">UpdatedBy:</label> 
-                <InputText id="updatedby" @bind-Value="Goal.UpdatedBy" class="form-control" /> 
-                <ValidationMessage For="() => Goal.UpdatedBy" class="text-danger" /> 
-            </div>        
-            <button type="submit" class="btn btn-primary">Create</button>
+                <label for="category" class="form-label">Category:</label>
+                <InputSelect id="category" @bind-Value="Goal.Category" class="form-control">
+                    <option value="">-- Select Category --</option>
+                    <option value="Electronics">Electronics</option>
+                    <option value="Travel">Travel</option>
+                    <option value="Emergency Fund">Emergency Fund</option>
+                    <option value="Education">Education</option>
+                    <option value="Home">Home</option>
+                    <option value="Vehicle">Vehicle</option>
+                    <option value="Other">Other</option>
+                </InputSelect>
+                <ValidationMessage For="() => Goal.Category" class="text-danger" />
+            </div>
+
+            <button type="submit" class="btn btn-primary">Create Goal</button>
+            <a href="/goals" class="btn btn-secondary">Cancel</a>
         </EditForm>
     </div>
-</div>
-
-<div>
-    <a href="/goals">Back to List</a>
 </div>
 
 @code {
     [SupplyParameterFromForm]
     private Goal Goal { get; set; } = new();
 
-    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    protected override async Task OnInitializedAsync()
+    {
+        // Get current user ID
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            var userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (!string.IsNullOrEmpty(userId))
+            {
+                Goal.AppUserId = userId;
+            }
+        }
+
+        // Set default target date to 1 year from now
+        Goal.TargetDate = DateTime.Today.AddYears(1);
+    }
+
     private async Task AddGoal()
     {
         using var context = DbFactory.CreateDbContext();
+
+        // Set system fields
+        Goal.DateCreated = DateTime.Now;
+        Goal.DateUpdated = DateTime.Now;
+        Goal.Status = "Active";
+        Goal.CurrentAmount = 0;
+
         context.Goal.Add(Goal);
         await context.SaveChangesAsync();
         NavigationManager.NavigateTo("/goals");
