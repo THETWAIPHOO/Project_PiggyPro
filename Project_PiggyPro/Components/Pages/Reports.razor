@@ -1,0 +1,412 @@
+﻿@page "/reports"
+@rendermode InteractiveServer
+@layout UserLayout
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@using Project_PiggyPro.Components.Layout
+@using Project_PiggyPro.Data
+@using Project_PiggyPro.Services
+@inject ReportsService ReportsService
+@inject UserManager<Project_PiggyProUser> UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Financial Reports - PiggyPro</PageTitle>
+
+<div class="reports-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div>
+            <h1>Financial Reports</h1>
+            <p>Analyze your spending patterns and trends</p>
+        </div>
+
+        <div class="header-controls">
+            <select class="period-dropdown" @bind="selectedPeriod" @bind:after="LoadData">
+                <option value="7">Last 7 Days</option>
+                <option value="30">Last 30 Days</option>
+                <option value="60">Last 60 Days</option>
+                <option value="90">Last 90 Days</option>
+            </select>
+
+            <button class="export-btn" @onclick="ExportToCSV">
+                <span class="bi bi-download"></span> Export CSV
+            </button>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="loading-spinner">
+            <p>Loading reports...</p>
+        </div>
+    }
+    else
+    {
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+            <!-- Average Daily Spending -->
+            <div class="stat-card">
+                <h3 class="stat-title">Average Daily Spending</h3>
+                <div class="stat-value">$@stats.AverageDailySpending.ToString("N0")</div>
+                <p class="stat-change positive">↑ 12% vs last month</p>
+            </div>
+
+            <!-- Top Spending Category -->
+            <div class="stat-card">
+                <h3 class="stat-title">Top Spending Category</h3>
+                <div class="stat-category">@stats.TopSpendingCategory</div>
+                <p class="stat-amount">$@stats.TopCategoryAmount.ToString("N0") spent</p>
+            </div>
+
+            <!-- Savings Rate -->
+            <div class="stat-card">
+                <h3 class="stat-title">Savings Rate</h3>
+                <div class="stat-value">@stats.SavingsRate.ToString("N0")%</div>
+                <p class="stat-change positive">↑ 5% vs last month</p>
+            </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="charts-section">
+            <!-- Income vs Expenses -->
+            <div class="chart-card">
+                <h2 class="chart-title">Income vs Expenses</h2>
+                <div class="chart-container">
+                    <canvas id="incomeVsExpensesChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Expense Breakdown -->
+            <div class="chart-card">
+                <h2 class="chart-title">Expense Breakdown</h2>
+                <div class="chart-container">
+                    <canvas id="expenseBreakdownChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Spending Trend -->
+        <div class="chart-card full-width">
+            <h2 class="chart-title">Spending Trend Over Time</h2>
+            <div class="chart-container large">
+                <canvas id="spendingTrendChart"></canvas>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private bool isLoading = true;
+    private string userId = "";
+    private int selectedPeriod = 30;
+
+    private SpendingStatsDto stats = new();
+    private IncomeVsExpensesDto incomeVsExpenses = new();
+    private ExpenseBreakdownDto expenseBreakdown = new();
+    private SpendingTrendDto spendingTrend = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            userId = UserManager.GetUserId(user);
+        }
+
+        await LoadData();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!isLoading)
+        {
+            await RenderCharts();
+        }
+    }
+
+    private async Task LoadData()
+    {
+        if (string.IsNullOrEmpty(userId)) return;
+
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            stats = await ReportsService.GetSpendingStatsAsync(userId, selectedPeriod);
+            incomeVsExpenses = await ReportsService.GetIncomeVsExpensesAsync(userId, 6);
+            expenseBreakdown = await ReportsService.GetExpenseBreakdownAsync(userId, selectedPeriod);
+            spendingTrend = await ReportsService.GetSpendingTrendAsync(userId, selectedPeriod);
+
+            Console.WriteLine($"✓ Data loaded - Stats: Income={stats.TotalIncome}, Expenses={stats.TotalExpenses}");
+            Console.WriteLine($"✓ Income vs Expenses: {incomeVsExpenses.Labels.Count} months");
+            Console.WriteLine($"✓ Expense Breakdown: {expenseBreakdown.Categories.Count} categories");
+            Console.WriteLine($"✓ Spending Trend: {spendingTrend.Data.Count} days");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"✗ Error loading reports: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task RenderCharts()
+    {
+        try
+        {
+            Console.WriteLine("=== ATTEMPTING TO RENDER CHARTS ===");
+
+            await Task.Delay(1000);
+
+            var canvas1Exists = await JSRuntime.InvokeAsync<bool>("eval",
+                "document.getElementById('incomeVsExpensesChart') !== null");
+            var canvas2Exists = await JSRuntime.InvokeAsync<bool>("eval",
+                "document.getElementById('expenseBreakdownChart') !== null");
+            var canvas3Exists = await JSRuntime.InvokeAsync<bool>("eval",
+                "document.getElementById('spendingTrendChart') !== null");
+
+            Console.WriteLine($"Canvas 1 (Income vs Expenses): {canvas1Exists}");
+            Console.WriteLine($"Canvas 2 (Expense Breakdown): {canvas2Exists}");
+            Console.WriteLine($"Canvas 3 (Spending Trend): {canvas3Exists}");
+
+            if (!canvas1Exists || !canvas2Exists || !canvas3Exists)
+            {
+                Console.WriteLine("❌ Not all canvases found - aborting chart rendering");
+                return;
+            }
+
+            Console.WriteLine("Creating Income vs Expenses chart...");
+            await JSRuntime.InvokeVoidAsync("chartHelpers.createBarChart",
+                "incomeVsExpensesChart",
+                incomeVsExpenses.Labels.ToArray(),
+                new object[] {
+                    new {
+                        label = "Income",
+                        data = incomeVsExpenses.IncomeData.ToArray(),
+                        backgroundColor = "#10b981"
+                    },
+                    new {
+                        label = "Expenses",
+                        data = incomeVsExpenses.ExpenseData.ToArray(),
+                        backgroundColor = "#ef4444"
+                    }
+                });
+
+            Console.WriteLine("Creating Expense Breakdown chart...");
+            await JSRuntime.InvokeVoidAsync("chartHelpers.createPieChart",
+                "expenseBreakdownChart",
+                expenseBreakdown.Categories.ToArray(),
+                expenseBreakdown.Amounts.ToArray(),
+                new[] { "#ef4444", "#f59e0b", "#10b981", "#3b82f6", "#8b5cf6", "#ec4899" });
+
+            Console.WriteLine("Creating Spending Trend chart...");
+            await JSRuntime.InvokeVoidAsync("chartHelpers.createLineChart",
+                "spendingTrendChart",
+                spendingTrend.Labels.ToArray(),
+                spendingTrend.Data.ToArray(),
+                "Daily Spending");
+
+            Console.WriteLine("✅ ALL CHARTS RENDERED SUCCESSFULLY");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Error rendering charts: {ex.Message}");
+        }
+    }
+
+    private async Task ExportToCSV()
+    {
+        try
+        {
+            var transactions = await ReportsService.GetTransactionsForExportAsync(userId, selectedPeriod);
+
+            var csv = new System.Text.StringBuilder();
+            csv.AppendLine("Date,Type,Category,Amount,Description");
+
+            foreach (var t in transactions)
+            {
+                csv.AppendLine($"{t.Date:yyyy-MM-dd},{t.Type},{t.Category},{t.Amount:F2},\"{t.Description}\"");
+            }
+
+            var bytes = System.Text.Encoding.UTF8.GetBytes(csv.ToString());
+            var base64 = Convert.ToBase64String(bytes);
+            var fileName = $"transactions_{DateTime.Now:yyyyMMdd}.csv";
+
+            await JSRuntime.InvokeVoidAsync("downloadFile", fileName, base64);
+
+            Console.WriteLine("✓ CSV exported");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"✗ Error exporting CSV: {ex.Message}");
+        }
+    }
+}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+    window.chartHelpers = {
+        createLineChart: function (canvasId, labels, data, label) {
+            console.log('🎨 Creating line chart:', canvasId);
+
+            if (typeof Chart === 'undefined') {
+                console.error('❌ Chart.js not loaded yet');
+                setTimeout(() => this.createLineChart(canvasId, labels, data, label), 100);
+                return;
+            }
+
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) {
+                console.error('❌ Canvas not found:', canvasId);
+                return;
+            }
+
+            const ctx = canvas.getContext('2d');
+
+            if (canvas.chart) {
+                canvas.chart.destroy();
+            }
+
+            canvas.chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: label,
+                        data: data,
+                        borderColor: '#333',
+                        backgroundColor: 'rgba(51, 51, 51, 0.1)',
+                        tension: 0.3,
+                        fill: true,
+                        pointBackgroundColor: '#333',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            console.log('✅ Line chart created');
+        },
+
+        createPieChart: function (canvasId, labels, data, colors) {
+            console.log('🎨 Creating pie chart:', canvasId);
+
+            if (typeof Chart === 'undefined') {
+                console.error('❌ Chart.js not loaded yet');
+                setTimeout(() => this.createPieChart(canvasId, labels, data, colors), 100);
+                return;
+            }
+
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) {
+                console.error('❌ Canvas not found:', canvasId);
+                return;
+            }
+
+            const ctx = canvas.getContext('2d');
+
+            if (canvas.chart) {
+                canvas.chart.destroy();
+            }
+
+            canvas.chart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors,
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+            console.log('✅ Pie chart created');
+        },
+
+        createBarChart: function (canvasId, labels, datasets) {
+            console.log('🎨 Creating bar chart:', canvasId);
+
+            if (typeof Chart === 'undefined') {
+                console.error('❌ Chart.js not loaded yet');
+                setTimeout(() => this.createBarChart(canvasId, labels, datasets), 100);
+                return;
+            }
+
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) {
+                console.error('❌ Canvas not found:', canvasId);
+                return;
+            }
+
+            const ctx = canvas.getContext('2d');
+
+            if (canvas.chart) {
+                canvas.chart.destroy();
+            }
+
+            canvas.chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            console.log('✅ Bar chart created');
+        }
+    };
+
+    window.downloadFile = function (filename, base64Content) {
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = 'data:text/csv;base64,' + base64Content;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+</script>

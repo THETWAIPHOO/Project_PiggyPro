@@ -7,7 +7,7 @@
 @using Project_PiggyPro.Services
 @inject AdminService AdminService
 @inject IJSRuntime JSRuntime
-
+@inject NavigationManager NavigationManager
 <PageTitle>Admin Dashboard - PiggyPro</PageTitle>
 
 <!-- Admin Navigation Bar -->
@@ -128,7 +128,16 @@
                         <tr>
                             <td>#@user.Id.Substring(0, 8)</td>
                             <td>@user.Email</td>
-                            <td>@user.UserName</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(user.FirstName) || !string.IsNullOrEmpty(user.LastName))
+                                {
+                                    @user.DisplayName
+                                }
+                                else
+                                {
+                                    @user.UserName
+                                }
+                            </td>
                             <td>@user.CreatedAt.ToString("MMM dd, yyyy")</td>
                             <td>
                                 <span class="badge @(user.IsActive ? "active" : "inactive")">
@@ -257,7 +266,7 @@
     private void ViewUser(string userId)
     {
         Console.WriteLine($"View user: {userId}");
-        // TODO: Navigate to user detail page
+        NavigationManager.NavigateTo($"/admin/users/viewAD/{userId}");
     }
 }
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>

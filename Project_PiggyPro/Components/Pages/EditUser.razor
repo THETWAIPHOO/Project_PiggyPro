@@ -1,0 +1,339 @@
+﻿@page "/admin/users/edit/{UserId}"
+@rendermode InteractiveServer
+@layout AdminLayout
+@attribute [Authorize(Roles = "Administrator")]
+@using Microsoft.AspNetCore.Authorization
+@using Project_PiggyPro.Components.Layout
+@using Project_PiggyPro.Services
+@inject AdminService AdminService
+@inject NavigationManager NavigationManager
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>Edit User - PiggyPro</PageTitle>
+
+<!-- Admin Navigation Bar -->
+<nav class="admin-navbar">
+    <div class="admin-nav-content">
+        <div class="admin-brand">
+            <span class="pig-icon">🐷</span>
+            <span class="brand-text">PiggyPro - ADMIN</span>
+        </div>
+
+        <div class="admin-nav-buttons">
+            <NavLink href="/admin/dashboard" class="admin-nav-btn">
+                Admin Dashboard
+            </NavLink>
+            <NavLink href="/admin/users" class="admin-nav-btn">
+                User Management
+            </NavLink>
+            <NavLink href="/admin/analytics" class="admin-nav-btn">
+                System Analytics
+            </NavLink>
+
+            <a href="/Account/Logout" class="admin-nav-btn logout-btn">
+                Logout
+            </a>
+        </div>
+    </div>
+</nav>
+
+<div class="admin-container">
+    <div class="page-header">
+        <h1>Edit User</h1>
+        <p>Update user information</p>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="loading-spinner">
+            <p>Loading user details...</p>
+        </div>
+    }
+    else if (user == null)
+    {
+        <div class="error-message">
+            <h2>User Not Found</h2>
+            <p>The user you're trying to edit doesn't exist.</p>
+            <button class="back-btn" @onclick="GoBack">Back to User Management</button>
+        </div>
+    }
+    else
+    {
+        <div class="edit-container">
+            <!-- Edit Form -->
+            <div class="edit-form-card">
+                <h2 class="section-title">User Information</h2>
+
+                @if (showSuccessMessage)
+                {
+                    <div class="success-message">
+                        <span class="bi bi-check-circle"></span> User updated successfully!
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="error-alert">
+                        <span class="bi bi-exclamation-triangle"></span> @errorMessage
+                    </div>
+                }
+
+                <EditForm Model="editModel" OnValidSubmit="HandleSubmit">
+                    <DataAnnotationsValidator />
+
+                    <div class="form-group">
+                        <label class="form-label">User ID</label>
+                        <input type="text" class="form-input" value="@user.Id.Substring(0, 8)" disabled />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">First Name</label>
+                        <InputText @bind-Value="editModel.FirstName" class="form-input" placeholder="Enter first name" />
+                        <ValidationMessage For="@(() => editModel.FirstName)" class="validation-message" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Last Name</label>
+                        <InputText @bind-Value="editModel.LastName" class="form-input" placeholder="Enter last name" />
+                        <ValidationMessage For="@(() => editModel.LastName)" class="validation-message" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Email *</label>
+                        <InputText @bind-Value="editModel.Email" class="form-input" placeholder="Enter email" />
+                        <ValidationMessage For="@(() => editModel.Email)" class="validation-message" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Phone Number</label>
+                        <InputText @bind-Value="editModel.PhoneNumber" class="form-input" placeholder="Enter phone number" />
+                        <ValidationMessage For="@(() => editModel.PhoneNumber)" class="validation-message" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Email Verified</label>
+                        <div class="checkbox-wrapper">
+                            <InputCheckbox @bind-Value="editModel.EmailConfirmed" class="form-checkbox" />
+                            <span class="checkbox-label">Email is verified</span>
+                        </div>
+                    </div>
+
+                    <div class="form-info">
+                        <p><strong>Registration Date:</strong> @user.CreatedAt.ToString("MMMM dd, yyyy 'at' hh:mm tt")</p>
+                        <p>
+                            <strong>Last Login:</strong>
+                            @if (user.LastLoginDate.HasValue)
+                            {
+                                @user.LastLoginDate.Value.ToString("MMMM dd, yyyy 'at' hh:mm tt")
+                            }
+                            else
+                            {
+                                <span class="text-muted">Never logged in</span>
+                            }
+                        </p>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="submit-btn" disabled="@isSaving">
+                            @if (isSaving)
+                            {
+                                <span>Saving...</span>
+                            }
+                            else
+                            {
+                                <span><span class="bi bi-save"></span> Save Changes</span>
+                            }
+                        </button>
+                        <button type="button" class="cancel-btn" @onclick="GoBack">
+                            <span class="bi bi-x-circle"></span> Cancel
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+
+            <!-- Preview Card -->
+            <div class="preview-card">
+                <h2 class="section-title">Preview</h2>
+                <p class="preview-subtitle">How the user information will appear</p>
+
+                <div class="preview-content">
+                    <div class="preview-row">
+                        <span class="preview-label">Full Name:</span>
+                        <span class="preview-value">
+                            @if (!string.IsNullOrWhiteSpace(editModel.FirstName) || !string.IsNullOrWhiteSpace(editModel.LastName))
+                            {
+                                @($"{editModel.FirstName} {editModel.LastName}".Trim())
+                            }
+                            else
+                            {
+                                <span class="text-muted">Not provided</span>
+                            }
+                        </span>
+                    </div>
+
+                    <div class="preview-row">
+                        <span class="preview-label">Email:</span>
+                        <span class="preview-value">@editModel.Email</span>
+                    </div>
+
+                    <div class="preview-row">
+                        <span class="preview-label">Phone:</span>
+                        <span class="preview-value">
+                            @if (!string.IsNullOrWhiteSpace(editModel.PhoneNumber))
+                            {
+                                @editModel.PhoneNumber
+                            }
+                            else
+                            {
+                                <span class="text-muted">Not provided</span>
+                            }
+                        </span>
+                    </div>
+
+                    <div class="preview-row">
+                        <span class="preview-label">Email Status:</span>
+                        <span class="preview-value">
+                            @if (editModel.EmailConfirmed)
+                            {
+                                <span class="badge verified">✓ Verified</span>
+                            }
+                            else
+                            {
+                                <span class="badge unverified">✗ Not Verified</span>
+                            }
+                        </span>
+                    </div>
+                </div>
+
+                <div class="preview-note">
+                    <span class="bi bi-info-circle"></span>
+                    <span>Changes will be saved when you click "Save Changes"</span>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string UserId { get; set; } = "";
+
+    private bool isLoading = true;
+    private bool isSaving = false;
+    private bool showSuccessMessage = false;
+    private string errorMessage = "";
+    private UserDetailDto? user;
+    private EditUserModel editModel = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUserDetails();
+    }
+
+    private async Task LoadUserDetails()
+    {
+        isLoading = true;
+
+        try
+        {
+            user = await AdminService.GetUserByIdAsync(UserId);
+
+            if (user != null)
+            {
+                // Populate edit model
+                editModel = new EditUserModel
+                {
+                    FirstName = user.FirstName ?? "",
+                    LastName = user.LastName ?? "",
+                    Email = user.Email,
+                    PhoneNumber = user.PhoneNumber ?? "",
+                    EmailConfirmed = user.EmailConfirmed
+                };
+
+                Console.WriteLine($"✓ Loaded user for editing: {user.Email}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"✗ Error loading user: {ex.Message}");
+            errorMessage = "Failed to load user details.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        isSaving = true;
+        showSuccessMessage = false;
+        errorMessage = "";
+
+        try
+        {
+            Console.WriteLine($"Saving user: {editModel.Email}");
+
+            var success = await AdminService.UpdateUserAsync(
+                UserId,
+                editModel.FirstName,
+                editModel.LastName,
+                editModel.Email,
+                editModel.PhoneNumber,
+                editModel.EmailConfirmed
+            );
+
+            if (success)
+            {
+                Console.WriteLine("✓ User updated successfully");
+                showSuccessMessage = true;
+
+                // Reload user data to show updated info
+                await LoadUserDetails();
+
+                // Hide success message after 3 seconds
+                await Task.Delay(3000);
+                showSuccessMessage = false;
+            }
+            else
+            {
+                Console.WriteLine("✗ Failed to update user");
+                errorMessage = "Failed to update user. Please try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"✗ Error updating user: {ex.Message}");
+            errorMessage = $"An error occurred: {ex.Message}";
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private void GoBack()
+    {
+        NavigationManager.NavigateTo("/admin/users");
+    }
+
+    public class EditUserModel
+    {
+        [Required(ErrorMessage = "First name is required")]
+        [StringLength(50, ErrorMessage = "First name cannot exceed 50 characters")]
+        public string FirstName { get; set; } = "";
+
+        [Required(ErrorMessage = "Last name is required")]
+        [StringLength(50, ErrorMessage = "Last name cannot exceed 50 characters")]
+        public string LastName { get; set; } = "";
+
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email address")]
+        public string Email { get; set; } = "";
+
+        [Phone(ErrorMessage = "Invalid phone number")]
+        public string PhoneNumber { get; set; } = "";
+
+        public bool EmailConfirmed { get; set; }
+    }
+}

@@ -8,30 +8,52 @@
 @implements IAsyncDisposable
 @inject IDbContextFactory<Project_PiggyPro.Data.Project_PiggyProContext> DbFactory
 
-<PageTitle>Index</PageTitle>
+<PageTitle>My Goals</PageTitle>
 
-<h1>Index</h1>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>My Financial Goals</h1>
+    <a href="goals/create" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Create New Goal
+    </a>
+</div>
 
-<p>
-    <a href="goals/create">Create New</a>
-</p>
+<QuickGrid Class="table table-striped table-hover" Items="context.Goal">
+    <PropertyColumn Property="goal => goal.GoalName" Title="Goal Name" Sortable="true" />
 
-<QuickGrid Class="table" Items="context.Goal">
-    <PropertyColumn Property="goal => goal.GoalName" />
-    <PropertyColumn Property="goal => goal.TargetAmount" />
-    <PropertyColumn Property="goal => goal.CurrentAmount" />
-    <PropertyColumn Property="goal => goal.TargetDate" />
-    <PropertyColumn Property="goal => goal.GoalStatus" />
-    <PropertyColumn Property="goal => goal.AppUserId" />
-    <PropertyColumn Property="goal => goal.DateCreated" />
-    <PropertyColumn Property="goal => goal.DateUpdated" />
-    <PropertyColumn Property="goal => goal.CreatedBy" />
-    <PropertyColumn Property="goal => goal.UpdatedBy" />
+    <PropertyColumn Property="goal => goal.TargetAmount" Title="Target" Sortable="true" Format="C" />
 
-    <TemplateColumn Context="goal">
-        <a href="@($"goals/edit?id={goal.Id}")">Edit</a> |
-        <a href="@($"goals/details?id={goal.Id}")">Details</a> |
-        <a href="@($"goals/delete?id={goal.Id}")">Delete</a>
+    <PropertyColumn Property="goal => goal.CurrentAmount" Title="Saved" Sortable="true" Format="C" />
+
+    <TemplateColumn Title="Progress">
+        <div class="progress" style="height: 20px; min-width: 100px;">
+            <div class="progress-bar @GetProgressBarClass(context.ProgressPercentage)"
+                 role="progressbar"
+                 style="width: @Math.Min(context.ProgressPercentage, 100)%">
+                @context.ProgressPercentage.ToString("F0")%
+            </div>
+        </div>
+    </TemplateColumn>
+
+    <PropertyColumn Property="goal => goal.TargetDate" Title="Target Date" Sortable="true" Format="MMM dd, yyyy" />
+
+    <TemplateColumn Title="Status">
+        <span class="badge @GetStatusBadgeClass(context.Status)">@context.Status</span>
+    </TemplateColumn>
+
+    <TemplateColumn Title="Category">
+        @context.Category
+    </TemplateColumn>
+
+    <TemplateColumn Title="Actions" Context="goal">
+        <a href="@($"goals/details?id={goal.Id}")" class="btn btn-sm btn-info" title="View Details">
+            <i class="bi bi-eye"></i>
+        </a>
+        <a href="@($"goals/edit?id={goal.Id}")" class="btn btn-sm btn-warning" title="Edit">
+            <i class="bi bi-pencil"></i>
+        </a>
+        <a href="@($"goals/delete?id={goal.Id}")" class="btn btn-sm btn-danger" title="Delete">
+            <i class="bi bi-trash"></i>
+        </a>
     </TemplateColumn>
 </QuickGrid>
 
@@ -44,4 +66,24 @@
     }
 
     public async ValueTask DisposeAsync() => await context.DisposeAsync();
+
+    private string GetProgressBarClass(decimal percentage)
+    {
+        if (percentage >= 100) return "bg-success";
+        if (percentage >= 75) return "bg-info";
+        if (percentage >= 50) return "bg-primary";
+        if (percentage >= 25) return "bg-warning";
+        return "bg-danger";
+    }
+
+    private string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Active" => "bg-primary",
+            "Completed" => "bg-success",
+            "Cancelled" => "bg-secondary",
+            _ => "bg-secondary"
+        };
+    }
 }
