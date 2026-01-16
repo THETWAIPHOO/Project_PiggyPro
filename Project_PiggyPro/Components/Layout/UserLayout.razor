@@ -3,45 +3,49 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager Navigation
 
-<div class="user-dashboard-page">
-    <!-- User Dashboard Navigation -->
-    <nav class="navbar">
-        <div class="navbar-container">
-            <a href="/User/UserDashboard" class="navbar-brand">
-                <span class="pig-icon">🐷</span> PiggyPro
-            </a>
-            <div class="nav-menu">
-                <NavLink href="/User/UserDashboard" class="nav-btn" Match="NavLinkMatch.All">
-                    Dashboard
-                </NavLink>
-                <NavLink href="/Transactions" class="nav-btn">
-                    Transactions
-                </NavLink>
-                <NavLink href="/BudgetPages" class="nav-btn">
-                    Budget
-                </NavLink>
-                <NavLink href="/GoalPages" class="nav-btn">
-                    Goals
-                </NavLink>
-                <NavLink href="/Reports" class="nav-btn">
-                    Reports
-                </NavLink>
+<CascadingAuthenticationState>
+    <div class="user-dashboard-page">
+        <!-- User Dashboard Navigation -->
+        <nav class="navbar">
+            <div class="navbar-container">
+                <a href="/User/UserDashboard" class="navbar-brand">
+                    <span class="pig-icon">🐷</span> PiggyPro
+                </a>
+                <div class="nav-menu">
+                    <NavLink href="/User/UserDashboard" class="nav-btn" Match="NavLinkMatch.All">
+                        Dashboard
+                    </NavLink>
+                    <NavLink href="/Transactions" class="nav-btn">
+                        Transactions
+                    </NavLink>
+                    <NavLink href="/Budgets" class="nav-btn">
+                        Budget
+                    </NavLink>
+                    <NavLink href="/GoalPages" class="nav-btn">
+                        Goals
+                    </NavLink>
+                    <NavLink href="/Reports" class="nav-btn">
+                        Reports
+                    </NavLink>
+                </div>
+                <AuthorizeView>
+                    <Authorized>
+                        <div class="user-section">
+                            <span class="user-name">@fullName</span>
+                            <a href="/Account/Logout" class="btn-logout">Logout</a>
+                        </div>
+                    </Authorized>
+                </AuthorizeView>
             </div>
-            <AuthorizeView>
-                <Authorized>
-                    <div class="user-section">
-                        <span class="user-name">@fullName</span>
-                        <a href="/Account/Logout" class="btn-logout">Logout</a>
-                    </div>
-                </Authorized>
-            </AuthorizeView>
-        </div>
-    </nav>
+        </nav>
 
-    <main class="main-content">
-        @Body
-    </main>
-</div>
+        <main class="main-content">
+            @Body
+        </main>
+    </div>
+</CascadingAuthenticationState>
+
+
 
 @code {
     private string fullName = string.Empty;
