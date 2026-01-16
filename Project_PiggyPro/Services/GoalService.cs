@@ -63,7 +63,7 @@ namespace Project_PiggyPro.Services
             return await context.SaveChangesAsync() > 0;
         }
 
-        // Add funds to goal
+        // Add funds to goal - WITH TRANSACTION TRACKING
         public async Task<bool> AddFundsToGoalAsync(int goalId, decimal amount, string userId)
         {
             using var context = _contextFactory.CreateDbContext();
@@ -73,6 +73,44 @@ namespace Project_PiggyPro.Services
 
             if (goal == null) return false;
 
+            // Find or create "Savings Goal" category
+            var savingsGoalCategory = await context.Category
+                .FirstOrDefaultAsync(c => c.CategoryName == "Savings Goal" && c.CategoryType == "Savings");
+
+            if (savingsGoalCategory == null)
+            {
+                savingsGoalCategory = new Category
+                {
+                    CategoryName = "Savings Goal",
+                    CategoryType = "Savings",
+                    AppUserId = userId,
+                    DateCreated = DateTime.Now,
+                    CreatedBy = userId,
+                    DateUpdated = DateTime.Now,
+                    UpdatedBy = userId
+                };
+                context.Category.Add(savingsGoalCategory);
+                await context.SaveChangesAsync();
+            }
+
+            // Create a transaction record (moving money INTO the goal = Expense from savings)
+            var transaction = new Transaction
+            {
+                Amount = amount,
+                TransactionType = "Expense",
+                TransactionDate = DateTime.Now,
+                Description = $"Added ${amount:F2} to goal: {goal.GoalName}",
+                CategoryId = savingsGoalCategory.Id,
+                AppUserId = userId,
+                DateCreated = DateTime.Now,
+                CreatedBy = userId,
+                DateUpdated = DateTime.Now,
+                UpdatedBy = userId
+            };
+
+            context.Transaction.Add(transaction);
+
+            // Update goal amount
             goal.CurrentAmount += amount;
             goal.DateUpdated = DateTime.Now;
 
@@ -85,7 +123,7 @@ namespace Project_PiggyPro.Services
             return await context.SaveChangesAsync() > 0;
         }
 
-        // Withdraw funds from goal
+        // Withdraw funds from goal - WITH TRANSACTION TRACKING
         public async Task<bool> WithdrawFundsFromGoalAsync(int goalId, decimal amount, string userId)
         {
             using var context = _contextFactory.CreateDbContext();
@@ -95,6 +133,31 @@ namespace Project_PiggyPro.Services
 
             if (goal == null || goal.CurrentAmount < amount) return false;
 
+            // Find "Savings Goal" category
+            var savingsGoalCategory = await context.Category
+                .FirstOrDefaultAsync(c => c.CategoryName == "Savings Goal" && c.CategoryType == "Savings");
+
+            if (savingsGoalCategory != null)
+            {
+                // Create a transaction record (taking money OUT of goal = Income back to savings)
+                var transaction = new Transaction
+                {
+                    Amount = amount,
+                    TransactionType = "Income",
+                    TransactionDate = DateTime.Now,
+                    Description = $"Withdrew ${amount:F2} from goal: {goal.GoalName}",
+                    CategoryId = savingsGoalCategory.Id,
+                    AppUserId = userId,
+                    DateCreated = DateTime.Now,
+                    CreatedBy = userId,
+                    DateUpdated = DateTime.Now,
+                    UpdatedBy = userId
+                };
+
+                context.Transaction.Add(transaction);
+            }
+
+            // Update goal amount
             goal.CurrentAmount -= amount;
             goal.DateUpdated = DateTime.Now;
 
@@ -157,6 +220,50 @@ namespace Project_PiggyPro.Services
                     ? goals.Where(g => g.Status == "Active").Average(g => g.ProgressPercentage)
                     : 0
             };
+        }
+
+        // NEW: Get available savings budget for goals
+        public async Task<decimal> GetAvailableSavingsBudgetAsync(string userId)
+        {
+            using var context = _contextFactory.CreateDbContext();
+
+            // Get current month's savings budgets
+            var now = DateTime.Now;
+            var startOfMonth = new DateTime(now.Year, now.Month, 1);
+            var endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
+
+            var savingsBudgets = await context.Budget
+                .Where(b => b.AppUserId == userId &&
+                           b.BucketType == "Savings" &&
+                           b.StartDate <= now &&
+                           b.EndDate >= now)
+                .Include(b => b.Category)
+                .ToListAsync();
+
+            decimal totalSavingsBudget = savingsBudgets.Sum(b => b.AllocatedAmount);
+
+            // Get all savings expenses (including goal allocations)
+            var savingsCategories = savingsBudgets.Select(b => b.CategoryId).ToList();
+
+            decimal totalSpent = await context.Transaction
+                .Where(t => t.AppUserId == userId &&
+                           savingsCategories.Contains(t.CategoryId) &&
+                           t.TransactionType == "Expense" &&
+                           t.TransactionDate >= startOfMonth &&
+                           t.TransactionDate <= endOfMonth)
+                .SumAsync(t => t.Amount);
+
+            return totalSavingsBudget - totalSpent;
+        }
+
+        // NEW: Get total money in all goals
+        public async Task<decimal> GetTotalInGoalsAsync(string userId)
+        {
+            using var context = _contextFactory.CreateDbContext();
+
+            return await context.Goal
+                .Where(g => g.AppUserId == userId && g.Status == "Active")
+                .SumAsync(g => g.CurrentAmount);
         }
     }
 

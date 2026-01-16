@@ -1,89 +1,219 @@
 ﻿@page "/goals"
 @layout UserLayout
-@using Microsoft.EntityFrameworkCore
-@using Microsoft.AspNetCore.Components.QuickGrid
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
 @using Project_PiggyPro.Components.Layout
-@using Project_PiggyPro.Domain
 @using Project_PiggyPro.Data
-@implements IAsyncDisposable
-@inject IDbContextFactory<Project_PiggyPro.Data.Project_PiggyProContext> DbFactory
+@using Project_PiggyPro.Domain
+@using Project_PiggyPro.Services
 
-<PageTitle>My Goals</PageTitle>
+@inject GoalService GoalService
+@inject UserManager<Project_PiggyProUser> UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h1>My Financial Goals</h1>
-    <a href="goals/create" class="btn btn-primary">
-        <i class="bi bi-plus-circle"></i> Create New Goal
-    </a>
-</div>
+<PageTitle>Goals - PiggyPro</PageTitle>
 
-<QuickGrid Class="table table-striped table-hover" Items="context.Goal">
-    <PropertyColumn Property="goal => goal.GoalName" Title="Goal Name" Sortable="true" />
+<div class="goals-container">
+    <div class="page-header">
+        <div>
+            <h1>💰 Savings Goals</h1>
+            <p class="subtitle">Track your financial goals and watch your progress grow</p>
+        </div>
+        <a href="/goals/create" class="btn-primary">➕ Create New Goal</a>
+    </div>
 
-    <PropertyColumn Property="goal => goal.TargetAmount" Title="Target" Sortable="true" Format="C" />
+    @if (isLoading)
+    {
+        <div class="loading-state">
+            <p>Loading your goals...</p>
+        </div>
+    }
+    else if (stats != null)
+    {
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card total">
+                <div class="stat-icon">🎯</div>
+                <div class="stat-content">
+                    <div class="stat-label">Total Goals</div>
+                    <div class="stat-value">@stats.TotalGoals</div>
+                </div>
+            </div>
 
-    <PropertyColumn Property="goal => goal.CurrentAmount" Title="Saved" Sortable="true" Format="C" />
+            <div class="stat-card active">
+                <div class="stat-icon">⚡</div>
+                <div class="stat-content">
+                    <div class="stat-label">Active Goals</div>
+                    <div class="stat-value">@stats.ActiveGoals</div>
+                </div>
+            </div>
 
-    <TemplateColumn Title="Progress">
-        <div class="progress" style="height: 20px; min-width: 100px;">
-            <div class="progress-bar @GetProgressBarClass(context.ProgressPercentage)"
-                 role="progressbar"
-                 style="width: @Math.Min(context.ProgressPercentage, 100)%">
-                @context.ProgressPercentage.ToString("F0")%
+            <div class="stat-card completed">
+                <div class="stat-icon">✅</div>
+                <div class="stat-content">
+                    <div class="stat-label">Completed</div>
+                    <div class="stat-value">@stats.CompletedGoals</div>
+                </div>
+            </div>
+
+            <div class="stat-card progress">
+                <div class="stat-icon">📊</div>
+                <div class="stat-content">
+                    <div class="stat-label">Overall Progress</div>
+                    <div class="stat-value">@stats.OverallProgress.ToString("F1")%</div>
+                </div>
             </div>
         </div>
-    </TemplateColumn>
 
-    <PropertyColumn Property="goal => goal.TargetDate" Title="Target Date" Sortable="true" Format="MMM dd, yyyy" />
+        <!-- Goals List -->
+        @if (goals.Any())
+        {
+            <div class="goals-grid">
+                @foreach (var goal in goals)
+                {
+                    <div class="goal-card @(goal.Status.ToLower())">
+                        <div class="goal-header">
+                            <div class="goal-title-section">
+                                <h3 class="goal-name">@goal.GoalName</h3>
+                                @if (!string.IsNullOrEmpty(goal.Category))
+                                {
+                                    <span class="goal-category">@goal.Category</span>
+                                }
+                            </div>
+                            <span class="goal-status @goal.Status.ToLower()">@goal.Status</span>
+                        </div>
 
-    <TemplateColumn Title="Status">
-        <span class="badge @GetStatusBadgeClass(context.Status)">@context.Status</span>
-    </TemplateColumn>
+                        @if (!string.IsNullOrEmpty(goal.Description))
+                        {
+                            <p class="goal-description">@goal.Description</p>
+                        }
 
-    <TemplateColumn Title="Category">
-        @context.Category
-    </TemplateColumn>
+                        <div class="goal-amounts">
+                            <div class="amount-row">
+                                <span class="amount-label">Current</span>
+                                <span class="amount-value current">@goal.CurrentAmount.ToString("C2")</span>
+                            </div>
+                            <div class="amount-row">
+                                <span class="amount-label">Target</span>
+                                <span class="amount-value target">@goal.TargetAmount.ToString("C2")</span>
+                            </div>
+                            <div class="amount-row remaining">
+                                <span class="amount-label">Remaining</span>
+                                <span class="amount-value">@goal.RemainingAmount.ToString("C2")</span>
+                            </div>
+                        </div>
 
-    <TemplateColumn Title="Actions" Context="goal">
-        <a href="@($"goals/details?id={goal.Id}")" class="btn btn-sm btn-info" title="View Details">
-            <i class="bi bi-eye"></i>
-        </a>
-        <a href="@($"goals/edit?id={goal.Id}")" class="btn btn-sm btn-warning" title="Edit">
-            <i class="bi bi-pencil"></i>
-        </a>
-        <a href="@($"goals/delete?id={goal.Id}")" class="btn btn-sm btn-danger" title="Delete">
-            <i class="bi bi-trash"></i>
-        </a>
-    </TemplateColumn>
-</QuickGrid>
+                        <!-- Progress Bar -->
+                        <div class="progress-section">
+                            <div class="progress-header">
+                                <span class="progress-label">Progress</span>
+                                <span class="progress-percentage">@goal.ProgressPercentage.ToString("F1")%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: @Math.Min(goal.ProgressPercentage, 100)%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Target Date Info -->
+                        <div class="date-info">
+                            <span class="date-icon">📅</span>
+                            <span class="date-text">
+                                Target: @goal.TargetDate.ToString("MMM dd, yyyy")
+                                @if (goal.Status == "Active")
+                                {
+                                    if (goal.DaysRemaining > 0)
+                                    {
+                                        <span class="days-remaining">(@goal.DaysRemaining days left)</span>
+                                    }
+                                    else if (goal.DaysRemaining == 0)
+                                    {
+                                        <span class="days-remaining today">Due today!</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="days-remaining overdue">Overdue!</span>
+                                    }
+                                }
+                            </span>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="goal-actions">
+                            <a href="/goals/details/@goal.Id" class="btn-action view">View Details</a>
+                            <a href="/goals/edit/@goal.Id" class="btn-action edit">Edit</a>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <div class="empty-icon">🎯</div>
+                <h2>No Goals Yet</h2>
+                <p>Start your savings journey by creating your first financial goal!</p>
+                <a href="/goals/create" class="btn-primary">Create Your First Goal</a>
+            </div>
+        }
+    }
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="error-message">
+            <strong>Error:</strong> @errorMessage
+        </div>
+    }
+</div>
 
 @code {
-    private Project_PiggyProContext context = default!;
+    private List<Goal> goals = new();
+    private GoalStatsDto? stats;
+    private string currentUserId = string.Empty;
+    private bool isLoading = true;
+    private string errorMessage = string.Empty;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        context = DbFactory.CreateDbContext();
-    }
-
-    public async ValueTask DisposeAsync() => await context.DisposeAsync();
-
-    private string GetProgressBarClass(decimal percentage)
-    {
-        if (percentage >= 100) return "bg-success";
-        if (percentage >= 75) return "bg-info";
-        if (percentage >= 50) return "bg-primary";
-        if (percentage >= 25) return "bg-warning";
-        return "bg-danger";
-    }
-
-    private string GetStatusBadgeClass(string status)
-    {
-        return status switch
+        try
         {
-            "Active" => "bg-primary",
-            "Completed" => "bg-success",
-            "Cancelled" => "bg-secondary",
-            _ => "bg-secondary"
-        };
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            if (user.Identity?.IsAuthenticated == true)
+            {
+                var appUser = await UserManager.GetUserAsync(user);
+                if (appUser != null)
+                {
+                    currentUserId = appUser.Id;
+                    await LoadGoals();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to load goals: {ex.Message}";
+            Console.WriteLine($"Error in OnInitializedAsync: {ex}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadGoals()
+    {
+        try
+        {
+            goals = await GoalService.GetUserGoalsAsync(currentUserId);
+            stats = await GoalService.GetGoalStatsAsync(currentUserId);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to load goals: {ex.Message}";
+            Console.WriteLine($"Error loading goals: {ex}");
+        }
     }
 }

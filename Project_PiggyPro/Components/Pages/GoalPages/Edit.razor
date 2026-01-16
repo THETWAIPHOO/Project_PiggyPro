@@ -1,152 +1,323 @@
-﻿@page "/goals/edit"
-@using Microsoft.EntityFrameworkCore
+﻿@page "/goals/edit/{id:int}"
+@layout UserLayout
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@using Project_PiggyPro.Components.Layout
+@using Project_PiggyPro.Data
 @using Project_PiggyPro.Domain
-@using Microsoft.AspNetCore.Components.Authorization
-@inject IDbContextFactory<Project_PiggyPro.Data.Project_PiggyProContext> DbFactory
-@inject NavigationManager NavigationManager
+@using Project_PiggyPro.Services
+
+@inject GoalService GoalService
+@inject UserManager<Project_PiggyProUser> UserManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
 
-<PageTitle>Edit Goal</PageTitle>
+<PageTitle>Edit Goal - PiggyPro</PageTitle>
 
-<h1>Edit Goal</h1>
+<div class="edit-goal-container">
+    <div class="page-header">
+        <div>
+            <h1>✏️ Edit Goal</h1>
+            <p class="subtitle">Update your goal details and targets</p>
+        </div>
+        <a href="/goals" class="btn-back">← Back to Goals</a>
+    </div>
 
-<hr />
-@if (Goal is null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <div class="row">
-        <div class="col-md-6">
-            <EditForm method="post" Model="Goal" OnValidSubmit="UpdateGoal" FormName="edit" Enhance>
+    @if (isLoading)
+    {
+        <div class="loading-state">
+            <p>Loading goal details...</p>
+        </div>
+    }
+    else if (goal != null)
+    {
+        <div class="form-card">
+            <EditForm Model="@goal" OnValidSubmit="@HandleSubmit">
                 <DataAnnotationsValidator />
-                <ValidationSummary role="alert" />
-                <input type="hidden" name="Goal.Id" value="@Goal.Id" />
 
-                <div class="mb-3">
-                    <label for="goalname" class="form-label">Goal Name:</label>
-                    <InputText id="goalname" @bind-Value="Goal.GoalName" class="form-control" />
-                    <ValidationMessage For="() => Goal.GoalName" class="text-danger" />
+                <div class="form-section">
+                    <h2 class="section-title">📝 Goal Details</h2>
+
+                    <div class="form-group">
+                        <label for="goalName" class="form-label">Goal Name <span class="required">*</span></label>
+                        <InputText id="goalName" class="form-control" @bind-Value="goal.GoalName"
+                                   placeholder="e.g., New Laptop, Vacation Fund, Emergency Savings" />
+                        <ValidationMessage For="@(() => goal.GoalName)" class="validation-message" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description" class="form-label">Description</label>
+                        <InputTextArea id="description" class="form-control textarea" @bind-Value="goal.Description"
+                                       rows="3" placeholder="What's this goal for? (Optional)" />
+                        <ValidationMessage For="@(() => goal.Description)" class="validation-message" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="category" class="form-label">Category</label>
+                        <InputSelect id="category" class="form-control" @bind-Value="goal.Category">
+                            <option value="">Select a category (Optional)</option>
+                            <option value="Electronics">📱 Electronics</option>
+                            <option value="Travel">✈️ Travel</option>
+                            <option value="Emergency Fund">🚨 Emergency Fund</option>
+                            <option value="Education">📚 Education</option>
+                            <option value="Home">🏠 Home</option>
+                            <option value="Vehicle">🚗 Vehicle</option>
+                            <option value="Health">💪 Health & Fitness</option>
+                            <option value="Investment">💼 Investment</option>
+                            <option value="Wedding">💍 Wedding</option>
+                            <option value="Other">🎯 Other</option>
+                        </InputSelect>
+                    </div>
                 </div>
 
-                <div class="mb-3">
-                    <label for="description" class="form-label">Description:</label>
-                    <InputTextArea id="description" @bind-Value="Goal.Description" class="form-control" rows="3" />
-                    <ValidationMessage For="() => Goal.Description" class="text-danger" />
+                <div class="form-section">
+                    <h2 class="section-title">💰 Financial Details</h2>
+
+                    <div class="current-progress">
+                        <div class="progress-item">
+                            <span class="progress-label">Current Saved:</span>
+                            <span class="progress-value current">@goal.CurrentAmount.ToString("C2")</span>
+                        </div>
+                        <div class="progress-item">
+                            <span class="progress-label">Progress:</span>
+                            <span class="progress-value">@goal.ProgressPercentage.ToString("F1")%</span>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="targetAmount" class="form-label">Target Amount <span class="required">*</span></label>
+                            <div class="input-with-icon">
+                                <span class="input-icon">$</span>
+                                <InputNumber id="targetAmount" class="form-control with-icon" @bind-Value="goal.TargetAmount"
+                                             step="0.01" placeholder="5000.00" />
+                            </div>
+                            <ValidationMessage For="@(() => goal.TargetAmount)" class="validation-message" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="targetDate" class="form-label">Target Date <span class="required">*</span></label>
+                            <InputDate id="targetDate" class="form-control" @bind-Value="goal.TargetDate"
+                                       min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                            <ValidationMessage For="@(() => goal.TargetDate)" class="validation-message" />
+                            @if (goal.TargetDate > DateTime.Today)
+                            {
+                                var daysUntil = (goal.TargetDate - DateTime.Today).Days;
+                                <small class="form-hint">That's @daysUntil days from now</small>
+                            }
+                        </div>
+                    </div>
+
+                    @if (goal.TargetAmount > goal.CurrentAmount && goal.TargetDate > DateTime.Today)
+                    {
+                        var remainingAmount = goal.TargetAmount - goal.CurrentAmount;
+                        var monthsUntil = ((goal.TargetDate.Year - DateTime.Today.Year) * 12) +
+                        goal.TargetDate.Month - DateTime.Today.Month;
+                        if (monthsUntil > 0)
+                        {
+                            var monthlyTarget = remainingAmount / monthsUntil;
+                            <div class="calculation-card">
+                                <div class="calculation-icon">📊</div>
+                                <div class="calculation-content">
+                                    <div class="calculation-title">Suggested Monthly Savings</div>
+                                    <div class="calculation-amount">@monthlyTarget.ToString("C2")</div>
+                                    <div class="calculation-detail">Save this amount each month to reach your goal on time</div>
+                                </div>
+                            </div>
+                        }
+                    }
                 </div>
 
-                <div class="mb-3">
-                    <label for="targetamount" class="form-label">Target Amount:</label>
-                    <InputNumber id="targetamount" @bind-Value="Goal.TargetAmount" class="form-control" />
-                    <ValidationMessage For="() => Goal.TargetAmount" class="text-danger" />
-                </div>
+                @if (!string.IsNullOrEmpty(statusMessage))
+                {
+                    <div class="status-message @(isSuccess ? "success" : "error")">
+                        @statusMessage
+                    </div>
+                }
 
-                <div class="mb-3">
-                    <label for="currentamount" class="form-label">Current Amount:</label>
-                    <InputNumber id="currentamount" @bind-Value="Goal.CurrentAmount" class="form-control" />
-                    <ValidationMessage For="() => Goal.CurrentAmount" class="text-danger" />
-                    <small class="text-muted">Progress: @Goal.ProgressPercentage.ToString("F2")%</small>
+                <div class="form-actions">
+                    <button type="button" class="btn-danger" @onclick="HandleDeleteClick">
+                        🗑️ Delete Goal
+                    </button>
+                    <div class="action-group">
+                        <button type="button" class="btn-secondary" @onclick="HandleCancel">Cancel</button>
+                        <button type="submit" class="btn-primary" disabled="@isSubmitting">
+                            @if (isSubmitting)
+                            {
+                                <span>Saving...</span>
+                            }
+                            else
+                            {
+                                <span>💾 Save Changes</span>
+                            }
+                        </button>
+                    </div>
                 </div>
-
-                <div class="mb-3">
-                    <label for="targetdate" class="form-label">Target Date:</label>
-                    <InputDate id="targetdate" @bind-Value="Goal.TargetDate" class="form-control" />
-                    <ValidationMessage For="() => Goal.TargetDate" class="text-danger" />
-                </div>
-
-                <div class="mb-3">
-                    <label for="status" class="form-label">Status:</label>
-                    <InputSelect id="status" @bind-Value="Goal.Status" class="form-control">
-                        <option value="Active">Active</option>
-                        <option value="Completed">Completed</option>
-                        <option value="Cancelled">Cancelled</option>
-                    </InputSelect>
-                    <ValidationMessage For="() => Goal.Status" class="text-danger" />
-                </div>
-
-                <div class="mb-3">
-                    <label for="category" class="form-label">Category:</label>
-                    <InputSelect id="category" @bind-Value="Goal.Category" class="form-control">
-                        <option value="">-- Select Category --</option>
-                        <option value="Electronics">Electronics</option>
-                        <option value="Travel">Travel</option>
-                        <option value="Emergency Fund">Emergency Fund</option>
-                        <option value="Education">Education</option>
-                        <option value="Home">Home</option>
-                        <option value="Vehicle">Vehicle</option>
-                        <option value="Other">Other</option>
-                    </InputSelect>
-                    <ValidationMessage For="() => Goal.Category" class="text-danger" />
-                </div>
-
-                <button type="submit" class="btn btn-primary">Save Changes</button>
-                <a href="/goals" class="btn btn-secondary">Cancel</a>
             </EditForm>
         </div>
-    </div>
-}
+
+        <!-- Delete Confirmation Modal -->
+        @if (showDeleteModal)
+        {
+            <div class="modal-overlay" @onclick="HandleCloseModal">
+                <div class="modal-content" @onclick:stopPropagation>
+                    <button class="modal-close" @onclick="HandleCloseModal">✕</button>
+                    <div class="modal-icon">⚠️</div>
+                    <h2 class="modal-title">Delete Goal?</h2>
+                    <p class="modal-message">
+                        Are you sure you want to delete <strong>@goal.GoalName</strong>?
+                        This action cannot be undone.
+                    </p>
+                    <div class="modal-actions">
+                        <button type="button" class="btn-secondary" @onclick="HandleCloseModal">Cancel</button>
+                        <button type="button" class="btn-danger" @onclick="HandleConfirmDelete">
+                            🗑️ Delete Goal
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="error-card">
+            <div class="error-icon">❌</div>
+            <h2>Goal Not Found</h2>
+            <p>@errorMessage</p>
+            <a href="/goals" class="btn-primary">← Back to Goals</a>
+        </div>
+    }
+</div>
 
 @code {
-    [SupplyParameterFromQuery]
-    private int Id { get; set; }
+    [Parameter] public int Id { get; set; }
 
-    [SupplyParameterFromForm]
-    private Goal? Goal { get; set; }
+    private Goal? goal;
+    private string currentUserId = string.Empty;
+    private bool isLoading = true;
+    private bool isSubmitting = false;
+    private bool showDeleteModal = false;
+    private string statusMessage = string.Empty;
+    private string errorMessage = string.Empty;
+    private bool isSuccess = false;
 
     protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        Goal ??= await context.Goal.FirstOrDefaultAsync(m => m.Id == Id);
-
-        if (Goal is null)
+        try
         {
-            NavigationManager.NavigateTo("notfound");
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            if (user.Identity?.IsAuthenticated == true)
+            {
+                var appUser = await UserManager.GetUserAsync(user);
+                if (appUser != null)
+                {
+                    currentUserId = appUser.Id;
+                    await LoadGoal();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error initializing: {ex.Message}";
+            Console.WriteLine($"Error in OnInitializedAsync: {ex}");
+        }
+        finally
+        {
+            isLoading = false;
         }
     }
 
-    private async Task UpdateGoal()
+    private async Task LoadGoal()
     {
-        using var context = DbFactory.CreateDbContext();
-
-        // Update system fields
-        Goal!.DateUpdated = DateTime.Now;
-
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-        if (user.Identity?.IsAuthenticated == true)
-        {
-            var userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (!string.IsNullOrEmpty(userId))
-            {
-                Goal.UpdatedBy = userId;
-            }
-        }
-
-        context.Attach(Goal).State = EntityState.Modified;
-
         try
         {
-            await context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!GoalExists(Goal.Id))
+            goal = await GoalService.GetGoalByIdAsync(Id, currentUserId);
+            if (goal == null)
             {
-                NavigationManager.NavigateTo("notfound");
+                errorMessage = "Goal not found or you don't have permission to edit it.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to load goal: {ex.Message}";
+            Console.WriteLine($"Error loading goal: {ex}");
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            isSubmitting = true;
+            statusMessage = string.Empty;
+
+            if (goal != null)
+            {
+                goal.UpdatedBy = currentUserId;
+                var success = await GoalService.UpdateGoalAsync(goal);
+
+                if (success)
+                {
+                    Navigation.NavigateTo("/goals");
+                }
+                else
+                {
+                    isSuccess = false;
+                    statusMessage = "Failed to update goal. Please try again.";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            isSuccess = false;
+            statusMessage = $"Error updating goal: {ex.Message}";
+            Console.WriteLine($"Error in HandleSubmit: {ex}");
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void HandleDeleteClick()
+    {
+        showDeleteModal = true;
+    }
+
+    private void HandleCloseModal()
+    {
+        showDeleteModal = false;
+    }
+
+    private async Task HandleConfirmDelete()
+    {
+        try
+        {
+            var success = await GoalService.DeleteGoalAsync(Id, currentUserId);
+            if (success)
+            {
+                Navigation.NavigateTo("/goals");
             }
             else
             {
-                throw;
+                statusMessage = "Failed to delete goal. Please try again.";
+                showDeleteModal = false;
             }
         }
-
-        NavigationManager.NavigateTo("/goals");
+        catch (Exception ex)
+        {
+            statusMessage = $"Error deleting goal: {ex.Message}";
+            Console.WriteLine($"Error in HandleConfirmDelete: {ex}");
+            showDeleteModal = false;
+        }
     }
 
-    private bool GoalExists(int id)
+    private void HandleCancel()
     {
-        using var context = DbFactory.CreateDbContext();
-        return context.Goal.Any(e => e.Id == id);
+        Navigation.NavigateTo("/goals");
     }
 }

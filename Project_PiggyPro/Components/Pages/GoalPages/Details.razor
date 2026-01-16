@@ -1,135 +1,412 @@
-﻿@page "/goals/details"
-@using Microsoft.EntityFrameworkCore
+﻿@page "/goals/details/{id:int}"
+@layout UserLayout
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@using Project_PiggyPro.Components.Layout
+@using Project_PiggyPro.Data
 @using Project_PiggyPro.Domain
-@inject IDbContextFactory<Project_PiggyPro.Data.Project_PiggyProContext> DbFactory
-@inject NavigationManager NavigationManager
+@using Project_PiggyPro.Services
 
-<PageTitle>Goal Details</PageTitle>
+@inject GoalService GoalService
+@inject UserManager<Project_PiggyProUser> UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
 
-<h1>Goal Details</h1>
+<PageTitle>Goal Details - PiggyPro</PageTitle>
 
-<div>
-    <hr />
-    @if (goal is null)
+<div class="details-container">
+    @if (isLoading)
     {
-        <p><em>Loading...</em></p>
+        <div class="loading-state">
+            <p>Loading goal details...</p>
+        </div>
     }
-    else
+    else if (goal != null)
     {
-        <div class="card">
-            <div class="card-body">
-                <h3 class="card-title">@goal.GoalName</h3>
+        <div class="page-header">
+            <div>
+                <h1>@goal.GoalName</h1>
+                <span class="goal-status @goal.Status.ToLower()">@goal.Status</span>
+            </div>
+            <div class="header-actions">
+                <a href="/goals/edit/@goal.Id" class="btn-edit">✏️ Edit</a>
+                <a href="/goals" class="btn-back">← Back</a>
+            </div>
+        </div>
 
-                @if (!string.IsNullOrEmpty(goal.Description))
-                {
-                    <p class="card-text">@goal.Description</p>
-                }
+        @if (!string.IsNullOrEmpty(goal.Description))
+        {
+            <div class="description-card">
+                <p>@goal.Description</p>
+            </div>
+        }
 
-                <dl class="row mt-3">
-                    <dt class="col-sm-3">Target Amount</dt>
-                    <dd class="col-sm-9">@goal.TargetAmount.ToString("C")</dd>
+        <!-- Savings Budget Info Card -->
+        <div class="savings-info-card">
+            <div class="savings-info-header">
+                <span class="savings-icon">💰</span>
+                <div class="savings-info-text">
+                    <div class="savings-label">Available Savings Budget</div>
+                    <div class="savings-amount">@availableSavings.ToString("C2")</div>
+                </div>
+            </div>
+            <div class="savings-details">
+                <span class="savings-detail">Total in all goals: @totalInGoals.ToString("C2")</span>
+            </div>
+        </div>
 
-                    <dt class="col-sm-3">Current Amount</dt>
-                    <dd class="col-sm-9">@goal.CurrentAmount.ToString("C")</dd>
+        <!-- Main Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card current">
+                <div class="stat-label">Current Amount</div>
+                <div class="stat-value">@goal.CurrentAmount.ToString("C2")</div>
+                <div class="stat-icon">💰</div>
+            </div>
 
-                    <dt class="col-sm-3">Remaining</dt>
-                    <dd class="col-sm-9">@goal.RemainingAmount.ToString("C")</dd>
+            <div class="stat-card target">
+                <div class="stat-label">Target Amount</div>
+                <div class="stat-value">@goal.TargetAmount.ToString("C2")</div>
+                <div class="stat-icon">🎯</div>
+            </div>
 
-                    <dt class="col-sm-3">Progress</dt>
-                    <dd class="col-sm-9">
-                        <div class="progress" style="height: 25px;">
-                            <div class="progress-bar @GetProgressBarClass(goal.ProgressPercentage)"
-                                 role="progressbar"
-                                 style="width: @Math.Min(goal.ProgressPercentage, 100)%"
-                                 aria-valuenow="@goal.ProgressPercentage"
-                                 aria-valuemin="0"
-                                 aria-valuemax="100">
-                                @goal.ProgressPercentage.ToString("F1")%
-                            </div>
-                        </div>
-                    </dd>
+            <div class="stat-card remaining">
+                <div class="stat-label">Remaining</div>
+                <div class="stat-value">@goal.RemainingAmount.ToString("C2")</div>
+                <div class="stat-icon">📊</div>
+            </div>
+        </div>
 
-                    <dt class="col-sm-3">Target Date</dt>
-                    <dd class="col-sm-9">@goal.TargetDate.ToString("MMM dd, yyyy")</dd>
-
-                    <dt class="col-sm-3">Days Remaining</dt>
-                    <dd class="col-sm-9">
-                        @if (goal.DaysRemaining > 0)
+        <!-- Progress Section -->
+        <div class="progress-card">
+            <div class="progress-header">
+                <h2>Progress Tracker</h2>
+                <span class="progress-percentage">@goal.ProgressPercentage.ToString("F1")%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: @Math.Min(goal.ProgressPercentage, 100)%">
+                    <span class="progress-text">@Math.Min(goal.ProgressPercentage, 100).ToString("F0")%</span>
+                </div>
+            </div>
+            <div class="progress-details">
+                <div class="detail-item">
+                    <span class="detail-label">Started:</span>
+                    <span class="detail-value">@goal.DateCreated.ToString("MMM dd, yyyy")</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Target Date:</span>
+                    <span class="detail-value">
+                        @goal.TargetDate.ToString("MMM dd, yyyy")
+                        @if (goal.Status == "Active")
                         {
-                            <span class="badge bg-info">@goal.DaysRemaining days</span>
+                            if (goal.DaysRemaining > 0)
+                            {
+                                <span class="days-info">(@goal.DaysRemaining days left)</span>
+                            }
+                            else if (goal.DaysRemaining == 0)
+                            {
+                                <span class="days-info today">Due today!</span>
+                            }
+                            else
+                            {
+                                <span class="days-info overdue">Overdue by @(-goal.DaysRemaining) days</span>
+                            }
                         }
-                        else if (goal.DaysRemaining == 0)
+                    </span>
+                </div>
+                @if (!string.IsNullOrEmpty(goal.Category))
+                {
+                    <div class="detail-item">
+                        <span class="detail-label">Category:</span>
+                        <span class="detail-value category">@goal.Category</span>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Fund Management Section -->
+        @if (goal.Status == "Active")
+        {
+            <div class="fund-management-grid">
+                <!-- Add Funds Card -->
+                <div class="fund-card add-funds">
+                    <div class="fund-header">
+                        <h3>💵 Add Funds</h3>
+                        <p>Allocate from your savings budget</p>
+                    </div>
+                    <div class="fund-input-group">
+                        <div class="input-with-icon">
+                            <span class="input-icon">$</span>
+                            <input type="number" class="fund-input" @bind="addAmount"
+                                   step="0.01" min="0.01" max="@availableSavings" placeholder="0.00" />
+                        </div>
+                        <button type="button" class="btn-add" @onclick="HandleAddFunds"
+                                disabled="@(addAmount <= 0 || addAmount > availableSavings)">
+                            ➕ Add
+                        </button>
+                    </div>
+                    @if (addAmount > 0)
+                    {
+                        if (addAmount <= availableSavings)
                         {
-                            <span class="badge bg-warning">Due Today</span>
+                            var newTotal = goal.CurrentAmount + addAmount;
+                            var newProgress = (newTotal / goal.TargetAmount) * 100;
+                            var newAvailable = availableSavings - addAmount;
+                            <div class="preview-info add">
+                                <div class="preview-row">
+                                    <span>New goal total:</span>
+                                    <strong>@newTotal.ToString("C2")</strong>
+                                </div>
+                                <div class="preview-row">
+                                    <span>Progress:</span>
+                                    <strong>@newProgress.ToString("F1")%</strong>
+                                </div>
+                                <div class="preview-row">
+                                    <span>Remaining savings:</span>
+                                    <strong>@newAvailable.ToString("C2")</strong>
+                                </div>
+                            </div>
                         }
                         else
                         {
-                            <span class="badge bg-danger">@Math.Abs(goal.DaysRemaining) days overdue</span>
+                            <div class="preview-info error">
+                                <span>⚠️ Not enough savings budget available!</span>
+                                <span>Available: @availableSavings.ToString("C2")</span>
+                            </div>
                         }
-                    </dd>
-
-                    <dt class="col-sm-3">Status</dt>
-                    <dd class="col-sm-9">
-                        <span class="badge @GetStatusBadgeClass(goal.Status)">@goal.Status</span>
-                    </dd>
-
-                    @if (!string.IsNullOrEmpty(goal.Category))
-                    {
-                        <dt class="col-sm-3">Category</dt>
-                        <dd class="col-sm-9">@goal.Category</dd>
                     }
+                </div>
 
-                    <dt class="col-sm-3">Date Created</dt>
-                    <dd class="col-sm-9">@goal.DateCreated.ToString("MMM dd, yyyy")</dd>
-
-                    <dt class="col-sm-3">Last Updated</dt>
-                    <dd class="col-sm-9">@goal.DateUpdated.ToString("MMM dd, yyyy")</dd>
-                </dl>
-
-                <div class="mt-4">
-                    <a href="@($"/goals/edit?id={goal.Id}")" class="btn btn-primary">Edit</a>
-                    <a href="@($"/goals/delete?id={goal.Id}")" class="btn btn-danger">Delete</a>
-                    <a href="/goals" class="btn btn-secondary">Back to List</a>
+                <!-- Withdraw Funds Card -->
+                <div class="fund-card withdraw-funds">
+                    <div class="fund-header">
+                        <h3>💸 Withdraw Funds</h3>
+                        <p>Return money to savings budget</p>
+                    </div>
+                    <div class="fund-input-group">
+                        <div class="input-with-icon">
+                            <span class="input-icon">$</span>
+                            <input type="number" class="fund-input" @bind="withdrawAmount"
+                                   step="0.01" min="0.01" max="@goal.CurrentAmount" placeholder="0.00" />
+                        </div>
+                        <button type="button" class="btn-withdraw" @onclick="HandleWithdrawFunds"
+                                disabled="@(withdrawAmount <= 0 || withdrawAmount > goal.CurrentAmount)">
+                            ➖ Withdraw
+                        </button>
+                    </div>
+                    @if (withdrawAmount > 0)
+                    {
+                        if (withdrawAmount <= goal.CurrentAmount)
+                        {
+                            var newTotal = goal.CurrentAmount - withdrawAmount;
+                            var newProgress = (newTotal / goal.TargetAmount) * 100;
+                            var newAvailable = availableSavings + withdrawAmount;
+                            <div class="preview-info withdraw">
+                                <div class="preview-row">
+                                    <span>New goal total:</span>
+                                    <strong>@newTotal.ToString("C2")</strong>
+                                </div>
+                                <div class="preview-row">
+                                    <span>Progress:</span>
+                                    <strong>@newProgress.ToString("F1")%</strong>
+                                </div>
+                                <div class="preview-row">
+                                    <span>Available savings:</span>
+                                    <strong>@newAvailable.ToString("C2")</strong>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="preview-info error">
+                                <span>⚠️ Amount exceeds goal balance</span>
+                            </div>
+                        }
+                    }
                 </div>
             </div>
+        }
+        else if (goal.Status == "Completed")
+        {
+            <div class="completion-card">
+                <div class="completion-icon">🎉</div>
+                <h2>Goal Completed!</h2>
+                <p>Congratulations on reaching your savings target!</p>
+                <p class="completion-date">Completed on: @goal.DateUpdated.ToString("MMM dd, yyyy")</p>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(statusMessage))
+        {
+            <div class="status-message @(isSuccess ? "success" : "error")">
+                @statusMessage
+            </div>
+        }
+    }
+    else if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="error-card">
+            <div class="error-icon">❌</div>
+            <h2>Goal Not Found</h2>
+            <p>@errorMessage</p>
+            <a href="/goals" class="btn-primary">← Back to Goals</a>
         </div>
     }
 </div>
 
 @code {
-    private Goal? goal;
+    [Parameter] public int Id { get; set; }
 
-    [SupplyParameterFromQuery]
-    private int Id { get; set; }
+    private Goal? goal;
+    private string currentUserId = string.Empty;
+    private bool isLoading = true;
+    private decimal addAmount = 0;
+    private decimal withdrawAmount = 0;
+    private decimal availableSavings = 0;
+    private decimal totalInGoals = 0;
+    private string statusMessage = string.Empty;
+    private string errorMessage = string.Empty;
+    private bool isSuccess = false;
 
     protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        goal = await context.Goal.FirstOrDefaultAsync(m => m.Id == Id);
-
-        if (goal is null)
+        try
         {
-            NavigationManager.NavigateTo("notfound");
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            if (user.Identity?.IsAuthenticated == true)
+            {
+                var appUser = await UserManager.GetUserAsync(user);
+                if (appUser != null)
+                {
+                    currentUserId = appUser.Id;
+                    await LoadGoal();
+                    await LoadSavingsInfo();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error initializing: {ex.Message}";
+            Console.WriteLine($"Error in OnInitializedAsync: {ex}");
+        }
+        finally
+        {
+            isLoading = false;
         }
     }
 
-    private string GetProgressBarClass(decimal percentage)
+    private async Task LoadGoal()
     {
-        if (percentage >= 100) return "bg-success";
-        if (percentage >= 75) return "bg-info";
-        if (percentage >= 50) return "bg-primary";
-        if (percentage >= 25) return "bg-warning";
-        return "bg-danger";
+        try
+        {
+            goal = await GoalService.GetGoalByIdAsync(Id, currentUserId);
+            if (goal == null)
+            {
+                errorMessage = "Goal not found or you don't have permission to view it.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to load goal: {ex.Message}";
+            Console.WriteLine($"Error loading goal: {ex}");
+        }
     }
 
-    private string GetStatusBadgeClass(string status)
+    private async Task LoadSavingsInfo()
     {
-        return status switch
+        try
         {
-            "Active" => "bg-primary",
-            "Completed" => "bg-success",
-            "Cancelled" => "bg-secondary",
-            _ => "bg-secondary"
-        };
+            availableSavings = await GoalService.GetAvailableSavingsBudgetAsync(currentUserId);
+            totalInGoals = await GoalService.GetTotalInGoalsAsync(currentUserId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading savings info: {ex}");
+        }
+    }
+
+    private async Task HandleAddFunds()
+    {
+        try
+        {
+            if (addAmount <= 0)
+            {
+                statusMessage = "⚠️ Please enter a valid amount";
+                isSuccess = false;
+                return;
+            }
+
+            if (addAmount > availableSavings)
+            {
+                statusMessage = $"⚠️ Not enough savings budget available. You have {availableSavings:C2} available.";
+                isSuccess = false;
+                return;
+            }
+
+            var success = await GoalService.AddFundsToGoalAsync(Id, addAmount, currentUserId);
+            if (success)
+            {
+                isSuccess = true;
+                statusMessage = $"✅ Successfully added {addAmount:C2} to your goal from savings!";
+                addAmount = 0;
+                await LoadGoal();
+                await LoadSavingsInfo();
+            }
+            else
+            {
+                isSuccess = false;
+                statusMessage = "❌ Failed to add funds. Please try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            isSuccess = false;
+            statusMessage = $"❌ Error adding funds: {ex.Message}";
+            Console.WriteLine($"Error in HandleAddFunds: {ex}");
+        }
+    }
+
+    private async Task HandleWithdrawFunds()
+    {
+        try
+        {
+            if (withdrawAmount <= 0)
+            {
+                statusMessage = "⚠️ Please enter a valid amount";
+                isSuccess = false;
+                return;
+            }
+
+            if (goal != null && withdrawAmount > goal.CurrentAmount)
+            {
+                statusMessage = "⚠️ Withdrawal amount exceeds goal balance";
+                isSuccess = false;
+                return;
+            }
+
+            var success = await GoalService.WithdrawFundsFromGoalAsync(Id, withdrawAmount, currentUserId);
+            if (success)
+            {
+                isSuccess = true;
+                statusMessage = $"✅ Successfully withdrew {withdrawAmount:C2} and returned to savings!";
+                withdrawAmount = 0;
+                await LoadGoal();
+                await LoadSavingsInfo();
+            }
+            else
+            {
+                isSuccess = false;
+                statusMessage = "❌ Failed to withdraw funds. Please try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            isSuccess = false;
+            statusMessage = $"❌ Error withdrawing funds: {ex.Message}";
+            Console.WriteLine($"Error in HandleWithdrawFunds: {ex}");
+        }
     }
 }
