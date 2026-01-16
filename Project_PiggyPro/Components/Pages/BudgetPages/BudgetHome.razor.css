@@ -1,0 +1,508 @@
+﻿.budget-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1rem 2rem;
+}
+
+.page-header {
+    margin-bottom: 2rem;
+}
+
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin: 0 0 0.5rem 0;
+    }
+
+.subtitle {
+    color: #666;
+    margin: 0;
+    font-size: 1rem;
+}
+
+/* Budget Setup Card */
+.budget-setup-card {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+    .budget-setup-card h2 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        color: #1a1a1a;
+    }
+
+.text-muted {
+    color: #666;
+    margin-bottom: 1.5rem;
+}
+
+.income-input-section {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+    max-width: 600px;
+}
+
+.form-group {
+    flex: 1;
+}
+
+.form-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #333;
+    font-size: 0.9rem;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+    .form-control:focus {
+        outline: none;
+        border-color: #e91e63;
+    }
+
+.form-select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    background: white;
+}
+
+.btn-primary {
+    background: #e91e63;
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.3s;
+}
+
+    .btn-primary:hover {
+        background: #c2185b;
+    }
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.3s;
+}
+
+    .btn-secondary:hover {
+        background: #5a6268;
+    }
+
+.status-message {
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    background: #e8f5e9;
+    border-left: 4px solid #4caf50;
+    border-radius: 4px;
+    color: #2e7d32;
+    font-weight: 500;
+}
+
+/* Category Assignment Section */
+.category-assignment-section {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+    .category-assignment-section h2 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        color: #1a1a1a;
+    }
+
+.assignment-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+/* Individual Columns */
+.assignment-column {
+    border: 3px solid;
+    border-radius: 12px;
+    padding: 1.5rem;
+    min-height: 300px;
+}
+
+    .assignment-column.needs {
+        border-color: #4caf50;
+        background: #f1f8f4;
+    }
+
+    .assignment-column.wants {
+        border-color: #2196f3;
+        background: #f0f7ff;
+    }
+
+    .assignment-column.savings {
+        border-color: #ff9800;
+        background: #fff8f0;
+    }
+
+/* Column Header */
+.column-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+}
+
+.column-title {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.icon {
+    font-size: 2.5rem;
+    line-height: 1;
+}
+
+.title-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.main-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.allocated-label {
+    font-size: 0.875rem;
+    color: #666;
+    font-weight: 500;
+}
+
+.allocated-amount {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    text-align: right;
+}
+
+/* Categories List */
+.categories-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* Category Card */
+.category-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.category-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.category-name {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #1a1a1a;
+}
+
+.category-type-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+    .category-type-badge.expense {
+        background: #ffebee;
+        color: #c62828;
+    }
+
+    .category-type-badge.savings {
+        background: #fff3e0;
+        color: #e65100;
+    }
+
+.btn-delete {
+    background: #f44336;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s;
+}
+
+    .btn-delete:hover {
+        background: #d32f2f;
+    }
+
+.budget-input-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+    .budget-input-row label {
+        font-weight: 500;
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+.budget-input {
+    flex: 1;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.allocated-info {
+    font-size: 0.8rem;
+    color: #999;
+    margin-bottom: 0.75rem;
+}
+
+/* Progress Bar */
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.progress-fill {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+    .progress-fill.good {
+        background: #4caf50;
+    }
+
+    .progress-fill.warning {
+        background: #ff9800;
+    }
+
+    .progress-fill.over {
+        background: #f44336;
+    }
+
+.budget-summary {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.over-budget {
+    color: #f44336;
+    font-weight: 600;
+}
+
+/* Add Category Button */
+.btn-add-category {
+    width: 100%;
+    background: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+    .btn-add-category:hover {
+        background: #45a049;
+    }
+
+/* Budget Totals */
+.budget-totals {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid #e0e0e0;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    font-size: 1.1rem;
+}
+
+    .total-row span:first-child {
+        color: #666;
+        font-weight: 500;
+    }
+
+.total-amount {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.total-row.remaining {
+    font-size: 1.2rem;
+}
+
+.remaining-amount {
+    color: #4caf50;
+}
+
+/* Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    max-width: 500px;
+    width: 90%;
+    position: relative;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: #f44336;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .modal-close:hover {
+        background: #d32f2f;
+    }
+
+.modal-title {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    color: #1a1a1a;
+    font-weight: 700;
+}
+
+.modal-body .form-group {
+    margin-bottom: 1.5rem;
+}
+
+    .modal-body .form-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #333;
+    }
+
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .assignment-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .income-input-section {
+        flex-direction: column;
+    }
+
+    .btn-primary {
+        width: 100%;
+    }
+
+    .page-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .allocated-amount {
+        font-size: 1.5rem;
+    }
+
+    .icon {
+        font-size: 2rem;
+    }
+
+    .modal-content {
+        width: 95%;
+        padding: 1.5rem;
+    }
+}

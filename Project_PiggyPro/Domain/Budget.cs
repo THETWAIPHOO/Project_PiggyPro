@@ -1,4 +1,6 @@
-﻿namespace Project_PiggyPro.Domain
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Project_PiggyPro.Domain
 {
     public class Budget : BaseDomainModel
     {
@@ -10,8 +12,14 @@
         public decimal NeedsPercentage { get; set; } = 50;
         public decimal WantsPercentage { get; set; } = 30;
         public decimal SavingsPercentage { get; set; } = 20;
+        public string? BucketType { get; set; }
+        public decimal AllocatedAmount { get; set; }
         public string AppUserId { get; set; } = string.Empty;
         public int CategoryId { get; set; }
+
+        [ForeignKey("CategoryId")]
+        public virtual Category? Category { get; set; }
+
     }
 
    

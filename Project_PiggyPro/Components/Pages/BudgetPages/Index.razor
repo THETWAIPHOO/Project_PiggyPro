@@ -1,8 +1,6 @@
-﻿@page "/budgets"
-@layout UserLayout
+﻿@page "/budgets/list"
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Components.QuickGrid
-@using Project_PiggyPro.Components.Layout
 @using Project_PiggyPro.Domain
 @using Project_PiggyPro.Data
 @implements IAsyncDisposable
@@ -25,6 +23,8 @@
     <PropertyColumn Property="budget => budget.NeedsPercentage" />
     <PropertyColumn Property="budget => budget.WantsPercentage" />
     <PropertyColumn Property="budget => budget.SavingsPercentage" />
+    <PropertyColumn Property="budget => budget.BucketType" />
+    <PropertyColumn Property="budget => budget.AllocatedAmount" />
     <PropertyColumn Property="budget => budget.AppUserId" />
     <PropertyColumn Property="budget => budget.CategoryId" />
     <PropertyColumn Property="budget => budget.DateCreated" />

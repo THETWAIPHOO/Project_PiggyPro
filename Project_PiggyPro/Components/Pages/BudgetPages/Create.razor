@@ -56,8 +56,18 @@
                 <ValidationMessage For="() => Budget.SavingsPercentage" class="text-danger" /> 
             </div>        
             <div class="mb-3">
+                <label for="buckettype" class="form-label">BucketType:</label> 
+                <InputText id="buckettype" @bind-Value="Budget.BucketType" class="form-control" /> 
+                <ValidationMessage For="() => Budget.BucketType" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="allocatedamount" class="form-label">AllocatedAmount:</label> 
+                <InputNumber id="allocatedamount" @bind-Value="Budget.AllocatedAmount" class="form-control" /> 
+                <ValidationMessage For="() => Budget.AllocatedAmount" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
                 <label for="appuserid" class="form-label">AppUserId:</label> 
-                <InputNumber id="appuserid" @bind-Value="Budget.AppUserId" class="form-control" /> 
+                <InputText id="appuserid" @bind-Value="Budget.AppUserId" class="form-control" /> 
                 <ValidationMessage For="() => Budget.AppUserId" class="text-danger" /> 
             </div>        
             <div class="mb-3">
