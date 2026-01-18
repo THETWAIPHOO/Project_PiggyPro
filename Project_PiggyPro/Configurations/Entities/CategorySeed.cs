@@ -26,16 +26,17 @@ namespace Project_PiggyPro.Configurations.Entities
                 new Category { Id = 10, CategoryName = "Savings", CategoryType = "Savings", IsSystemCategory = true, DateCreated = DateTime.Now, DateUpdated = DateTime.Now, CreatedBy = "System", UpdatedBy = "System" },
                 new Category { Id = 11, CategoryName = "Investments", CategoryType = "Savings", IsSystemCategory = true, DateCreated = DateTime.Now, DateUpdated = DateTime.Now, CreatedBy = "System", UpdatedBy = "System" },
                 new Category { Id = 12, CategoryName = "Emergency Fund", CategoryType = "Savings", IsSystemCategory = true, DateCreated = DateTime.Now, DateUpdated = DateTime.Now, CreatedBy = "System", UpdatedBy = "System" },
+                new Category { Id = 13, CategoryName = "Savings Goal", CategoryType = "Savings", IsSystemCategory = true, DateCreated = DateTime.Now, DateUpdated = DateTime.Now, CreatedBy = "System", UpdatedBy = "System" },
 
-        // Other
-                new Category { Id = 13, CategoryName = "Other Expenses", CategoryType = "Expense", IsSystemCategory = true, DateCreated = DateTime.Now, DateUpdated = DateTime.Now, CreatedBy = "System", UpdatedBy = "System" },
+                // Other
+                new Category { Id = 14, CategoryName = "Other Expenses", CategoryType = "Expense", IsSystemCategory = true, DateCreated = DateTime.Now, DateUpdated = DateTime.Now, CreatedBy = "System", UpdatedBy = "System" },
 
         // Income Categories
-                new Category { Id = 14, CategoryName = "Salary", CategoryType = "Income", IsSystemCategory = true, DateCreated = DateTime.Now, DateUpdated = DateTime.Now, CreatedBy = "System", UpdatedBy = "System" },
-                new Category { Id = 15, CategoryName = "Freelance", CategoryType = "Income", IsSystemCategory = true, DateCreated = DateTime.Now, DateUpdated = DateTime.Now, CreatedBy = "System", UpdatedBy = "System" },
-                new Category { Id = 16, CategoryName = "Investment Income", CategoryType = "Income", IsSystemCategory = true, DateCreated = DateTime.Now, DateUpdated = DateTime.Now, CreatedBy = "System", UpdatedBy = "System" },
-                new Category { Id = 17, CategoryName = "Gift/Bonus", CategoryType = "Income", IsSystemCategory = true, DateCreated = DateTime.Now, DateUpdated = DateTime.Now, CreatedBy = "System", UpdatedBy = "System" },
-                new Category { Id = 18, CategoryName = "Other Income", CategoryType = "Income", IsSystemCategory = true, DateCreated = DateTime.Now, DateUpdated = DateTime.Now, CreatedBy = "System", UpdatedBy = "System" }
+                new Category { Id = 15, CategoryName = "Salary", CategoryType = "Income", IsSystemCategory = true, DateCreated = DateTime.Now, DateUpdated = DateTime.Now, CreatedBy = "System", UpdatedBy = "System" },
+                new Category { Id = 16, CategoryName = "Freelance", CategoryType = "Income", IsSystemCategory = true, DateCreated = DateTime.Now, DateUpdated = DateTime.Now, CreatedBy = "System", UpdatedBy = "System" },
+                new Category { Id = 17, CategoryName = "Investment Income", CategoryType = "Income", IsSystemCategory = true, DateCreated = DateTime.Now, DateUpdated = DateTime.Now, CreatedBy = "System", UpdatedBy = "System" },
+                new Category { Id = 18, CategoryName = "Gift/Bonus", CategoryType = "Income", IsSystemCategory = true, DateCreated = DateTime.Now, DateUpdated = DateTime.Now, CreatedBy = "System", UpdatedBy = "System" },
+                new Category { Id = 19, CategoryName = "Other Income", CategoryType = "Income", IsSystemCategory = true, DateCreated = DateTime.Now, DateUpdated = DateTime.Now, CreatedBy = "System", UpdatedBy = "System" }
                 );
 
         }

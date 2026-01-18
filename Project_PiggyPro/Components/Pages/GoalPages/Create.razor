@@ -26,11 +26,8 @@
     </div>
 
     <div class="form-card">
-        <EditForm Model="@newGoal" OnValidSubmit="@HandleSubmit" OnInvalidSubmit="@HandleInvalidSubmit">
+        <EditForm Model="@newGoal" OnValidSubmit="@HandleSubmit">
             <DataAnnotationsValidator />
-
-            @* Show ALL validation errors at top *@
-            <ValidationSummary />
 
             <div class="form-section">
                 <h2 class="section-title">📝 Goal Details</h2>
@@ -120,15 +117,6 @@
                 </div>
             }
 
-            @* Debug Info - Remove after testing *@
-            @if (!string.IsNullOrEmpty(debugMessage))
-            {
-                <div style="background: #fff3cd; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-                    <strong>Debug Info:</strong>
-                    <pre style="margin: 0.5rem 0 0 0; font-size: 0.9rem;">@debugMessage</pre>
-                </div>
-            }
-
             <div class="form-actions">
                 <button type="button" class="btn-secondary" @onclick="HandleCancel">Cancel</button>
                 <button type="submit" class="btn-primary" disabled="@isSubmitting">
@@ -162,7 +150,6 @@
     private string currentUserId = string.Empty;
     private bool isSubmitting = false;
     private string statusMessage = string.Empty;
-    private string debugMessage = string.Empty;
     private bool isSuccess = false;
 
     protected override async Task OnInitializedAsync()
@@ -179,7 +166,7 @@
                 {
                     currentUserId = appUser.Id;
 
-                    // Initialize the goal with default values INCLUDING AppUserId
+                    // Initialize the goal with default values
                     newGoal = new Goal
                     {
                         TargetDate = DateTime.Today.AddMonths(6),
@@ -187,47 +174,18 @@
                         CurrentAmount = 0,
                         GoalName = string.Empty,
                         TargetAmount = 0,
-                        AppUserId = currentUserId,      // ✅ SET IT HERE!
-                        CreatedBy = currentUserId,       // ✅ SET IT HERE!
-                        UpdatedBy = currentUserId        // ✅ SET IT HERE!
+                        AppUserId = currentUserId,
+                        CreatedBy = currentUserId,
+                        UpdatedBy = currentUserId
                     };
-
-                    debugMessage = $"User ID: {currentUserId}";
                 }
-                else
-                {
-                    debugMessage = "AppUser is null";
-                }
-            }
-            else
-            {
-                debugMessage = "User not authenticated";
             }
         }
         catch (Exception ex)
         {
             statusMessage = $"Error initializing: {ex.Message}";
-            debugMessage = $"Init Error: {ex.Message}\n{ex.StackTrace}";
-            Console.WriteLine($"Error in OnInitializedAsync: {ex}");
+            isSuccess = false;
         }
-    }
-
-    private void HandleInvalidSubmit()
-    {
-        statusMessage = "⚠️ Please check the form for errors.";
-        isSuccess = false;
-
-        // Debug: Show what's wrong
-        debugMessage = $"Form validation failed!\n" +
-                      $"GoalName: '{newGoal.GoalName}' (length: {newGoal.GoalName?.Length ?? 0})\n" +
-                      $"TargetAmount: {newGoal.TargetAmount}\n" +
-                      $"TargetDate: {newGoal.TargetDate}\n" +
-                      $"Status: '{newGoal.Status}'\n" +
-                      $"CurrentAmount: {newGoal.CurrentAmount}\n" +
-                      $"UserID: '{currentUserId}'";
-
-        Console.WriteLine("Form validation failed!");
-        Console.WriteLine(debugMessage);
     }
 
     private async Task HandleSubmit()
@@ -237,47 +195,29 @@
             isSubmitting = true;
             statusMessage = string.Empty;
 
-            Console.WriteLine("HandleSubmit called!");
-
             if (string.IsNullOrEmpty(currentUserId))
             {
-                statusMessage = "❌ User not found. Please log in again.";
-                debugMessage = "CurrentUserId is empty!";
+                statusMessage = "User not found. Please log in again.";
                 isSuccess = false;
                 return;
             }
-
-            debugMessage = $"Attempting to create goal:\n" +
-                          $"Name: {newGoal.GoalName}\n" +
-                          $"Target: {newGoal.TargetAmount:C2}\n" +
-                          $"Date: {newGoal.TargetDate:yyyy-MM-dd}\n" +
-                          $"Status: {newGoal.Status}\n" +
-                          $"UserID: {newGoal.AppUserId}";
-
-            Console.WriteLine(debugMessage);
 
             var success = await GoalService.CreateGoalAsync(newGoal);
 
             if (success)
             {
-                Console.WriteLine("Goal created successfully!");
                 Navigation.NavigateTo("/goals");
             }
             else
             {
                 isSuccess = false;
-                statusMessage = "❌ Failed to create goal. Please try again.";
-                debugMessage += "\n\nService returned false!";
-                Console.WriteLine("Service CreateGoalAsync returned false");
+                statusMessage = "Failed to create goal. Please try again.";
             }
         }
         catch (Exception ex)
         {
             isSuccess = false;
-            statusMessage = $"❌ Error creating goal: {ex.Message}";
-            debugMessage = $"Exception in HandleSubmit:\n{ex.Message}\n{ex.StackTrace}";
-            Console.WriteLine($"Error in HandleSubmit: {ex}");
-            Console.WriteLine(debugMessage);
+            statusMessage = $"Error creating goal: {ex.Message}";
         }
         finally
         {
