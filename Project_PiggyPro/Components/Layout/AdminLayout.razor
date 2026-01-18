@@ -1,18 +1,81 @@
 ﻿@inherits LayoutComponentBase
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
 
 <HeadContent>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="js/charts.js"></script>
 </HeadContent>
 
-<div class="admin-page-layout">
-    <main>
-        @Body
-    </main>
-</div>
+<CascadingAuthenticationState>
+    <div class="admin-dashboard-page">
+        <!-- Admin Navigation Bar -->
+        <nav class="navbar">
+            <div class="navbar-container">
+                <a href="/Admin/AdminDashboard" class="navbar-brand">
+                    <span class="pig-icon">🐖</span> PiggyPro Admin
+                </a>
+                <div class="nav-menu">
+                    <NavLink href="/admin/dashboard" class="nav-btn" Match="NavLinkMatch.All">
+                        Dashboard
+                    </NavLink>
+                    <NavLink href="/admin/users" class="nav-btn">
+                        Users
+                    </NavLink>
+                    <NavLink href="/categories" class="nav-btn">
+                        Categories
+                    </NavLink>
+                </div>
+                <AuthorizeView>
+                    <Authorized>
+                        <div class="user-section">
+                            <a href="/Account/Manage" class="user-name">@fullName</a>
+                            <a href="/Account/Logout" class="btn-logout">Logout</a>
+                        </div>
+                    </Authorized>
+                </AuthorizeView>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            @Body
+        </main>
+    </div>
+</CascadingAuthenticationState>
 
 <div id="blazor-error-ui">
     An unhandled error has occurred.
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
+
+@code {
+    private string fullName = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUserNameFromClaims();
+    }
+
+    private async Task LoadUserNameFromClaims()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user?.Identity?.IsAuthenticated == true)
+        {
+            var firstName = user.FindFirst("FirstName")?.Value;
+            var lastName = user.FindFirst("LastName")?.Value;
+
+            if (!string.IsNullOrWhiteSpace(firstName))
+            {
+                fullName = $"{firstName} {lastName}".Trim();
+            }
+            else
+            {
+                fullName = user.Identity?.Name ?? "Admin";
+            }
+        }
+    }
+}

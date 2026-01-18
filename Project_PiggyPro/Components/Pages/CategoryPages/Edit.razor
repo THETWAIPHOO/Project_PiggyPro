@@ -1,118 +1,180 @@
 ﻿@page "/categories/edit"
 @layout AdminLayout
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Identity
 @using Microsoft.EntityFrameworkCore
 @using Project_PiggyPro.Domain
-@inject IDbContextFactory<Project_PiggyPro.Data.Project_PiggyProContext> DbFactory
-@inject NavigationManager NavigationManager
-@using Project_PiggyPro.Services
-@inject AdminService AdminService
-@inject NavigationManager NavigationManager
+@using Project_PiggyPro.Data
+@inject IDbContextFactory<Project_PiggyProContext> DbFactory
+@inject UserManager<Project_PiggyProUser> UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
 
-<PageTitle>Edit</PageTitle>
+<PageTitle>Edit Category - PiggyPro Admin</PageTitle>
 
-<h1>Edit</h1>
+<div class="edit-container">
+    <div class="page-header">
+        <div>
+            <h1>✏️ Edit Category</h1>
+            <p class="subtitle">Update category information</p>
+        </div>
+        <a href="/categories" class="btn-back">← Back to Categories</a>
+    </div>
 
-<h2>Category</h2>
-<hr />
-@if (Category is null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <div class="row">
-        <div class="col-md-4">
-            <EditForm method="post" Model="Category" OnValidSubmit="UpdateCategory" FormName="edit" Enhance>
+    @if (isLoading)
+    {
+        <div class="loading-state">
+            <p>Loading category...</p>
+        </div>
+    }
+    else if (category == null)
+    {
+        <div class="error-card">
+            <h2>Category Not Found</h2>
+            <p>The category you're looking for doesn't exist.</p>
+            <a href="/categories" class="btn-primary">Back to Categories</a>
+        </div>
+    }
+    else
+    {
+        <div class="form-card">
+            <EditForm Model="@category" OnValidSubmit="@HandleSubmit">
                 <DataAnnotationsValidator />
-                <ValidationSummary role="alert"/>
-                <input type="hidden" name="Category.Id" value="@Category.Id" />
-                <div class="mb-3">
-                    <label for="categoryname" class="form-label">CategoryName:</label>
-                    <InputText id="categoryname" @bind-Value="Category.CategoryName" class="form-control" />
-                    <ValidationMessage For="() => Category.CategoryName" class="text-danger" />
+
+                <div class="form-group">
+                    <label for="categoryName" class="form-label">Category Name <span class="required">*</span></label>
+                    <InputText id="categoryName" class="form-control" @bind-Value="category.CategoryName" />
+                    <ValidationMessage For="@(() => category.CategoryName)" class="validation-message" />
                 </div>
-                <div class="mb-3">
-                    <label for="categorytype" class="form-label">CategoryType:</label>
-                    <InputText id="categorytype" @bind-Value="Category.CategoryType" class="form-control" />
-                    <ValidationMessage For="() => Category.CategoryType" class="text-danger" />
+
+                <div class="form-group">
+                    <label for="categoryType" class="form-label">Category Type <span class="required">*</span></label>
+                    <InputSelect id="categoryType" class="form-control" @bind-Value="category.CategoryType">
+                        <option value="">Select type...</option>
+                        <option value="Income">💰 Income</option>
+                        <option value="Expense">💸 Expense</option>
+                        <option value="Savings">🐷 Savings</option>
+                    </InputSelect>
+                    <ValidationMessage For="@(() => category.CategoryType)" class="validation-message" />
                 </div>
-                <div class="mb-3">
-                    <label for="datecreated" class="form-label">DateCreated:</label>
-                    <InputDate id="datecreated" @bind-Value="Category.DateCreated" class="form-control" />
-                    <ValidationMessage For="() => Category.DateCreated" class="text-danger" />
+
+                <div class="info-section">
+                    <div class="info-row">
+                        <span class="info-label">Created:</span>
+                        <span class="info-value">@category.DateCreated.ToString("MMM dd, yyyy")</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Last Updated:</span>
+                        <span class="info-value">@category.DateUpdated.ToString("MMM dd, yyyy")</span>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label for="dateupdated" class="form-label">DateUpdated:</label>
-                    <InputDate id="dateupdated" @bind-Value="Category.DateUpdated" class="form-control" />
-                    <ValidationMessage For="() => Category.DateUpdated" class="text-danger" />
+
+                @if (!string.IsNullOrEmpty(statusMessage))
+                {
+                    <div class="status-message @(isSuccess ? "success" : "error")">
+                        @statusMessage
+                    </div>
+                }
+
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" @onclick="HandleCancel">Cancel</button>
+                    <button type="submit" class="btn-primary" disabled="@isSubmitting">
+                        @if (isSubmitting)
+                        {
+                            <span>Saving...</span>
+                        }
+                        else
+                        {
+                            <span>Save Changes</span>
+                        }
+                    </button>
                 </div>
-                <div class="mb-3">
-                    <label for="createdby" class="form-label">CreatedBy:</label>
-                    <InputText id="createdby" @bind-Value="Category.CreatedBy" class="form-control" />
-                    <ValidationMessage For="() => Category.CreatedBy" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="updatedby" class="form-label">UpdatedBy:</label>
-                    <InputText id="updatedby" @bind-Value="Category.UpdatedBy" class="form-control" />
-                    <ValidationMessage For="() => Category.UpdatedBy" class="text-danger" />
-                </div>
-                <button type="submit" class="btn btn-primary">Save</button>
             </EditForm>
         </div>
-    </div>
-}
-
-<div>
-    <a href="/categories">Back to List</a>
+    }
 </div>
 
 @code {
     [SupplyParameterFromQuery]
     private int Id { get; set; }
 
-    [SupplyParameterFromForm]
-    private Category? Category { get; set; }
+    private Category? category;
+    private string currentUserId = string.Empty;
+    private bool isLoading = true;
+    private bool isSubmitting = false;
+    private string statusMessage = string.Empty;
+    private bool isSuccess = false;
 
     protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        Category ??= await context.Category.FirstOrDefaultAsync(m => m.Id == Id);
-
-        if (Category is null)
+        try
         {
-            NavigationManager.NavigateTo("notfound");
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            if (user.Identity?.IsAuthenticated == true)
+            {
+                var appUser = await UserManager.GetUserAsync(user);
+                if (appUser != null)
+                {
+                    currentUserId = appUser.Id;
+                }
+            }
+
+            await LoadCategory();
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Error initializing: {ex.Message}";
+            isSuccess = false;
+        }
+        finally
+        {
+            isLoading = false;
         }
     }
 
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
-    private async Task UpdateCategory()
+    private async Task LoadCategory()
     {
         using var context = DbFactory.CreateDbContext();
-        context.Attach(Category!).State = EntityState.Modified;
+        category = await context.Category.FirstOrDefaultAsync(c => c.Id == Id);
+    }
 
+    private async Task HandleSubmit()
+    {
         try
         {
+            isSubmitting = true;
+            statusMessage = string.Empty;
+
+            using var context = DbFactory.CreateDbContext();
+
+            category!.DateUpdated = DateTime.Now;
+            category.UpdatedBy = currentUserId;
+
+            context.Attach(category).State = EntityState.Modified;
             await context.SaveChangesAsync();
+
+            Navigation.NavigateTo("/categories");
         }
         catch (DbUpdateConcurrencyException)
         {
-            if (!CategoryExists(Category!.Id))
-            {
-                NavigationManager.NavigateTo("notfound");
-            }
-            else
-            {
-                throw;
-            }
+            isSuccess = false;
+            statusMessage = "Category was modified or deleted by another user.";
         }
-
-        NavigationManager.NavigateTo("/categories");
+        catch (Exception ex)
+        {
+            isSuccess = false;
+            statusMessage = $"Error updating category: {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
     }
 
-    private bool CategoryExists(int id)
+    private void HandleCancel()
     {
-        using var context = DbFactory.CreateDbContext();
-        return context.Category.Any(e => e.Id == id);
+        Navigation.NavigateTo("/categories");
     }
 }

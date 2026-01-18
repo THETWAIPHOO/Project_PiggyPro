@@ -1,10 +1,216 @@
-﻿.admin-page-layout {
+﻿/* AdminLayout Scoped Styles */
+
+::deep body {
+    background-color: #ffffff;
+    margin: 0;
+    padding: 0;
+}
+
+.admin-dashboard-page {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    background-color: #fafafa;
 }
 
-main {
+.navbar {
+    background: white;
+    border: 2px solid #333;
+    border-radius: 0;
+    padding: 1rem 2rem;
+    margin: 1rem;
+    box-shadow: none;
+}
+
+.navbar-container {
+    max-width: 100%;
+    margin: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0;
+    gap: 1rem;
+    flex-wrap: nowrap;
+}
+
+.navbar-brand {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #333;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.pig-icon {
+    font-size: 2.5rem;
+}
+
+.nav-menu {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex: 0 1 auto;
+    justify-content: center;
+}
+
+::deep .nav-btn {
+    padding: 0.875rem 1.5rem;
+    background: white;
+    color: #333;
+    border: 2px solid #333;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.2s;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+    ::deep .nav-btn:hover {
+        background: #f8f8f8;
+        transform: translateY(-1px);
+    }
+
+    ::deep .nav-btn.active {
+        background: #333;
+        color: white;
+        border-color: #333;
+    }
+
+.user-section {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.user-name {
+    padding: 0.875rem 1.5rem;
+    background: white;
+    color: #333;
+    border: 2px solid #333;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.2s;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+    .user-name:hover {
+        background: #f8f8f8;
+        transform: translateY(-1px);
+    }
+
+.btn-logout {
+    padding: 0.875rem 1.5rem;
+    background: white;
+    color: #333;
+    border: 2px solid #333;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.2s;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+    .btn-logout:hover {
+        background: #333;
+        color: white;
+    }
+
+.main-content {
     flex: 1;
+    max-width: 100%;
+    margin: 0;
+    padding: 2rem 3rem;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .navbar-container {
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .nav-menu {
+        order: 3;
+        width: 100%;
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 768px) {
+    .navbar {
+        padding: 1rem;
+        margin: 0.5rem;
+    }
+
+    .navbar-brand {
+        font-size: 1.5rem;
+    }
+
+    .pig-icon {
+        font-size: 2rem;
+    }
+
+    .nav-menu {
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    ::deep .nav-btn {
+        padding: 0.7rem 1.2rem;
+        font-size: 0.9rem;
+    }
+
+    .user-section {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .user-name,
+    .btn-logout {
+        padding: 0.7rem 1.2rem;
+        font-size: 0.9rem;
+    }
+
+    .main-content {
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .navbar-container {
+        flex-direction: column;
+    }
+
+    .navbar-brand {
+        font-size: 1.25rem;
+    }
+
+    .nav-menu {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    ::deep .nav-btn {
+        width: 100%;
+        text-align: center;
+    }
+
+    .user-section {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .user-name,
+    .btn-logout {
+        width: 100%;
+        text-align: center;
+    }
 }

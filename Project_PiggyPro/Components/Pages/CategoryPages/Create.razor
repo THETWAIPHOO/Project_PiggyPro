@@ -1,73 +1,142 @@
 ﻿@page "/categories/create"
 @layout AdminLayout
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Identity
 @using Microsoft.EntityFrameworkCore
 @using Project_PiggyPro.Domain
-@inject IDbContextFactory<Project_PiggyPro.Data.Project_PiggyProContext> DbFactory
-@inject NavigationManager NavigationManager
-@using Project_PiggyPro.Services
-@inject AdminService AdminService
-@inject NavigationManager NavigationManager
+@using Project_PiggyPro.Data
+@inject IDbContextFactory<Project_PiggyProContext> DbFactory
+@inject UserManager<Project_PiggyProUser> UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
 
-<PageTitle>Create</PageTitle>
+<PageTitle>Create Category - PiggyPro Admin</PageTitle>
 
-<h1>Create</h1>
+<div class="create-container">
+    <div class="page-header">
+        <div>
+            <h1>📁 Create New Category</h1>
+            <p class="subtitle">Add a new category for budget tracking</p>
+        </div>
+        <a href="/categories" class="btn-back">← Back to Categories</a>
+    </div>
 
-<h2>Category</h2>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <EditForm method="post" Model="Category" OnValidSubmit="AddCategory" FormName="create" Enhance>
+    <div class="form-card">
+        <EditForm Model="@newCategory" OnValidSubmit="@HandleSubmit">
             <DataAnnotationsValidator />
-            <ValidationSummary class="text-danger" role="alert"/>
-            <div class="mb-3">
-                <label for="categoryname" class="form-label">CategoryName:</label> 
-                <InputText id="categoryname" @bind-Value="Category.CategoryName" class="form-control" /> 
-                <ValidationMessage For="() => Category.CategoryName" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="categorytype" class="form-label">CategoryType:</label> 
-                <InputText id="categorytype" @bind-Value="Category.CategoryType" class="form-control" /> 
-                <ValidationMessage For="() => Category.CategoryType" class="text-danger" /> 
-            </div>             
-            <div class="mb-3">
-                <label for="datecreated" class="form-label">DateCreated:</label> 
-                <InputDate id="datecreated" @bind-Value="Category.DateCreated" class="form-control" /> 
-                <ValidationMessage For="() => Category.DateCreated" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="dateupdated" class="form-label">DateUpdated:</label> 
-                <InputDate id="dateupdated" @bind-Value="Category.DateUpdated" class="form-control" /> 
-                <ValidationMessage For="() => Category.DateUpdated" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="createdby" class="form-label">CreatedBy:</label> 
-                <InputText id="createdby" @bind-Value="Category.CreatedBy" class="form-control" /> 
-                <ValidationMessage For="() => Category.CreatedBy" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="updatedby" class="form-label">UpdatedBy:</label> 
-                <InputText id="updatedby" @bind-Value="Category.UpdatedBy" class="form-control" /> 
-                <ValidationMessage For="() => Category.UpdatedBy" class="text-danger" /> 
-            </div>        
-            <button type="submit" class="btn btn-primary">Create</button>
+
+            <div class="form-group">
+                <label for="categoryName" class="form-label">Category Name <span class="required">*</span></label>
+                <InputText id="categoryName" class="form-control" @bind-Value="newCategory.CategoryName"
+                           placeholder="e.g., Groceries, Salary, Savings" />
+                <ValidationMessage For="@(() => newCategory.CategoryName)" class="validation-message" />
+            </div>
+
+            <div class="form-group">
+                <label for="categoryType" class="form-label">Category Type <span class="required">*</span></label>
+                <InputSelect id="categoryType" class="form-control" @bind-Value="newCategory.CategoryType">
+                    <option value="">Select type...</option>
+                    <option value="Income">💰 Income</option>
+                    <option value="Expense">💸 Expense</option>
+                    <option value="Savings">🐷 Savings</option>
+                </InputSelect>
+                <ValidationMessage For="@(() => newCategory.CategoryType)" class="validation-message" />
+            </div>
+
+            @if (!string.IsNullOrEmpty(statusMessage))
+            {
+                <div class="status-message @(isSuccess ? "success" : "error")">
+                    @statusMessage
+                </div>
+            }
+
+            <div class="form-actions">
+                <button type="button" class="btn-secondary" @onclick="HandleCancel">Cancel</button>
+                <button type="submit" class="btn-primary" disabled="@isSubmitting">
+                    @if (isSubmitting)
+                    {
+                        <span>Creating...</span>
+                    }
+                    else
+                    {
+                        <span>Create Category</span>
+                    }
+                </button>
+            </div>
         </EditForm>
     </div>
 </div>
 
-<div>
-    <a href="/categories">Back to List</a>
-</div>
-
 @code {
-    [SupplyParameterFromForm]
-    private Category Category { get; set; } = new();
+    private Category newCategory = new();
+    private string currentUserId = string.Empty;
+    private bool isSubmitting = false;
+    private string statusMessage = string.Empty;
+    private bool isSuccess = false;
 
-    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
-    private async Task AddCategory()
+    protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        context.Category.Add(Category);
-        await context.SaveChangesAsync();
-        NavigationManager.NavigateTo("/categories");
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            if (user.Identity?.IsAuthenticated == true)
+            {
+                var appUser = await UserManager.GetUserAsync(user);
+                if (appUser != null)
+                {
+                    currentUserId = appUser.Id;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Error initializing: {ex.Message}";
+            isSuccess = false;
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            isSubmitting = true;
+            statusMessage = string.Empty;
+
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                statusMessage = "User not found. Please log in again.";
+                isSuccess = false;
+                return;
+            }
+
+            using var context = DbFactory.CreateDbContext();
+
+            newCategory.DateCreated = DateTime.Now;
+            newCategory.DateUpdated = DateTime.Now;
+            newCategory.CreatedBy = currentUserId;
+            newCategory.UpdatedBy = currentUserId;
+            newCategory.AppUserId = currentUserId;
+
+            context.Category.Add(newCategory);
+            await context.SaveChangesAsync();
+
+            Navigation.NavigateTo("/categories");
+        }
+        catch (Exception ex)
+        {
+            isSuccess = false;
+            statusMessage = $"Error creating category: {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void HandleCancel()
+    {
+        Navigation.NavigateTo("/categories");
     }
 }
