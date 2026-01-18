@@ -707,3 +707,164 @@
         gap: 0.5rem;
     }
 }
+
+/* ============================================
+   CONTRIBUTION HISTORY STYLES
+   ============================================ */
+
+/* Contribution History Card */
+.contribution-history-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+    .history-header h2 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin: 0;
+    }
+
+.contribution-count {
+    font-size: 0.9rem;
+    color: #666;
+    font-weight: 500;
+}
+
+/* Contributions List */
+.contributions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.contribution-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: #f0f7ff;
+    border-radius: 8px;
+    border-left: 4px solid #4caf50;
+}
+
+    .contribution-item.withdrawal {
+        background: #fff8f0;
+        border-left-color: #ff9800;
+    }
+
+.contribution-left {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex: 1;
+}
+
+.contribution-icon {
+    font-size: 2rem;
+    line-height: 1;
+}
+
+.contribution-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.contribution-amount {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+    .contribution-amount.positive {
+        color: #4caf50;
+    }
+
+    .contribution-amount.negative {
+        color: #ff9800;
+    }
+
+.contribution-date {
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.contribution-notes {
+    font-size: 0.85rem;
+    color: #1976d2;
+    font-style: italic;
+}
+
+/* Contribution Stats */
+.contribution-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    padding: 1rem;
+    background: #f9f9f9;
+    border-radius: 8px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.stat-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+/* Empty History */
+.empty-history {
+    text-align: center;
+    padding: 3rem 2rem;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.empty-history p {
+    color: #999;
+    margin: 0.5rem 0;
+}
+
+.empty-hint {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .contribution-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .contribution-stats {
+        grid-template-columns: 1fr;
+    }
+}

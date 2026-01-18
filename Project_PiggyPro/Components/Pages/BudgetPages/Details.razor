@@ -1,76 +1,221 @@
-﻿@page "/budgets/details"
+﻿@page "/budgets/details/{id:int}"
+@rendermode InteractiveServer
+@layout UserLayout
+@attribute [Authorize]
+
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Identity
+@using Project_PiggyPro.Components.Layout
 @using Project_PiggyPro.Domain
+@using Project_PiggyPro.Data
+
 @inject IDbContextFactory<Project_PiggyPro.Data.Project_PiggyProContext> DbFactory
-@inject NavigationManager NavigationManager
+@inject UserManager<Project_PiggyProUser> UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
 
-<PageTitle>Details</PageTitle>
+<PageTitle>Budget Details - PiggyPro</PageTitle>
 
-<h1>Details</h1>
-
-<div>
-    <h2>Budget</h2>
-    <hr />
-    @if (budget is null)
+<div class="details-container">
+    @if (isLoading)
     {
-        <p><em>Loading...</em></p>
+        <div class="loading-state">
+            <p>Loading budget details...</p>
+        </div>
     }
-    else {
-        <dl class="row">
-            <dt class="col-sm-2">BudgetAmount</dt>
-            <dd class="col-sm-10">@budget.BudgetAmount</dd>
-            <dt class="col-sm-2">StartDate</dt>
-            <dd class="col-sm-10">@budget.StartDate</dd>
-            <dt class="col-sm-2">EndDate</dt>
-            <dd class="col-sm-10">@budget.EndDate</dd>
-            <dt class="col-sm-2">BudgetPeriod</dt>
-            <dd class="col-sm-10">@budget.BudgetPeriod</dd>
-            <dt class="col-sm-2">RuleName</dt>
-            <dd class="col-sm-10">@budget.RuleName</dd>
-            <dt class="col-sm-2">NeedsPercentage</dt>
-            <dd class="col-sm-10">@budget.NeedsPercentage</dd>
-            <dt class="col-sm-2">WantsPercentage</dt>
-            <dd class="col-sm-10">@budget.WantsPercentage</dd>
-            <dt class="col-sm-2">SavingsPercentage</dt>
-            <dd class="col-sm-10">@budget.SavingsPercentage</dd>
-            <dt class="col-sm-2">BucketType</dt>
-            <dd class="col-sm-10">@budget.BucketType</dd>
-            <dt class="col-sm-2">AllocatedAmount</dt>
-            <dd class="col-sm-10">@budget.AllocatedAmount</dd>
-            <dt class="col-sm-2">AppUserId</dt>
-            <dd class="col-sm-10">@budget.AppUserId</dd>
-            <dt class="col-sm-2">CategoryId</dt>
-            <dd class="col-sm-10">@budget.CategoryId</dd>
-            <dt class="col-sm-2">DateCreated</dt>
-            <dd class="col-sm-10">@budget.DateCreated</dd>
-            <dt class="col-sm-2">DateUpdated</dt>
-            <dd class="col-sm-10">@budget.DateUpdated</dd>
-            <dt class="col-sm-2">CreatedBy</dt>
-            <dd class="col-sm-10">@budget.CreatedBy</dd>
-            <dt class="col-sm-2">UpdatedBy</dt>
-            <dd class="col-sm-10">@budget.UpdatedBy</dd>
-        </dl>
-        <div>
-            <a href="@($"/budgets/edit?id={budget.Id}")">Edit</a> |
-            <a href="@($"/budgets")">Back to List</a>
+    else if (budget != null)
+    {
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="header-left">
+                <h1>@(budget.Category?.CategoryName ?? "Budget Details")</h1>
+                <div class="budget-meta">
+                    <span class="bucket-badge @budget.BucketType?.ToLower()">@budget.BucketType</span>
+                    <span class="period-info">@budget.StartDate.ToString("MMM yyyy")</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <a href="@($"/budgets/edit?id={budget.Id}")" class="btn-edit">✏️ Edit</a>
+                <a href="/budgets" class="btn-back">← Back</a>
+            </div>
+        </div>
+
+        <!-- Budget Summary Cards -->
+        <div class="summary-grid">
+            <div class="summary-card allocated">
+                <div class="summary-icon">💰</div>
+                <div class="summary-content">
+                    <div class="summary-label">Budget Allocated</div>
+                    <div class="summary-value">@budget.AllocatedAmount.ToString("C2")</div>
+                    <div class="summary-note">per month</div>
+                </div>
+            </div>
+
+            <div class="summary-card spent">
+                <div class="summary-icon">💳</div>
+                <div class="summary-content">
+                    <div class="summary-label">Total Spent</div>
+                    <div class="summary-value">@totalSpent.ToString("C2")</div>
+                    <div class="summary-note">from @transactionCount transactions</div>
+                </div>
+            </div>
+
+            <div class="summary-card remaining">
+                <div class="summary-icon">@(remaining >= 0 ? "✅" : "⚠️")</div>
+                <div class="summary-content">
+                    <div class="summary-label">@(remaining >= 0 ? "Remaining" : "Over Budget")</div>
+                    <div class="summary-value @(remaining >= 0 ? "positive" : "negative")">
+                        @Math.Abs(remaining).ToString("C2")
+                    </div>
+                    <div class="summary-note">@percentage.ToString("N1")% used</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-card">
+            <div class="progress-header">
+                <span class="progress-label">Budget Progress</span>
+                <span class="progress-percentage">@percentage.ToString("N1")%</span>
+            </div>
+            <div class="progress-bar-large">
+                <div class="progress-fill-large @progressClass" style="width: @Math.Min(percentage, 100)%"></div>
+            </div>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="transactions-card">
+            <div class="transactions-header">
+                <h2>Recent Transactions</h2>
+                <span class="transaction-count">@transactionCount total</span>
+            </div>
+
+            @if (transactions.Any())
+            {
+                <div class="transactions-list">
+                    @foreach (var transaction in transactions.OrderByDescending(t => t.TransactionDate).Take(10))
+                    {
+                        <div class="transaction-item">
+                            <div class="transaction-left">
+                                <div class="transaction-icon">
+                                    @(transaction.TransactionType == "Income" ? "💰" : "💳")
+                                </div>
+                                <div class="transaction-info">
+                                    <div class="transaction-description">
+                                        @(!string.IsNullOrEmpty(transaction.Description) ? transaction.Description : "No description")
+                                    </div>
+                                    <div class="transaction-date">@transaction.TransactionDate.ToString("MMM dd, yyyy")</div>
+                                </div>
+                            </div>
+                            <div class="transaction-amount @(transaction.TransactionType == "Income" ? "income" : "expense")">
+                                @(transaction.TransactionType == "Income" ? "+" : "-")@transaction.Amount.ToString("C2")
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                @if (transactionCount > 10)
+                {
+                    <div class="view-all-note">
+                        Showing 10 of @transactionCount transactions
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="empty-transactions">
+                    <div class="empty-icon">📝</div>
+                    <p>No transactions for this category yet</p>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="error-card">
+            <div class="error-icon">❌</div>
+            <h2>Budget Not Found</h2>
+            <p>The budget you're looking for doesn't exist or you don't have permission to view it.</p>
+            <a href="/budgets" class="btn-primary">← Back to Budgets</a>
         </div>
     }
 </div>
 
 @code {
-    private Budget? budget;
+    [Parameter] public int Id { get; set; }
 
-    [SupplyParameterFromQuery]
-    private int Id { get; set; }
+    private Budget? budget;
+    private List<Transaction> transactions = new();
+    private string currentUserId = string.Empty;
+    private bool isLoading = true;
+    private decimal totalSpent = 0;
+    private decimal remaining = 0;
+    private double percentage = 0;
+    private string progressClass = "good";
+    private int transactionCount = 0;
 
     protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        budget = await context.Budget.FirstOrDefaultAsync(m => m.Id == Id);
-
-        if (budget is null)
+        try
         {
-            NavigationManager.NavigateTo("notfound");
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            if (user.Identity?.IsAuthenticated == true)
+            {
+                var appUser = await UserManager.GetUserAsync(user);
+                if (appUser != null)
+                {
+                    currentUserId = appUser.Id;
+                    await LoadBudgetDetails();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error in OnInitializedAsync: {ex}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadBudgetDetails()
+    {
+        try
+        {
+            using var context = await DbFactory.CreateDbContextAsync();
+
+            // Load budget with category
+            budget = await context.Budget
+                .Include(b => b.Category)
+                .FirstOrDefaultAsync(b => b.Id == Id && b.AppUserId == currentUserId);
+
+            if (budget != null)
+            {
+                // Load transactions for this category within the budget period
+                transactions = await context.Transaction
+                    .Where(t => t.AppUserId == currentUserId
+                        && t.CategoryId == budget.CategoryId
+                        && t.TransactionDate >= budget.StartDate
+                        && t.TransactionDate <= budget.EndDate
+                        && t.TransactionType == "Expense")
+                    .OrderByDescending(t => t.TransactionDate)
+                    .ToListAsync();
+
+                // Calculate totals
+                totalSpent = transactions.Sum(t => t.Amount);
+                transactionCount = transactions.Count;
+                remaining = budget.AllocatedAmount - totalSpent;
+                percentage = budget.AllocatedAmount > 0 ? (double)(totalSpent / budget.AllocatedAmount) * 100 : 0;
+                progressClass = percentage > 100 ? "over" : percentage > 75 ? "warning" : "good";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading budget details: {ex}");
         }
     }
 }

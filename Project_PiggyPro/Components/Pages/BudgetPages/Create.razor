@@ -1,119 +1,393 @@
 ﻿@page "/budgets/create"
+@rendermode InteractiveServer
+@layout UserLayout
+@attribute [Authorize]
+
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Identity
+@using Project_PiggyPro.Components.Layout
 @using Project_PiggyPro.Domain
+@using Project_PiggyPro.Data
+
 @inject IDbContextFactory<Project_PiggyPro.Data.Project_PiggyProContext> DbFactory
-@inject NavigationManager NavigationManager
+@inject UserManager<Project_PiggyProUser> UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
 
-<PageTitle>Create</PageTitle>
+<PageTitle>Create Budget - PiggyPro</PageTitle>
 
-<h1>Create</h1>
+<div class="create-budget-container">
+    <div class="page-header">
+        <h1>Create New Budget</h1>
+        <p class="subtitle">
+            @if (!string.IsNullOrEmpty(BucketType))
+            {
+                <text>Adding to <strong>@BucketType</strong> bucket</text>
+            }
+            else
+            {
+                <text>Set up a new budget category</text>
+            }
+        </p>
+    </div>
 
-<h2>Budget</h2>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <EditForm method="post" Model="Budget" OnValidSubmit="AddBudget" FormName="create" Enhance>
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger">
+            <strong>Error:</strong> @errorMessage
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <div class="alert alert-success">
+            <strong>Success:</strong> @successMessage
+        </div>
+    }
+
+    <div class="form-card">
+        <EditForm Model="budget" OnValidSubmit="HandleSubmit">
             <DataAnnotationsValidator />
-            <ValidationSummary class="text-danger" role="alert"/>
-            <div class="mb-3">
-                <label for="budgetamount" class="form-label">BudgetAmount:</label> 
-                <InputNumber id="budgetamount" @bind-Value="Budget.BudgetAmount" class="form-control" /> 
-                <ValidationMessage For="() => Budget.BudgetAmount" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="startdate" class="form-label">StartDate:</label> 
-                <InputDate id="startdate" @bind-Value="Budget.StartDate" class="form-control" /> 
-                <ValidationMessage For="() => Budget.StartDate" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="enddate" class="form-label">EndDate:</label> 
-                <InputDate id="enddate" @bind-Value="Budget.EndDate" class="form-control" /> 
-                <ValidationMessage For="() => Budget.EndDate" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="budgetperiod" class="form-label">BudgetPeriod:</label> 
-                <InputText id="budgetperiod" @bind-Value="Budget.BudgetPeriod" class="form-control" /> 
-                <ValidationMessage For="() => Budget.BudgetPeriod" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="rulename" class="form-label">RuleName:</label> 
-                <InputText id="rulename" @bind-Value="Budget.RuleName" class="form-control" /> 
-                <ValidationMessage For="() => Budget.RuleName" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="needspercentage" class="form-label">NeedsPercentage:</label> 
-                <InputNumber id="needspercentage" @bind-Value="Budget.NeedsPercentage" class="form-control" /> 
-                <ValidationMessage For="() => Budget.NeedsPercentage" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="wantspercentage" class="form-label">WantsPercentage:</label> 
-                <InputNumber id="wantspercentage" @bind-Value="Budget.WantsPercentage" class="form-control" /> 
-                <ValidationMessage For="() => Budget.WantsPercentage" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="savingspercentage" class="form-label">SavingsPercentage:</label> 
-                <InputNumber id="savingspercentage" @bind-Value="Budget.SavingsPercentage" class="form-control" /> 
-                <ValidationMessage For="() => Budget.SavingsPercentage" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="buckettype" class="form-label">BucketType:</label> 
-                <InputText id="buckettype" @bind-Value="Budget.BucketType" class="form-control" /> 
-                <ValidationMessage For="() => Budget.BucketType" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="allocatedamount" class="form-label">AllocatedAmount:</label> 
-                <InputNumber id="allocatedamount" @bind-Value="Budget.AllocatedAmount" class="form-control" /> 
-                <ValidationMessage For="() => Budget.AllocatedAmount" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="appuserid" class="form-label">AppUserId:</label> 
-                <InputText id="appuserid" @bind-Value="Budget.AppUserId" class="form-control" /> 
-                <ValidationMessage For="() => Budget.AppUserId" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="categoryid" class="form-label">CategoryId:</label> 
-                <InputNumber id="categoryid" @bind-Value="Budget.CategoryId" class="form-control" /> 
-                <ValidationMessage For="() => Budget.CategoryId" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="datecreated" class="form-label">DateCreated:</label> 
-                <InputDate id="datecreated" @bind-Value="Budget.DateCreated" class="form-control" /> 
-                <ValidationMessage For="() => Budget.DateCreated" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="dateupdated" class="form-label">DateUpdated:</label> 
-                <InputDate id="dateupdated" @bind-Value="Budget.DateUpdated" class="form-control" /> 
-                <ValidationMessage For="() => Budget.DateUpdated" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="createdby" class="form-label">CreatedBy:</label> 
-                <InputText id="createdby" @bind-Value="Budget.CreatedBy" class="form-control" /> 
-                <ValidationMessage For="() => Budget.CreatedBy" class="text-danger" /> 
-            </div>        
-            <div class="mb-3">
-                <label for="updatedby" class="form-label">UpdatedBy:</label> 
-                <InputText id="updatedby" @bind-Value="Budget.UpdatedBy" class="form-control" /> 
-                <ValidationMessage For="() => Budget.UpdatedBy" class="text-danger" /> 
-            </div>        
-            <button type="submit" class="btn btn-primary">Create</button>
+
+            <!-- Category Selection -->
+            <div class="form-group">
+                <label for="categoryId" class="form-label">
+                    Select Category <span class="required">*</span>
+                </label>
+                <select @bind="budget.CategoryId"
+                        class="form-control"
+                        id="categoryId"
+                        required>
+                    <option value="">-- Select a Category --</option>
+                    @foreach (var category in filteredCategories)
+                    {
+                        <option value="@category.Id">
+                            @category.CategoryName (@category.CategoryType)
+                        </option>
+                    }
+                </select>
+
+                @if (BucketType?.ToLower() == "savings")
+                {
+                    <small class="form-text text-info">
+                        💡 Only "Saving" type categories are shown for the Savings bucket.
+                        <br />These categories are connected to your Goals page for tracking savings goals.
+                    </small>
+                }
+                else if (BucketType?.ToLower() == "needs" || BucketType?.ToLower() == "wants")
+                {
+                    <small class="form-text text-muted">
+                        💡 Only "Expense" type categories are shown for the @BucketType bucket.
+                    </small>
+                }
+
+                <ValidationMessage For="() => budget.CategoryId" />
+            </div>
+
+            <!-- Budget Amount -->
+            <div class="form-group">
+                <label for="allocatedAmount" class="form-label">
+                    Monthly Budget Amount <span class="required">*</span>
+                </label>
+                <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number"
+                           @bind="budget.AllocatedAmount"
+                           class="form-control"
+                           id="allocatedAmount"
+                           step="0.01"
+                           min="0.01"
+                           required />
+                </div>
+                <small class="form-text text-muted">
+                    Enter the amount you want to allocate for this category each month.
+                </small>
+                <ValidationMessage For="() => budget.AllocatedAmount" />
+            </div>
+
+            <!-- Recommended Amount Info (if applicable) -->
+            @if (!string.IsNullOrEmpty(BucketType) && totalMonthlyIncome > 0)
+            {
+                <div class="recommendation-card">
+                    <div class="recommendation-header">
+                        <span class="recommendation-icon">💡</span>
+                        <strong>Recommendation (50/30/20 Rule)</strong>
+                    </div>
+                    <div class="recommendation-body">
+                        <p>Based on your monthly income of <strong>@totalMonthlyIncome.ToString("C2")</strong>:</p>
+                        <ul>
+                            @if (BucketType.ToLower() == "needs")
+                            {
+                                <li>Needs bucket: <strong>@needsRecommended.ToString("C2")</strong> (50%)</li>
+                                <li>Currently allocated: <strong>@needsAllocated.ToString("C2")</strong></li>
+                                <li>Available: <strong>@(needsRecommended - needsAllocated).ToString("C2")</strong></li>
+                            }
+                            else if (BucketType.ToLower() == "wants")
+                            {
+                                <li>Wants bucket: <strong>@wantsRecommended.ToString("C2")</strong> (30%)</li>
+                                <li>Currently allocated: <strong>@wantsAllocated.ToString("C2")</strong></li>
+                                <li>Available: <strong>@(wantsRecommended - wantsAllocated).ToString("C2")</strong></li>
+                            }
+                            else if (BucketType.ToLower() == "savings")
+                            {
+                                <li>Savings bucket: <strong>@savingsRecommended.ToString("C2")</strong> (20%)</li>
+                                <li>Currently allocated: <strong>@savingsAllocated.ToString("C2")</strong></li>
+                                <li>Available: <strong>@(savingsRecommended - savingsAllocated).ToString("C2")</strong></li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            }
+
+            <!-- Action Buttons -->
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary" disabled="@isSaving">
+                    @if (isSaving)
+                    {
+                        <span>Saving...</span>
+                    }
+                    else
+                    {
+                        <span>💾 Create Budget</span>
+                    }
+                </button>
+                <a href="/budgets" class="btn btn-secondary">Cancel</a>
+            </div>
         </EditForm>
     </div>
 </div>
 
-<div>
-    <a href="/budgets">Back to List</a>
-</div>
-
 @code {
-    [SupplyParameterFromForm]
-    private Budget Budget { get; set; } = new();
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? BucketType { get; set; }
 
-    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
-    private async Task AddBudget()
+    private Budget budget = new();
+    private List<Category> availableCategories = new();
+    private List<Category> filteredCategories = new();
+    private string currentUserId = string.Empty;
+    private string errorMessage = string.Empty;
+    private string successMessage = string.Empty;
+    private bool isSaving = false;
+
+    // Budget recommendations
+    private decimal totalMonthlyIncome = 0m;
+    private decimal needsRecommended = 0m;
+    private decimal wantsRecommended = 0m;
+    private decimal savingsRecommended = 0m;
+    private decimal needsAllocated = 0m;
+    private decimal wantsAllocated = 0m;
+    private decimal savingsAllocated = 0m;
+
+    protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        context.Budget.Add(Budget);
-        await context.SaveChangesAsync();
-        NavigationManager.NavigateTo("/budgets");
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            if (user?.Identity?.IsAuthenticated == true)
+            {
+                var appUser = await UserManager.GetUserAsync(user);
+                if (appUser != null)
+                {
+                    currentUserId = appUser.Id;
+                    await LoadData();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading page: {ex.Message}";
+            Console.WriteLine($"Error in OnInitializedAsync: {ex}");
+        }
+    }
+
+    private async Task LoadData()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+
+        // Load all categories
+        availableCategories = await context.Category
+            .Where(c => c.IsSystemCategory == true || c.AppUserId == currentUserId)
+            .OrderBy(c => c.CategoryName)
+            .ToListAsync();
+
+        // Filter categories based on bucket type
+        FilterCategoriesByBucketType();
+
+        // Load budget recommendations
+        await LoadBudgetRecommendations(context);
+
+        // Initialize budget with defaults
+        var now = DateTime.Now;
+        budget.StartDate = new DateTime(now.Year, now.Month, 1);
+        budget.EndDate = budget.StartDate.AddMonths(1).AddDays(-1);
+        budget.BudgetPeriod = "Monthly";
+        budget.RuleName = "50/30/20";
+        budget.NeedsPercentage = 50;
+        budget.WantsPercentage = 30;
+        budget.SavingsPercentage = 20;
+        budget.BucketType = BucketType;
+    }
+
+    private void FilterCategoriesByBucketType()
+    {
+        if (string.IsNullOrEmpty(BucketType))
+        {
+            filteredCategories = availableCategories;
+            return;
+        }
+
+        switch (BucketType.ToLower())
+        {
+            case "needs":
+                // Needs: Only Expense categories (for essentials)
+                filteredCategories = availableCategories
+                    .Where(c => c.CategoryType == "Expense")
+                    .ToList();
+                break;
+
+            case "wants":
+                // Wants: Only Expense categories (for non-essentials)
+                filteredCategories = availableCategories
+                    .Where(c => c.CategoryType == "Expense")
+                    .ToList();
+                break;
+
+            case "savings":
+                // Savings: ONLY Saving type categories
+                // These are: Savings, Investments, Emergency Fund
+                filteredCategories = availableCategories
+                    .Where(c => c.CategoryType == "Saving")
+                    .ToList();
+                break;
+
+            default:
+                filteredCategories = availableCategories;
+                break;
+        }
+    }
+
+    private async Task LoadBudgetRecommendations(Project_PiggyProContext context)
+    {
+        var now = DateTime.Now;
+        var startDate = new DateTime(now.Year, now.Month, 1);
+        var endDate = startDate.AddMonths(1).AddDays(-1);
+
+        // Calculate total income for current month
+        totalMonthlyIncome = await context.Transaction
+            .Where(t => t.AppUserId == currentUserId
+                && t.TransactionType == "Income"
+                && t.TransactionDate >= startDate
+                && t.TransactionDate <= endDate)
+            .SumAsync(t => t.Amount);
+
+        // Calculate recommendations
+        needsRecommended = totalMonthlyIncome * 0.50m;
+        wantsRecommended = totalMonthlyIncome * 0.30m;
+        savingsRecommended = totalMonthlyIncome * 0.20m;
+
+        // Get currently allocated amounts
+        var budgets = await context.Budget
+            .Where(b => b.AppUserId == currentUserId
+                && b.StartDate >= startDate
+                && b.StartDate <= endDate)
+            .ToListAsync();
+
+        needsAllocated = budgets
+            .Where(b => b.BucketType == "Needs")
+            .Sum(b => b.AllocatedAmount);
+
+        wantsAllocated = budgets
+            .Where(b => b.BucketType == "Wants")
+            .Sum(b => b.AllocatedAmount);
+
+        savingsAllocated = budgets
+            .Where(b => b.BucketType == "Savings")
+            .Sum(b => b.AllocatedAmount);
+    }
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            isSaving = true;
+            errorMessage = string.Empty;
+            successMessage = string.Empty;
+
+            // Validate category for bucket type
+            if (!ValidateCategoryForBucket())
+            {
+                errorMessage = $"Invalid category type for {BucketType} bucket. " +
+                              (BucketType?.ToLower() == "savings"
+                                  ? "Please select a Saving category."
+                                  : "Please select an Expense category.");
+                return;
+            }
+
+            using var context = await DbFactory.CreateDbContextAsync();
+
+            // Check if budget already exists for this category in current month
+            var existingBudget = await context.Budget
+                .AnyAsync(b => b.AppUserId == currentUserId
+                    && b.CategoryId == budget.CategoryId
+                    && b.StartDate == budget.StartDate);
+
+            if (existingBudget)
+            {
+                errorMessage = "A budget already exists for this category in the current month.";
+                return;
+            }
+
+            // Set calculated budget amount (for backward compatibility)
+            budget.BudgetAmount = totalMonthlyIncome;
+            budget.AppUserId = currentUserId;
+            budget.DateCreated = DateTime.Now;
+            budget.DateUpdated = DateTime.Now;
+            budget.CreatedBy = currentUserId;
+            budget.UpdatedBy = currentUserId;
+
+            context.Budget.Add(budget);
+            await context.SaveChangesAsync();
+
+            successMessage = "Budget created successfully!";
+
+            // Redirect after a short delay
+            await Task.Delay(1500);
+            Navigation.NavigateTo("/budgets");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error creating budget: {ex.Message}";
+            Console.WriteLine($"Error in HandleSubmit: {ex}");
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private bool ValidateCategoryForBucket()
+    {
+        var selectedCategory = availableCategories
+            .FirstOrDefault(c => c.Id == budget.CategoryId);
+
+        if (selectedCategory == null) return false;
+
+        // Validate Savings bucket only accepts Saving categories
+        if (BucketType?.ToLower() == "savings")
+        {
+            return selectedCategory.CategoryType == "Saving";
+        }
+
+        // Validate Needs/Wants buckets only accept Expense categories
+        if (BucketType?.ToLower() == "needs" || BucketType?.ToLower() == "wants")
+        {
+            return selectedCategory.CategoryType == "Expense";
+        }
+
+        return true;
     }
 }

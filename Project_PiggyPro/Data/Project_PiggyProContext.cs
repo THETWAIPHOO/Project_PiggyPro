@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Project_PiggyPro.Configurations.Entities;
+using Project_PiggyPro.Domain;
 
 
 namespace Project_PiggyPro.Data
@@ -14,6 +15,7 @@ namespace Project_PiggyPro.Data
         public DbSet<Project_PiggyPro.Domain.Goal> Goal { get; set; } = default!;
         public DbSet<Project_PiggyPro.Domain.Notification> Notification { get; set; } = default!;
         public DbSet<Project_PiggyPro.Domain.Transaction> Transaction { get; set; } = default!;
+        public DbSet<GoalContribution> GoalContribution { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -1,51 +1,503 @@
-﻿@page "/budgets/list"
+﻿@page "/budgets"
+@rendermode InteractiveServer
+@layout UserLayout
+@attribute [Authorize]
+
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
-@using Microsoft.AspNetCore.Components.QuickGrid
+@using Microsoft.AspNetCore.Identity
+@using Project_PiggyPro.Components.Layout
 @using Project_PiggyPro.Domain
 @using Project_PiggyPro.Data
+
 @implements IAsyncDisposable
+
 @inject IDbContextFactory<Project_PiggyPro.Data.Project_PiggyProContext> DbFactory
+@inject UserManager<Project_PiggyProUser> UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
 
-<PageTitle>Index</PageTitle>
+<PageTitle>Budget Management - PiggyPro</PageTitle>
 
-<h1>Index</h1>
+<div class="budget-container">
+    <div class="page-header">
+        <div>
+            <h1>Budget Management</h1>
+            <p class="subtitle">Plan your finances with the 50/30/20 rule</p>
+        </div>
+        <div class="header-controls">
+            <div class="month-selector">
+                <label>View Month:</label>
+                <div class="custom-month-picker">
+                    <select @bind="selectedMonth" class="month-select">
+                        <option value="1">January</option>
+                        <option value="2">February</option>
+                        <option value="3">March</option>
+                        <option value="4">April</option>
+                        <option value="5">May</option>
+                        <option value="6">June</option>
+                        <option value="7">July</option>
+                        <option value="8">August</option>
+                        <option value="9">September</option>
+                        <option value="10">October</option>
+                        <option value="11">November</option>
+                        <option value="12">December</option>
+                    </select>
+                    <select @bind="selectedYear" class="year-select">
+                        @for (int year = 2020; year <= DateTime.Now.Year; year++)
+                        {
+                            <option value="@year">@year</option>
+                        }
+                    </select>
+                    <button @onclick="ApplyMonthSelection" class="btn-apply">Go</button>
+                </div>
+            </div>
+            @if (selectedMonth != DateTime.Now.Month || selectedYear != DateTime.Now.Year)
+            {
+                <button @onclick="ResetToCurrentMonth" class="btn-reset">
+                    📅 Current Month
+                </button>
+            }
+        </div>
+    </div>
 
-<p>
-    <a href="budgets/create">Create New</a>
-</p>
+    <!-- Monthly Income Summary Card -->
+    <div class="budget-setup-card">
+        <div class="summary-header">
+            <div>
+                <h2>Budget Overview - @currentPeriodStart.ToString("MMMM yyyy")</h2>
+                <p class="text-muted">
+                    Showing budget and spending for <strong>@currentPeriodStart.ToString("MMMM yyyy")</strong>
+                </p>
+            </div>
+        </div>
 
-<QuickGrid Class="table" Items="context.Budget">
-    <PropertyColumn Property="budget => budget.BudgetAmount" />
-    <PropertyColumn Property="budget => budget.StartDate" />
-    <PropertyColumn Property="budget => budget.EndDate" />
-    <PropertyColumn Property="budget => budget.BudgetPeriod" />
-    <PropertyColumn Property="budget => budget.RuleName" />
-    <PropertyColumn Property="budget => budget.NeedsPercentage" />
-    <PropertyColumn Property="budget => budget.WantsPercentage" />
-    <PropertyColumn Property="budget => budget.SavingsPercentage" />
-    <PropertyColumn Property="budget => budget.BucketType" />
-    <PropertyColumn Property="budget => budget.AllocatedAmount" />
-    <PropertyColumn Property="budget => budget.AppUserId" />
-    <PropertyColumn Property="budget => budget.CategoryId" />
-    <PropertyColumn Property="budget => budget.DateCreated" />
-    <PropertyColumn Property="budget => budget.DateUpdated" />
-    <PropertyColumn Property="budget => budget.CreatedBy" />
-    <PropertyColumn Property="budget => budget.UpdatedBy" />
+        <div class="income-summary-grid">
+            <div class="summary-item">
+                <div class="summary-label">Total Income</div>
+                <div class="summary-value income">@totalMonthlyIncome.ToString("C2")</div>
+                <div class="summary-note">From @incomeTransactionCount transaction@(incomeTransactionCount != 1 ? "s" : "")</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">Total Allocated</div>
+                <div class="summary-value">@totalAllocated.ToString("C2")</div>
+                @{
+                    var allocatedPercentage = totalMonthlyIncome > 0 ? (totalAllocated / totalMonthlyIncome * 100) : 0;
+                }
+                <div class="summary-note">@allocatedPercentage.ToString("N1")% of income</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">Remaining</div>
+                <div class="summary-value @(remainingBudget >= 0 ? "positive" : "negative")">
+                    @remainingBudget.ToString("C2")
+                </div>
+                @{
+                    var remainingPercentage = totalMonthlyIncome > 0 ? Math.Abs(remainingBudget / totalMonthlyIncome * 100) : 0;
+                }
+                <div class="summary-note">@remainingPercentage.ToString("N1")% of income</div>
+            </div>
+        </div>
 
-    <TemplateColumn Context="budget">
-        <a href="@($"budgets/edit?id={budget.Id}")">Edit</a> |
-        <a href="@($"budgets/details?id={budget.Id}")">Details</a> |
-        <a href="@($"budgets/delete?id={budget.Id}")">Delete</a>
-    </TemplateColumn>
-</QuickGrid>
+        @if (totalMonthlyIncome == 0)
+        {
+            <div class="info-message">
+                <strong>ℹ️ No income transactions found for @currentPeriodStart.ToString("MMMM yyyy").</strong>
+                <p>Add income transactions for this month, then your budget will be calculated automatically based on the 50/30/20 rule.</p>
+                @if (selectedMonth == DateTime.Now.Month && selectedYear == DateTime.Now.Year)
+                {
+                    <a href="/transactions/create" class="btn-link">Add Income Transaction</a>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- Category Assignment Section -->
+    <div class="category-assignment-section">
+        <h2>Category Budgets for @currentPeriodStart.ToString("MMMM yyyy")</h2>
+        <p class="text-muted">View and manage your budget allocation following the 50/30/20 rule</p>
+
+        <div class="assignment-grid">
+            <!-- NEEDS COLUMN (50%) -->
+            <div class="assignment-column needs">
+                <div class="column-header">
+                    <div class="column-title">
+                        <span class="icon">🏠</span>
+                        <div class="title-text">
+                            <div class="main-title">Needs (50%)</div>
+                            <div class="allocated-label">Recommended</div>
+                        </div>
+                    </div>
+                    <div class="allocated-amount">@needsRecommended.ToString("C2")</div>
+                </div>
+
+                <div class="allocation-info">
+                    <span>Currently Allocated:</span>
+                    <strong>@needsAllocated.ToString("C2")</strong>
+                </div>
+
+                <div class="categories-list">
+                    @if (needsBudgets.Any())
+                    {
+                        @foreach (var budget in needsBudgets)
+                        {
+                            var spent = GetSpentAmount(budget.CategoryId);
+                            var remaining = budget.AllocatedAmount - spent;
+                            var percentage = budget.AllocatedAmount > 0 ? (double)(spent / budget.AllocatedAmount) * 100 : 0;
+                            var progressClass = percentage > 100 ? "over" : percentage > 75 ? "warning" : "good";
+
+                            <div class="category-card" @onclick="() => NavigateToDetails(budget.Id)" style="cursor: pointer;">
+                                <div class="category-header">
+                                    <div class="category-info">
+                                        <span class="category-name">@(budget.Category?.CategoryName ?? "Unknown")</span>
+                                        <span class="category-type-badge expense">@(budget.Category?.CategoryType ?? "Expense")</span>
+                                    </div>
+                                    @if (selectedMonth == DateTime.Now.Month && selectedYear == DateTime.Now.Year)
+                                    {
+                                        <div class="category-actions" @onclick:stopPropagation="true">
+                                            <a href="@($"budgets/edit?id={budget.Id}")" class="btn-icon" title="Edit">✏️</a>
+                                            <a href="@($"budgets/delete?id={budget.Id}")" class="btn-icon" title="Delete">🗑️</a>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="budget-display">
+                                    <span class="budget-label">Budget:</span>
+                                    <span class="budget-value">@budget.AllocatedAmount.ToString("C2")</span>
+                                    <span class="budget-period">per month</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill @progressClass" style="width: @Math.Min(percentage, 100)%"></div>
+                                </div>
+                                <div class="budget-summary">
+                                    <span class="@(percentage > 100 ? "over-budget" : "")">@spent.ToString("C2") spent</span>
+                                    <span class="@(remaining < 0 ? "over-budget" : "")">@remaining.ToString("C2") @(remaining < 0 ? "over" : "left")</span>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <p>No budget categories in Needs yet</p>
+                        </div>
+                    }
+                </div>
+                @if (selectedMonth == DateTime.Now.Month && selectedYear == DateTime.Now.Year)
+                {
+                    <a href="budgets/create?bucketType=Needs" class="btn-add-category">
+                        ➕ Add Category to Needs
+                    </a>
+                }
+            </div>
+
+            <!-- WANTS COLUMN (30%) -->
+            <div class="assignment-column wants">
+                <div class="column-header">
+                    <div class="column-title">
+                        <span class="icon">🎯</span>
+                        <div class="title-text">
+                            <div class="main-title">Wants (30%)</div>
+                            <div class="allocated-label">Recommended</div>
+                        </div>
+                    </div>
+                    <div class="allocated-amount">@wantsRecommended.ToString("C2")</div>
+                </div>
+
+                <div class="allocation-info">
+                    <span>Currently Allocated:</span>
+                    <strong>@wantsAllocated.ToString("C2")</strong>
+                </div>
+
+                <div class="categories-list">
+                    @if (wantsBudgets.Any())
+                    {
+                        @foreach (var budget in wantsBudgets)
+                        {
+                            var spent = GetSpentAmount(budget.CategoryId);
+                            var remaining = budget.AllocatedAmount - spent;
+                            var percentage = budget.AllocatedAmount > 0 ? (double)(spent / budget.AllocatedAmount) * 100 : 0;
+                            var progressClass = percentage > 100 ? "over" : percentage > 75 ? "warning" : "good";
+
+                            <div class="category-card" @onclick="() => NavigateToDetails(budget.Id)" style="cursor: pointer;">
+                                <div class="category-header">
+                                    <div class="category-info">
+                                        <span class="category-name">@(budget.Category?.CategoryName ?? "Unknown")</span>
+                                        <span class="category-type-badge expense">@(budget.Category?.CategoryType ?? "Expense")</span>
+                                    </div>
+                                    @if (selectedMonth == DateTime.Now.Month && selectedYear == DateTime.Now.Year)
+                                    {
+                                        <div class="category-actions" @onclick:stopPropagation="true">
+                                            <a href="@($"budgets/edit?id={budget.Id}")" class="btn-icon" title="Edit">✏️</a>
+                                            <a href="@($"budgets/delete?id={budget.Id}")" class="btn-icon" title="Delete">🗑️</a>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="budget-display">
+                                    <span class="budget-label">Budget:</span>
+                                    <span class="budget-value">@budget.AllocatedAmount.ToString("C2")</span>
+                                    <span class="budget-period">per month</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill @progressClass" style="width: @Math.Min(percentage, 100)%"></div>
+                                </div>
+                                <div class="budget-summary">
+                                    <span class="@(percentage > 100 ? "over-budget" : "")">@spent.ToString("C2") spent</span>
+                                    <span class="@(remaining < 0 ? "over-budget" : "")">@remaining.ToString("C2") @(remaining < 0 ? "over" : "left")</span>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <p>No budget categories in Wants yet</p>
+                        </div>
+                    }
+                </div>
+                @if (selectedMonth == DateTime.Now.Month && selectedYear == DateTime.Now.Year)
+                {
+                    <a href="budgets/create?bucketType=Wants" class="btn-add-category">
+                        ➕ Add Category to Wants
+                    </a>
+                }
+            </div>
+
+            <!-- SAVINGS COLUMN (20%) -->
+            <div class="assignment-column savings">
+                <div class="column-header">
+                    <div class="column-title">
+                        <span class="icon">💰</span>
+                        <div class="title-text">
+                            <div class="main-title">Savings (20%)</div>
+                            <div class="allocated-label">Recommended</div>
+                        </div>
+                    </div>
+                    <div class="allocated-amount">@savingsRecommended.ToString("C2")</div>
+                </div>
+
+                <div class="allocation-info">
+                    <span>Currently Allocated:</span>
+                    <strong>@savingsAllocated.ToString("C2")</strong>
+                </div>
+
+                <div class="categories-list">
+                    @if (savingsBudgets.Any())
+                    {
+                        @foreach (var budget in savingsBudgets)
+                        {
+                            var spent = GetSpentAmount(budget.CategoryId);
+                            var remaining = budget.AllocatedAmount - spent;
+                            var percentage = budget.AllocatedAmount > 0 ? (double)(spent / budget.AllocatedAmount) * 100 : 0;
+                            var progressClass = percentage > 100 ? "over" : percentage > 75 ? "warning" : "good";
+
+                            <div class="category-card" @onclick="() => NavigateToDetails(budget.Id)" style="cursor: pointer;">
+                                <div class="category-header">
+                                    <div class="category-info">
+                                        <span class="category-name">@(budget.Category?.CategoryName ?? "Unknown")</span>
+                                        <span class="category-type-badge savings">@(budget.Category?.CategoryType ?? "Savings")</span>
+                                    </div>
+                                    @if (selectedMonth == DateTime.Now.Month && selectedYear == DateTime.Now.Year)
+                                    {
+                                        <div class="category-actions" @onclick:stopPropagation="true">
+                                            <a href="@($"budgets/edit?id={budget.Id}")" class="btn-icon" title="Edit">✏️</a>
+                                            <a href="@($"budgets/delete?id={budget.Id}")" class="btn-icon" title="Delete">🗑️</a>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="budget-display">
+                                    <span class="budget-label">Budget:</span>
+                                    <span class="budget-value">@budget.AllocatedAmount.ToString("C2")</span>
+                                    <span class="budget-period">per month</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill @progressClass" style="width: @Math.Min(percentage, 100)%"></div>
+                                </div>
+                                <div class="budget-summary">
+                                    <span class="@(percentage > 100 ? "over-budget" : "")">@spent.ToString("C2") spent</span>
+                                    <span class="@(remaining < 0 ? "over-budget" : "")">@remaining.ToString("C2") @(remaining < 0 ? "over" : "left")</span>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <p>No budget categories in Savings yet</p>
+                        </div>
+                    }
+                </div>
+                @if (selectedMonth == DateTime.Now.Month && selectedYear == DateTime.Now.Year)
+                {
+                    <a href="budgets/create?bucketType=Savings" class="btn-add-category">
+                        ➕ Add Category to Savings
+                    </a>
+                }
+            </div>
+        </div>
+
+        <!-- Budget Totals -->
+        <div class="budget-totals">
+            <div class="total-row">
+                <span>Recommended Budget (50/30/20):</span>
+                <span class="total-amount">@totalMonthlyIncome.ToString("C2")</span>
+            </div>
+            <div class="total-row">
+                <span>Total Allocated:</span>
+                <span class="total-amount">@totalAllocated.ToString("C2")</span>
+            </div>
+            <div class="total-row remaining">
+                <span>Remaining to Allocate:</span>
+                <span class="total-amount @(remainingBudget >= 0 ? "positive-amount" : "negative-amount")">
+                    @remainingBudget.ToString("C2")
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
 
 @code {
     private Project_PiggyProContext context = default!;
+    private string currentUserId = string.Empty;
 
-    protected override void OnInitialized()
+    // Period selection with dropdowns
+    private int selectedMonth = DateTime.Now.Month;
+    private int selectedYear = DateTime.Now.Year;
+    private DateTime currentPeriodStart;
+    private DateTime currentPeriodEnd;
+
+    // Monthly income from transactions
+    private decimal totalMonthlyIncome = 0m;
+    private int incomeTransactionCount = 0;
+
+    // Recommended amounts (50/30/20)
+    private decimal needsRecommended = 0m;
+    private decimal wantsRecommended = 0m;
+    private decimal savingsRecommended = 0m;
+
+    // Actually allocated amounts
+    private decimal needsAllocated = 0m;
+    private decimal wantsAllocated = 0m;
+    private decimal savingsAllocated = 0m;
+
+    // Budget lists
+    private List<Budget> needsBudgets = new();
+    private List<Budget> wantsBudgets = new();
+    private List<Budget> savingsBudgets = new();
+
+    // Transactions for spending calculation
+    private List<Transaction> transactions = new();
+
+    // Totals
+    private decimal totalAllocated = 0m;
+    private decimal remainingBudget = 0m;
+
+    protected override async Task OnInitializedAsync()
     {
         context = DbFactory.CreateDbContext();
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user?.Identity?.IsAuthenticated == true)
+        {
+            var appUser = await UserManager.GetUserAsync(user);
+            if (appUser != null)
+            {
+                currentUserId = appUser.Id;
+                CalculatePeriodDates();
+                await LoadData();
+            }
+        }
     }
 
-    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+    private void CalculatePeriodDates()
+    {
+        currentPeriodStart = new DateTime(selectedYear, selectedMonth, 1);
+        currentPeriodEnd = currentPeriodStart.AddMonths(1).AddDays(-1);
+
+        Console.WriteLine($"Viewing: {currentPeriodStart:MMMM yyyy} ({currentPeriodStart:yyyy-MM-dd} to {currentPeriodEnd:yyyy-MM-dd})");
+    }
+
+    private async Task ApplyMonthSelection()
+    {
+        CalculatePeriodDates();
+        await LoadData();
+        StateHasChanged();
+    }
+
+    private async Task ResetToCurrentMonth()
+    {
+        selectedMonth = DateTime.Now.Month;
+        selectedYear = DateTime.Now.Year;
+        CalculatePeriodDates();
+        await LoadData();
+        StateHasChanged();
+    }
+
+    private async Task LoadData()
+    {
+        // Get income from transactions for the selected month
+        var incomeTransactions = await context.Transaction
+            .Where(t => t.AppUserId == currentUserId
+                && t.TransactionDate >= currentPeriodStart
+                && t.TransactionDate <= currentPeriodEnd
+                && t.TransactionType == "Income")
+            .ToListAsync();
+
+        totalMonthlyIncome = incomeTransactions.Sum(t => t.Amount);
+        incomeTransactionCount = incomeTransactions.Count;
+
+        // Calculate recommended amounts (50/30/20 rule)
+        needsRecommended = Math.Round(totalMonthlyIncome * 0.50m, 2);
+        wantsRecommended = Math.Round(totalMonthlyIncome * 0.30m, 2);
+        savingsRecommended = Math.Round(totalMonthlyIncome * 0.20m, 2);
+
+        // Load existing budgets for the selected month
+        var budgets = await context.Budget
+            .Include(b => b.Category)
+            .Where(b => b.AppUserId == currentUserId
+                && b.StartDate <= currentPeriodEnd
+                && b.EndDate >= currentPeriodStart)
+            .ToListAsync();
+
+        // Separate by bucket type
+        needsBudgets = budgets.Where(b => b.BucketType == "Needs").ToList();
+        wantsBudgets = budgets.Where(b => b.BucketType == "Wants").ToList();
+        savingsBudgets = budgets.Where(b => b.BucketType == "Savings").ToList();
+
+        // Calculate actually allocated amounts
+        needsAllocated = needsBudgets.Sum(b => b.AllocatedAmount);
+        wantsAllocated = wantsBudgets.Sum(b => b.AllocatedAmount);
+        savingsAllocated = savingsBudgets.Sum(b => b.AllocatedAmount);
+
+        totalAllocated = needsAllocated + wantsAllocated + savingsAllocated;
+        remainingBudget = totalMonthlyIncome - totalAllocated;
+
+        // Load transactions for spending calculation
+        transactions = await context.Transaction
+            .Where(t => t.AppUserId == currentUserId
+                && t.TransactionDate >= currentPeriodStart
+                && t.TransactionDate <= currentPeriodEnd
+                && t.TransactionType == "Expense")
+            .ToListAsync();
+
+        Console.WriteLine($"✓ {currentPeriodStart:MMMM yyyy}: Income={totalMonthlyIncome:C2}, Allocated={totalAllocated:C2}, Budgets={budgets.Count}, Transactions={transactions.Count}");
+    }
+
+    private decimal GetSpentAmount(int categoryId)
+    {
+        return transactions
+            .Where(t => t.CategoryId == categoryId)
+            .Sum(t => t.Amount);
+    }
+
+    private void NavigateToDetails(int budgetId)
+    {
+        Navigation.NavigateTo($"/budgets/details/{budgetId}");
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (context != null)
+            await context.DisposeAsync();
+    }
 }

@@ -1,164 +1,291 @@
 ﻿@page "/budgets/edit"
+@rendermode InteractiveServer
+@layout UserLayout
+@attribute [Authorize]
+
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Identity
+@using Project_PiggyPro.Components.Layout
 @using Project_PiggyPro.Domain
+@using Project_PiggyPro.Data
+@using System.ComponentModel.DataAnnotations
+
 @inject IDbContextFactory<Project_PiggyPro.Data.Project_PiggyProContext> DbFactory
-@inject NavigationManager NavigationManager
+@inject UserManager<Project_PiggyProUser> UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
 
-<PageTitle>Edit</PageTitle>
+<PageTitle>Edit Budget - PiggyPro</PageTitle>
 
-<h1>Edit</h1>
-
-<h2>Budget</h2>
-<hr />
-@if (Budget is null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <div class="row">
-        <div class="col-md-4">
-            <EditForm method="post" Model="Budget" OnValidSubmit="UpdateBudget" FormName="edit" Enhance>
-                <DataAnnotationsValidator />
-                <ValidationSummary role="alert"/>
-                <input type="hidden" name="Budget.Id" value="@Budget.Id" />
-                <div class="mb-3">
-                    <label for="budgetamount" class="form-label">BudgetAmount:</label>
-                    <InputNumber id="budgetamount" @bind-Value="Budget.BudgetAmount" class="form-control" />
-                    <ValidationMessage For="() => Budget.BudgetAmount" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="startdate" class="form-label">StartDate:</label>
-                    <InputDate id="startdate" @bind-Value="Budget.StartDate" class="form-control" />
-                    <ValidationMessage For="() => Budget.StartDate" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="enddate" class="form-label">EndDate:</label>
-                    <InputDate id="enddate" @bind-Value="Budget.EndDate" class="form-control" />
-                    <ValidationMessage For="() => Budget.EndDate" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="budgetperiod" class="form-label">BudgetPeriod:</label>
-                    <InputText id="budgetperiod" @bind-Value="Budget.BudgetPeriod" class="form-control" />
-                    <ValidationMessage For="() => Budget.BudgetPeriod" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="rulename" class="form-label">RuleName:</label>
-                    <InputText id="rulename" @bind-Value="Budget.RuleName" class="form-control" />
-                    <ValidationMessage For="() => Budget.RuleName" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="needspercentage" class="form-label">NeedsPercentage:</label>
-                    <InputNumber id="needspercentage" @bind-Value="Budget.NeedsPercentage" class="form-control" />
-                    <ValidationMessage For="() => Budget.NeedsPercentage" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="wantspercentage" class="form-label">WantsPercentage:</label>
-                    <InputNumber id="wantspercentage" @bind-Value="Budget.WantsPercentage" class="form-control" />
-                    <ValidationMessage For="() => Budget.WantsPercentage" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="savingspercentage" class="form-label">SavingsPercentage:</label>
-                    <InputNumber id="savingspercentage" @bind-Value="Budget.SavingsPercentage" class="form-control" />
-                    <ValidationMessage For="() => Budget.SavingsPercentage" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="buckettype" class="form-label">BucketType:</label>
-                    <InputText id="buckettype" @bind-Value="Budget.BucketType" class="form-control" />
-                    <ValidationMessage For="() => Budget.BucketType" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="allocatedamount" class="form-label">AllocatedAmount:</label>
-                    <InputNumber id="allocatedamount" @bind-Value="Budget.AllocatedAmount" class="form-control" />
-                    <ValidationMessage For="() => Budget.AllocatedAmount" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="appuserid" class="form-label">AppUserId:</label>
-                    <InputText id="appuserid" @bind-Value="Budget.AppUserId" class="form-control" />
-                    <ValidationMessage For="() => Budget.AppUserId" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="categoryid" class="form-label">CategoryId:</label>
-                    <InputNumber id="categoryid" @bind-Value="Budget.CategoryId" class="form-control" />
-                    <ValidationMessage For="() => Budget.CategoryId" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="datecreated" class="form-label">DateCreated:</label>
-                    <InputDate id="datecreated" @bind-Value="Budget.DateCreated" class="form-control" />
-                    <ValidationMessage For="() => Budget.DateCreated" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="dateupdated" class="form-label">DateUpdated:</label>
-                    <InputDate id="dateupdated" @bind-Value="Budget.DateUpdated" class="form-control" />
-                    <ValidationMessage For="() => Budget.DateUpdated" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="createdby" class="form-label">CreatedBy:</label>
-                    <InputText id="createdby" @bind-Value="Budget.CreatedBy" class="form-control" />
-                    <ValidationMessage For="() => Budget.CreatedBy" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="updatedby" class="form-label">UpdatedBy:</label>
-                    <InputText id="updatedby" @bind-Value="Budget.UpdatedBy" class="form-control" />
-                    <ValidationMessage For="() => Budget.UpdatedBy" class="text-danger" />
-                </div>
-                <button type="submit" class="btn btn-primary">Save</button>
-            </EditForm>
+<div class="edit-container">
+    <div class="page-header">
+        <div>
+            <h1>Edit Budget</h1>
+            <p class="subtitle">Update your budget allocation</p>
         </div>
     </div>
-}
 
-<div>
-    <a href="/budgets">Back to List</a>
+    @if (isLoading)
+    {
+        <div class="form-card">
+            <p>Loading budget details...</p>
+        </div>
+    }
+    else if (budget == null)
+    {
+        <div class="form-card">
+            <div class="alert alert-danger">
+                Budget not found.
+            </div>
+            <a href="/budgets" class="btn btn-secondary">Back to Budgets</a>
+        </div>
+    }
+    else
+    {
+        <div class="form-card">
+            <EditForm Model="@editModel" OnValidSubmit="HandleValidSubmit" FormName="editBudget">
+                <DataAnnotationsValidator />
+
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger">
+                        @errorMessage
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(successMessage))
+                {
+                    <div class="alert alert-success">
+                        @successMessage
+                    </div>
+                }
+
+                <!-- Budget Type (Read-Only Display) -->
+                <div class="form-group">
+                    <label class="form-label">Budget Type</label>
+                    <div class="readonly-field">
+                        @if (budget.BucketType == "Needs")
+                        {
+                            <span class="budget-type-badge needs">🏠 Needs (50%)</span>
+                        }
+                        else if (budget.BucketType == "Wants")
+                        {
+                            <span class="budget-type-badge wants">🎯 Wants (30%)</span>
+                        }
+                        else
+                        {
+                            <span class="budget-type-badge savings">💰 Savings (20%)</span>
+                        }
+                    </div>
+                    <small class="form-text">Cannot change budget type after creation</small>
+                </div>
+
+                <!-- Category (Read-Only Display) -->
+                <div class="form-group">
+                    <label class="form-label">Category</label>
+                    <div class="readonly-field">
+                        <span class="category-badge">@categoryName</span>
+                    </div>
+                    <small class="form-text">Cannot change category after creation</small>
+                </div>
+
+                <!-- Monthly Budget Amount (Editable) -->
+                <div class="form-group">
+                    <label for="amount" class="form-label">Monthly Budget Amount <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <InputNumber id="amount"
+                                     @bind-Value="editModel.AllocatedAmount"
+                                     class="form-control"
+                                     placeholder="0.00"
+                                     step="0.01" />
+                    </div>
+                    <ValidationMessage For="@(() => editModel.AllocatedAmount)" class="text-danger" />
+                </div>
+
+                <!-- Info Box with Recommendation -->
+                @if (monthlyIncome > 0)
+                {
+                    <div class="info-box">
+                        <strong>💡 Budget Recommendation</strong>
+                        <p>Based on your income of <strong>@monthlyIncome.ToString("C2")</strong>, we recommend:</p>
+                        <div class="recommended-amount">
+                            <strong>@GetRecommendedAmount().ToString("C2")</strong> for @budget.BucketType
+                        </div>
+                    </div>
+                }
+
+                <!-- Current vs New -->
+                @if (editModel.AllocatedAmount != budget.AllocatedAmount)
+                {
+                    <div class="change-summary">
+                        <div class="change-row">
+                            <span>Current Amount:</span>
+                            <strong>@budget.AllocatedAmount.ToString("C2")</strong>
+                        </div>
+                        <div class="change-row new">
+                            <span>New Amount:</span>
+                            <strong>@editModel.AllocatedAmount.ToString("C2")</strong>
+                        </div>
+                        <div class="change-row difference">
+                            <span>Difference:</span>
+                            <strong class="@(editModel.AllocatedAmount > budget.AllocatedAmount ? "increase" : "decrease")">
+                                @((editModel.AllocatedAmount - budget.AllocatedAmount) >= 0 ? "+" : "")@((editModel.AllocatedAmount - budget.AllocatedAmount).ToString("C2"))
+                            </strong>
+                        </div>
+                    </div>
+                }
+
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" disabled="@isSaving">
+                        @if (isSaving)
+                        {
+                            <span>Saving...</span>
+                        }
+                        else
+                        {
+                            <span>💾 Save Changes</span>
+                        }
+                    </button>
+                    <a href="/budgets" class="btn btn-secondary">Cancel</a>
+                </div>
+            </EditForm>
+        </div>
+    }
 </div>
 
 @code {
     [SupplyParameterFromQuery]
-    private int Id { get; set; }
+    public int? Id { get; set; }
 
-    [SupplyParameterFromForm]
-    private Budget? Budget { get; set; }
+    private Project_PiggyProContext context = default!;
+    private string currentUserId = string.Empty;
+    private Budget? budget;
+    private string categoryName = "";
+    private decimal monthlyIncome = 0m;
+
+    private BudgetEditModel editModel = new();
+    private bool isLoading = true;
+    private bool isSaving = false;
+    private string errorMessage = "";
+    private string successMessage = "";
 
     protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        Budget ??= await context.Budget.FirstOrDefaultAsync(m => m.Id == Id);
+        context = DbFactory.CreateDbContext();
 
-        if (Budget is null)
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user?.Identity?.IsAuthenticated == true)
         {
-            NavigationManager.NavigateTo("notfound");
+            var appUser = await UserManager.GetUserAsync(user);
+            if (appUser != null)
+            {
+                currentUserId = appUser.Id;
+                await LoadBudget();
+            }
         }
+
+        isLoading = false;
     }
 
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
-    private async Task UpdateBudget()
+    private async Task LoadBudget()
     {
-        using var context = DbFactory.CreateDbContext();
-        context.Attach(Budget!).State = EntityState.Modified;
+        if (Id == null)
+        {
+            errorMessage = "Budget ID is required.";
+            return;
+        }
+
+        budget = await context.Budget
+            .Include(b => b.Category)
+            .FirstOrDefaultAsync(b => b.Id == Id && b.AppUserId == currentUserId);
+
+        if (budget == null)
+        {
+            errorMessage = "Budget not found or you don't have permission to edit it.";
+            return;
+        }
+
+        // Load category name
+        categoryName = budget.Category?.CategoryName ?? "Unknown";
+
+        // Initialize edit model
+        editModel = new BudgetEditModel
+        {
+            AllocatedAmount = budget.AllocatedAmount
+        };
+
+        // Get current month income
+        var now = DateTime.Now;
+        var startOfMonth = new DateTime(now.Year, now.Month, 1);
+        var endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
+
+        var incomeTransactions = await context.Transaction
+            .Where(t => t.AppUserId == currentUserId
+                && t.TransactionDate >= startOfMonth
+                && t.TransactionDate <= endOfMonth
+                && t.TransactionType == "Income")
+            .ToListAsync();
+
+        monthlyIncome = incomeTransactions.Sum(t => t.Amount);
+    }
+
+    private decimal GetRecommendedAmount()
+    {
+        if (budget == null) return 0;
+
+        return budget.BucketType switch
+        {
+            "Needs" => Math.Round(monthlyIncome * 0.50m, 2),
+            "Wants" => Math.Round(monthlyIncome * 0.30m, 2),
+            "Savings" => Math.Round(monthlyIncome * 0.20m, 2),
+            _ => 0
+        };
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (budget == null) return;
 
         try
         {
-            await context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!BudgetExists(Budget!.Id))
-            {
-                NavigationManager.NavigateTo("notfound");
-            }
-            else
-            {
-                throw;
-            }
-        }
+            isSaving = true;
+            errorMessage = "";
 
-        NavigationManager.NavigateTo("/budgets");
+            // Update only the allocated amount
+            budget.AllocatedAmount = editModel.AllocatedAmount;
+            budget.DateUpdated = DateTime.Now;
+            budget.UpdatedBy = currentUserId;
+
+            await context.SaveChangesAsync();
+
+            successMessage = "✓ Budget updated successfully!";
+
+            // Redirect back to budgets page after 1 second
+            await Task.Delay(1000);
+            Navigation.NavigateTo("/budgets");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error saving budget: {ex.Message}";
+            isSaving = false;
+        }
     }
 
-    private bool BudgetExists(int id)
+    public async ValueTask DisposeAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        return context.Budget.Any(e => e.Id == id);
+        if (context != null)
+            await context.DisposeAsync();
+    }
+
+    public class BudgetEditModel
+    {
+        [Required(ErrorMessage = "Budget amount is required")]
+        [Range(0.01, double.MaxValue, ErrorMessage = "Budget amount must be greater than 0")]
+        public decimal AllocatedAmount { get; set; }
     }
 }

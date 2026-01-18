@@ -1,0 +1,450 @@
+﻿.details-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem 2rem;
+}
+
+/* Loading State */
+.loading-state {
+    text-align: center;
+    padding: 3rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    color: #666;
+    font-size: 1.1rem;
+}
+
+/* Page Header */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    gap: 2rem;
+}
+
+.header-left h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0 0 0.75rem 0;
+}
+
+.budget-meta {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.bucket-badge {
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+    .bucket-badge.needs {
+        background: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    .bucket-badge.wants {
+        background: #e3f2fd;
+        color: #1565c0;
+    }
+
+    .bucket-badge.savings {
+        background: #fff3e0;
+        color: #e65100;
+    }
+
+.period-info {
+    color: #666;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn-edit,
+.btn-back {
+    padding: 0.75rem 1.5rem;
+    border: 2px solid;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s;
+    white-space: nowrap;
+}
+
+.btn-edit {
+    background: #e91e63;
+    border-color: #e91e63;
+    color: white;
+}
+
+    .btn-edit:hover {
+        background: #c2185b;
+        border-color: #c2185b;
+    }
+
+.btn-back {
+    background: white;
+    border-color: #e0e0e0;
+    color: #666;
+}
+
+    .btn-back:hover {
+        border-color: #bdbdbd;
+        background: #f5f5f5;
+    }
+
+/* Summary Grid */
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.summary-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    border-left: 4px solid;
+}
+
+    .summary-card.allocated {
+        border-left-color: #2196f3;
+    }
+
+    .summary-card.spent {
+        border-left-color: #ff9800;
+    }
+
+    .summary-card.remaining {
+        border-left-color: #4caf50;
+    }
+
+.summary-icon {
+    font-size: 3rem;
+    line-height: 1;
+}
+
+.summary-content {
+    flex: 1;
+}
+
+.summary-label {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.summary-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 0.25rem;
+}
+
+    .summary-value.positive {
+        color: #4caf50;
+    }
+
+    .summary-value.negative {
+        color: #f44336;
+    }
+
+.summary-note {
+    font-size: 0.85rem;
+    color: #999;
+}
+
+/* Progress Card */
+.progress-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.progress-label {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.progress-percentage {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #e91e63;
+}
+
+.progress-bar-large {
+    width: 100%;
+    height: 30px;
+    background: #e0e0e0;
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.progress-fill-large {
+    height: 100%;
+    transition: width 0.5s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+}
+
+    .progress-fill-large.good {
+        background: linear-gradient(90deg, #4caf50, #66bb6a);
+    }
+
+    .progress-fill-large.warning {
+        background: linear-gradient(90deg, #ff9800, #ffb74d);
+    }
+
+    .progress-fill-large.over {
+        background: linear-gradient(90deg, #f44336, #ef5350);
+    }
+
+/* Transactions Card */
+.transactions-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.transactions-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+    .transactions-header h2 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin: 0;
+    }
+
+.transaction-count {
+    font-size: 0.9rem;
+    color: #666;
+    font-weight: 500;
+}
+
+.transactions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.transaction-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: #f9f9f9;
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+
+    .transaction-item:hover {
+        background: #f0f0f0;
+    }
+
+.transaction-left {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex: 1;
+}
+
+.transaction-icon {
+    font-size: 2rem;
+    line-height: 1;
+}
+
+.transaction-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.transaction-description {
+    font-weight: 600;
+    color: #1a1a1a;
+    font-size: 1rem;
+}
+
+.transaction-date {
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.transaction-amount {
+    font-size: 1.25rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+    .transaction-amount.expense {
+        color: #f44336;
+    }
+
+    .transaction-amount.income {
+        color: #4caf50;
+    }
+
+.view-all-note {
+    text-align: center;
+    padding: 1rem;
+    color: #666;
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
+.empty-transactions {
+    text-align: center;
+    padding: 3rem 2rem;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.empty-transactions p {
+    color: #999;
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+/* Error Card */
+.error-card {
+    background: white;
+    border-radius: 12px;
+    padding: 3rem 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.error-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.error-card h2 {
+    font-size: 1.5rem;
+    color: #1a1a1a;
+    margin-bottom: 0.5rem;
+}
+
+.error-card p {
+    color: #666;
+    margin-bottom: 2rem;
+    font-size: 1.1rem;
+}
+
+.btn-primary {
+    background: #e91e63;
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 1rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: background 0.3s;
+}
+
+    .btn-primary:hover {
+        background: #c2185b;
+    }
+
+/* Responsive Design */
+@media (max-width: 992px) {
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .header-left h1 {
+        font-size: 1.5rem;
+    }
+
+    .header-actions {
+        width: 100%;
+    }
+
+        .header-actions a {
+            flex: 1;
+            justify-content: center;
+        }
+
+    .summary-value {
+        font-size: 1.5rem;
+    }
+
+    .summary-icon {
+        font-size: 2.5rem;
+    }
+
+    .progress-percentage {
+        font-size: 1.25rem;
+    }
+
+    .progress-bar-large {
+        height: 20px;
+    }
+
+    .transaction-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .transaction-amount {
+        align-self: flex-end;
+    }
+}

@@ -33,6 +33,20 @@
     }
     else if (stats != null)
     {
+        <!-- Savings Budget Info Card - MOVED FROM DETAILS PAGE -->
+        <div class="savings-info-card">
+            <div class="savings-info-header">
+                <span class="savings-icon">💰</span>
+                <div class="savings-info-text">
+                    <div class="savings-label">Available Savings Budget</div>
+                    <div class="savings-amount">@availableSavings.ToString("C2")</div>
+                </div>
+            </div>
+            <div class="savings-details">
+                <span class="savings-detail">Total in all goals: @totalInGoals.ToString("C2")</span>
+            </div>
+        </div>
+
         <!-- Stats Cards -->
         <div class="stats-grid">
             <div class="stat-card total">
@@ -175,6 +189,10 @@
     private bool isLoading = true;
     private string errorMessage = string.Empty;
 
+    // ADDED: Variables for savings budget
+    private decimal availableSavings = 0;
+    private decimal totalInGoals = 0;
+
     protected override async Task OnInitializedAsync()
     {
         try
@@ -189,6 +207,7 @@
                 {
                     currentUserId = appUser.Id;
                     await LoadGoals();
+                    await LoadSavingsInfo(); // ADDED: Load savings info
                 }
             }
         }
@@ -214,6 +233,20 @@
         {
             errorMessage = $"Failed to load goals: {ex.Message}";
             Console.WriteLine($"Error loading goals: {ex}");
+        }
+    }
+
+    // ADDED: Method to load savings information
+    private async Task LoadSavingsInfo()
+    {
+        try
+        {
+            availableSavings = await GoalService.GetAvailableSavingsBudgetAsync(currentUserId);
+            totalInGoals = await GoalService.GetTotalInGoalsAsync(currentUserId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading savings info: {ex}");
         }
     }
 }

@@ -56,15 +56,19 @@
 
 <!-- Charts Section -->
 <div class="charts-grid">
+    <!-- Spending Trend Chart -->
     <div class="chart-card">
-        <div class="chart-title">Spending Overview</div>
+        <h2 class="chart-title">Spending Trend Over Time</h2>
+        <p class="chart-subtitle">Last 30 Days</p>
         <div class="chart-container">
-            <canvas id="spendingChart"></canvas>
+            <canvas id="spendingTrendChart"></canvas>
         </div>
     </div>
 
+    <!-- Category Chart -->
     <div class="chart-card">
-        <div class="chart-title">Top Categories</div>
+        <h2 class="chart-title">Top Categories</h2>
+        <p class="chart-subtitle">This Month</p>
         <div class="chart-container">
             <canvas id="categoryChart"></canvas>
         </div>
@@ -134,7 +138,7 @@
     private List<DailySpending> dailySpendingData = new();
     private List<CategoryExpense> categoryExpenseData = new();
 
-    private bool dataLoaded = false;
+    private bool isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -154,13 +158,12 @@
             }
 
             await LoadDashboardData();
-            dataLoaded = true;
         }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && dataLoaded)
+        if (!isLoading)
         {
             await RenderCharts();
         }
@@ -168,137 +171,173 @@
 
     private async Task LoadDashboardData()
     {
-        var startOfMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
-        var endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
+        isLoading = true;
+        StateHasChanged();
 
-        totalIncome = await DbContext.Transaction
-            .Where(t => t.CreatedBy == currentUserId
-                && t.DateCreated >= startOfMonth
-                && t.DateCreated <= endOfMonth)
-            .Where(t => DbContext.Category.Any(c => c.Id == t.CategoryId && c.CategoryType == "Income"))
-            .SumAsync(t => (decimal?)t.Amount) ?? 0;
-
-        totalExpenses = await DbContext.Transaction
-            .Where(t => t.CreatedBy == currentUserId
-                && t.DateCreated >= startOfMonth
-                && t.DateCreated <= endOfMonth)
-            .Where(t => DbContext.Category.Any(c => c.Id == t.CategoryId && c.CategoryType == "Expense"))
-            .SumAsync(t => (decimal?)t.Amount) ?? 0;
-
-        netBalance = totalIncome - totalExpenses;
-
-        var totalBudget = await DbContext.Budget
-            .Where(b => b.CreatedBy == currentUserId)
-            .SumAsync(b => (decimal?)b.BudgetAmount) ?? 0;
-
-        if (totalBudget > 0)
+        try
         {
-            budgetUsedPercentage = (int)((totalExpenses / totalBudget) * 100);
-        }
+            var startOfMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+            var endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
 
-        var lastMonthStart = startOfMonth.AddMonths(-1);
-        var lastMonthEnd = startOfMonth.AddDays(-1);
+            // Load summary data
+            totalIncome = await DbContext.Transaction
+                .Where(t => t.CreatedBy == currentUserId
+                    && t.DateCreated >= startOfMonth
+                    && t.DateCreated <= endOfMonth)
+                .Where(t => DbContext.Category.Any(c => c.Id == t.CategoryId && c.CategoryType == "Income"))
+                .SumAsync(t => (decimal?)t.Amount) ?? 0;
 
-        var lastMonthIncome = await DbContext.Transaction
-            .Where(t => t.CreatedBy == currentUserId
-                && t.DateCreated >= lastMonthStart
-                && t.DateCreated <= lastMonthEnd)
-            .Where(t => DbContext.Category.Any(c => c.Id == t.CategoryId && c.CategoryType == "Income"))
-            .SumAsync(t => (decimal?)t.Amount) ?? 0;
+            totalExpenses = await DbContext.Transaction
+                .Where(t => t.CreatedBy == currentUserId
+                    && t.DateCreated >= startOfMonth
+                    && t.DateCreated <= endOfMonth)
+                .Where(t => DbContext.Category.Any(c => c.Id == t.CategoryId && c.CategoryType == "Expense"))
+                .SumAsync(t => (decimal?)t.Amount) ?? 0;
 
-        var lastMonthExpenses = await DbContext.Transaction
-            .Where(t => t.CreatedBy == currentUserId
-                && t.DateCreated >= lastMonthStart
-                && t.DateCreated <= lastMonthEnd)
-            .Where(t => DbContext.Category.Any(c => c.Id == t.CategoryId && c.CategoryType == "Expense"))
-            .SumAsync(t => (decimal?)t.Amount) ?? 0;
+            netBalance = totalIncome - totalExpenses;
 
-        var lastMonthBalance = lastMonthIncome - lastMonthExpenses;
+            var totalBudget = await DbContext.Budget
+                .Where(b => b.CreatedBy == currentUserId)
+                .SumAsync(b => (decimal?)b.BudgetAmount) ?? 0;
 
-        if (lastMonthBalance != 0)
-        {
-            percentageChange = ((netBalance - lastMonthBalance) / Math.Abs(lastMonthBalance)) * 100;
-        }
-
-        var transactions = await DbContext.Transaction
-            .Where(t => t.CreatedBy == currentUserId)
-            .OrderByDescending(t => t.DateCreated)
-            .Take(5)
-            .ToListAsync();
-
-        recentTransactions.Clear();
-
-        foreach (var t in transactions)
-        {
-            var category = await DbContext.Category.FindAsync(t.CategoryId);
-            recentTransactions.Add(new TransactionViewModel
+            if (totalBudget > 0)
             {
-                Date = t.DateCreated,
-                Description = t.Description ?? "",
-                CategoryName = category?.CategoryName ?? "Unknown",
-                Amount = t.Amount,
-                Type = category?.CategoryType ?? "Expense"
-            });
-        }
+                budgetUsedPercentage = (int)((totalExpenses / totalBudget) * 100);
+            }
 
-        // Load chart data
-        await LoadChartData(startOfMonth, endOfMonth);
+            var lastMonthStart = startOfMonth.AddMonths(-1);
+            var lastMonthEnd = startOfMonth.AddDays(-1);
+
+            var lastMonthIncome = await DbContext.Transaction
+                .Where(t => t.CreatedBy == currentUserId
+                    && t.DateCreated >= lastMonthStart
+                    && t.DateCreated <= lastMonthEnd)
+                .Where(t => DbContext.Category.Any(c => c.Id == t.CategoryId && c.CategoryType == "Income"))
+                .SumAsync(t => (decimal?)t.Amount) ?? 0;
+
+            var lastMonthExpenses = await DbContext.Transaction
+                .Where(t => t.CreatedBy == currentUserId
+                    && t.DateCreated >= lastMonthStart
+                    && t.DateCreated <= lastMonthEnd)
+                .Where(t => DbContext.Category.Any(c => c.Id == t.CategoryId && c.CategoryType == "Expense"))
+                .SumAsync(t => (decimal?)t.Amount) ?? 0;
+
+            var lastMonthBalance = lastMonthIncome - lastMonthExpenses;
+
+            if (lastMonthBalance != 0)
+            {
+                percentageChange = ((netBalance - lastMonthBalance) / Math.Abs(lastMonthBalance)) * 100;
+            }
+
+            // Load transactions
+            var transactions = await DbContext.Transaction
+                .Where(t => t.CreatedBy == currentUserId)
+                .OrderByDescending(t => t.DateCreated)
+                .Take(5)
+                .ToListAsync();
+
+            recentTransactions.Clear();
+            foreach (var t in transactions)
+            {
+                var category = await DbContext.Category.FindAsync(t.CategoryId);
+                recentTransactions.Add(new TransactionViewModel
+                {
+                    Date = t.DateCreated,
+                    Description = t.Description ?? "",
+                    CategoryName = category?.CategoryName ?? "Unknown",
+                    Amount = t.Amount,
+                    Type = category?.CategoryType ?? "Expense"
+                });
+            }
+
+            // Load chart data
+            await LoadChartData(startOfMonth, endOfMonth);
+
+            Console.WriteLine($"✓ Data loaded - Income: {totalIncome}, Expenses: {totalExpenses}");
+            Console.WriteLine($"✓ Chart data - Days: {dailySpendingData.Count}, Categories: {categoryExpenseData.Count}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"✗ Error loading data: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
     }
 
     private async Task LoadChartData(DateTime startOfMonth, DateTime endOfMonth)
     {
-        // Daily spending for line chart (last 30 days)
-        var last30Days = DateTime.Now.AddDays(-30);
-
-        var expenseTransactions = await DbContext.Transaction
-            .Where(t => t.CreatedBy == currentUserId
-                && t.DateCreated >= last30Days)
-            .Where(t => DbContext.Category.Any(c => c.Id == t.CategoryId && c.CategoryType == "Expense"))
-            .OrderBy(t => t.DateCreated)
-            .ToListAsync();
-
-        dailySpendingData = expenseTransactions
-            .GroupBy(t => t.DateCreated.Date)
-            .Select(g => new DailySpending
-            {
-                Date = g.Key,
-                Amount = g.Sum(t => t.Amount)
-            })
-            .OrderBy(d => d.Date)
-            .ToList();
-
-        // Category expenses for pie chart (this month)
-        var categoryExpenses = await DbContext.Transaction
-            .Where(t => t.CreatedBy == currentUserId
-                && t.DateCreated >= startOfMonth
-                && t.DateCreated <= endOfMonth)
-            .Where(t => DbContext.Category.Any(c => c.Id == t.CategoryId && c.CategoryType == "Expense"))
-            .ToListAsync();
-
-        var groupedByCategory = categoryExpenses
-            .GroupBy(t => t.CategoryId)
-            .Select(g => new
-            {
-                CategoryId = g.Key,
-                Total = g.Sum(t => t.Amount)
-            })
-            .OrderByDescending(c => c.Total)
-            .Take(5)
-            .ToList();
-
-        categoryExpenseData.Clear();
-        foreach (var item in groupedByCategory)
+        try
         {
-            var category = await DbContext.Category.FindAsync(item.CategoryId);
-            categoryExpenseData.Add(new CategoryExpense
-            {
-                CategoryName = category?.CategoryName ?? "Unknown",
-                Amount = item.Total
-            });
-        }
+            // Daily spending for line chart (last 30 days)
+            var last30Days = DateTime.Now.AddDays(-30).Date;
+            var today = DateTime.Now.Date;
 
-        Console.WriteLine($"Loaded {dailySpendingData.Count} days of spending data");
-        Console.WriteLine($"Loaded {categoryExpenseData.Count} categories");
+            var expenseTransactions = await DbContext.Transaction
+                .Where(t => t.CreatedBy == currentUserId
+                    && t.DateCreated >= last30Days)
+                .Where(t => DbContext.Category.Any(c => c.Id == t.CategoryId && c.CategoryType == "Expense"))
+                .ToListAsync();
+
+            // Group existing transactions by date
+            var groupedExpenses = expenseTransactions
+                .GroupBy(t => t.DateCreated.Date)
+                .ToDictionary(g => g.Key, g => g.Sum(t => t.Amount));
+
+            // Create a complete list with ALL days in the range
+            dailySpendingData = new List<DailySpending>();
+
+            for (var date = last30Days; date <= today; date = date.AddDays(1))
+            {
+                dailySpendingData.Add(new DailySpending
+                {
+                    Date = date,
+                    Amount = groupedExpenses.ContainsKey(date) ? groupedExpenses[date] : 0m
+                });
+            }
+
+            Console.WriteLine($"✓ Chart data loaded: {dailySpendingData.Count} days");
+
+            // Category expenses for pie chart (this month)
+            var categoryExpenses = await DbContext.Transaction
+                .Where(t => t.CreatedBy == currentUserId
+                    && t.DateCreated >= startOfMonth
+                    && t.DateCreated <= endOfMonth)
+                .Where(t => DbContext.Category.Any(c => c.Id == t.CategoryId && c.CategoryType == "Expense"))
+                .ToListAsync();
+
+            var groupedByCategory = categoryExpenses
+                .GroupBy(t => t.CategoryId)
+                .Select(g => new
+                {
+                    CategoryId = g.Key,
+                    Total = g.Sum(t => t.Amount)
+                })
+                .OrderByDescending(x => x.Total)
+                .Take(5)
+                .ToList();
+
+            categoryExpenseData = new List<CategoryExpense>();
+            foreach (var item in groupedByCategory)
+            {
+                var category = await DbContext.Category.FindAsync(item.CategoryId);
+                if (category != null)
+                {
+                    categoryExpenseData.Add(new CategoryExpense
+                    {
+                        CategoryName = category.CategoryName ?? "Unknown",
+                        Amount = item.Total
+                    });
+                }
+            }
+
+            Console.WriteLine($"✓ Category data loaded: {categoryExpenseData.Count} categories");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"✗ Error loading chart data: {ex.Message}");
+        }
     }
 
     private async Task RenderCharts()
@@ -307,59 +346,69 @@
         {
             Console.WriteLine("=== ATTEMPTING TO RENDER DASHBOARD CHARTS ===");
 
-            // Wait for canvases to be in DOM
             await Task.Delay(500);
 
-            // Check if canvases exist
+            // Check if CORRECT canvases exist
             var canvas1Exists = await JSRuntime.InvokeAsync<bool>("eval",
-                "document.getElementById('spendingChart') !== null");
+                "document.getElementById('spendingTrendChart') !== null");
             var canvas2Exists = await JSRuntime.InvokeAsync<bool>("eval",
                 "document.getElementById('categoryChart') !== null");
 
-            Console.WriteLine($"Spending Chart Canvas: {canvas1Exists}");
-            Console.WriteLine($"Category Chart Canvas: {canvas2Exists}");
+            Console.WriteLine($"Canvas (Spending Trend): {canvas1Exists}");
+            Console.WriteLine($"Canvas (Category Chart): {canvas2Exists}");
 
             if (!canvas1Exists || !canvas2Exists)
             {
-                Console.WriteLine("❌ Canvases not found - aborting");
+                Console.WriteLine("❌ Not all canvases found - aborting");
                 return;
             }
 
-            // Prepare spending chart data
-            var spendingLabels = dailySpendingData.Select(d => d.Date.ToString("MMM dd")).ToArray();
-            var spendingValues = dailySpendingData.Select(d => (double)d.Amount).ToArray();
+            // Check if we have data
+            if (dailySpendingData.Count == 0)
+            {
+                Console.WriteLine("⚠️ No spending data to display");
+            }
+            else
+            {
+                // Render Line Chart
+                var labels = dailySpendingData.Select(d => d.Date.ToString("MMM dd")).ToArray();
+                var data = dailySpendingData.Select(d => (double)d.Amount).ToArray();
 
-            Console.WriteLine($"Spending data: {spendingValues.Length} points");
+                Console.WriteLine($"Rendering line chart with {data.Length} data points");
+                await JSRuntime.InvokeVoidAsync("chartHelpers.createLineChart",
+                    "spendingTrendChart",
+                    labels,
+                    data,
+                    "Daily Spending");
+                Console.WriteLine("✓ Line chart rendered");
+            }
 
-            // Prepare category chart data
-            var categoryLabels = categoryExpenseData.Select(c => c.CategoryName).ToArray();
-            var categoryValues = categoryExpenseData.Select(c => (double)c.Amount).ToArray();
+            if (categoryExpenseData.Count == 0)
+            {
+                Console.WriteLine("⚠️ No category data to display");
+            }
+            else
+            {
+                // Render Pie Chart
+                var categoryLabels = categoryExpenseData.Select(c => c.CategoryName).ToArray();
+                var categoryValues = categoryExpenseData.Select(c => (double)c.Amount).ToArray();
+                var colors = new[] { "#e91e63", "#2196f3", "#4caf50", "#ff9800", "#9c27b0" };
 
-            Console.WriteLine($"Category data: {categoryValues.Length} categories");
+                Console.WriteLine($"Rendering pie chart with {categoryValues.Length} categories");
+                await JSRuntime.InvokeVoidAsync("chartHelpers.createPieChart",
+                    "categoryChart",
+                    categoryLabels,
+                    categoryValues,
+                    colors);
+                Console.WriteLine("✓ Pie chart rendered");
+            }
 
-            // Render Line Chart
-            Console.WriteLine("Rendering spending line chart...");
-            await JSRuntime.InvokeVoidAsync("chartHelpers.createLineChart",
-                "spendingChart",
-                spendingLabels,
-                spendingValues,
-                "Daily Spending");
-
-            // Render Pie Chart
-            Console.WriteLine("Rendering category pie chart...");
-            var colors = new[] { "#e91e63", "#2196f3", "#4caf50", "#ff9800", "#9c27b0" };
-            await JSRuntime.InvokeVoidAsync("chartHelpers.createPieChart",
-                "categoryChart",
-                categoryLabels,
-                categoryValues,
-                colors);
-
-            Console.WriteLine("✅ ALL DASHBOARD CHARTS RENDERED SUCCESSFULLY");
+            Console.WriteLine("✅ ALL CHARTS RENDERED SUCCESSFULLY");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Error rendering dashboard charts: {ex.Message}");
-            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+            Console.WriteLine($"❌ Error rendering charts: {ex.Message}");
+            Console.WriteLine($"Stack: {ex.StackTrace}");
         }
     }
 

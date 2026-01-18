@@ -226,28 +226,32 @@ namespace Project_PiggyPro.Services
         public async Task<decimal> GetAvailableSavingsBudgetAsync(string userId)
         {
             using var context = _contextFactory.CreateDbContext();
-
             // Get current month's savings budgets
             var now = DateTime.Now;
             var startOfMonth = new DateTime(now.Year, now.Month, 1);
             var endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
 
-            var savingsBudgets = await context.Budget
+            // Get ONLY the "Savings Goal" category budget in the Savings bucket
+            var savingsGoalBudget = await context.Budget
                 .Where(b => b.AppUserId == userId &&
                            b.BucketType == "Savings" &&
+                           b.Category.CategoryName == "Savings Goal" &&  // Filter for specific category
                            b.StartDate <= now &&
                            b.EndDate >= now)
                 .Include(b => b.Category)
-                .ToListAsync();
+                .FirstOrDefaultAsync();
 
-            decimal totalSavingsBudget = savingsBudgets.Sum(b => b.AllocatedAmount);
+            if (savingsGoalBudget == null)
+            {
+                return 0; // No "Savings Goal" budget found
+            }
 
-            // Get all savings expenses (including goal allocations)
-            var savingsCategories = savingsBudgets.Select(b => b.CategoryId).ToList();
+            decimal totalSavingsBudget = savingsGoalBudget.AllocatedAmount;
 
+            // Get expenses only from the "Savings Goal" category
             decimal totalSpent = await context.Transaction
                 .Where(t => t.AppUserId == userId &&
-                           savingsCategories.Contains(t.CategoryId) &&
+                           t.CategoryId == savingsGoalBudget.CategoryId &&
                            t.TransactionType == "Expense" &&
                            t.TransactionDate >= startOfMonth &&
                            t.TransactionDate <= endOfMonth)
@@ -277,4 +281,7 @@ namespace Project_PiggyPro.Services
         public decimal TotalSavedAmount { get; set; }
         public decimal OverallProgress { get; set; }
     }
+
+
 }
+

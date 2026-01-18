@@ -23,9 +23,9 @@ namespace Project_PiggyPro.Configurations.Entities
                 new Category { Id = 9, CategoryName = "Hobbies", CategoryType = "Expense", IsSystemCategory = true, DateCreated = DateTime.Now, DateUpdated = DateTime.Now, CreatedBy = "System", UpdatedBy = "System" },
 
         // Expense Categories (Savings - 20%)
-                new Category { Id = 10, CategoryName = "Savings", CategoryType = "Expense", IsSystemCategory = true, DateCreated = DateTime.Now, DateUpdated = DateTime.Now, CreatedBy = "System", UpdatedBy = "System" },
-                new Category { Id = 11, CategoryName = "Investments", CategoryType = "Expense", IsSystemCategory = true, DateCreated = DateTime.Now, DateUpdated = DateTime.Now, CreatedBy = "System", UpdatedBy = "System" },
-                new Category { Id = 12, CategoryName = "Emergency Fund", CategoryType = "Expense", IsSystemCategory = true, DateCreated = DateTime.Now, DateUpdated = DateTime.Now, CreatedBy = "System", UpdatedBy = "System" },
+                new Category { Id = 10, CategoryName = "Savings", CategoryType = "Savings", IsSystemCategory = true, DateCreated = DateTime.Now, DateUpdated = DateTime.Now, CreatedBy = "System", UpdatedBy = "System" },
+                new Category { Id = 11, CategoryName = "Investments", CategoryType = "Savings", IsSystemCategory = true, DateCreated = DateTime.Now, DateUpdated = DateTime.Now, CreatedBy = "System", UpdatedBy = "System" },
+                new Category { Id = 12, CategoryName = "Emergency Fund", CategoryType = "Savings", IsSystemCategory = true, DateCreated = DateTime.Now, DateUpdated = DateTime.Now, CreatedBy = "System", UpdatedBy = "System" },
 
         // Other
                 new Category { Id = 13, CategoryName = "Other Expenses", CategoryType = "Expense", IsSystemCategory = true, DateCreated = DateTime.Now, DateUpdated = DateTime.Now, CreatedBy = "System", UpdatedBy = "System" },

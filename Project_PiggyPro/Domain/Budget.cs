@@ -4,7 +4,7 @@ namespace Project_PiggyPro.Domain
 {
     public class Budget : BaseDomainModel
     {
-        public double BudgetAmount { get; set; }
+        public decimal BudgetAmount { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public string? BudgetPeriod { get; set; }

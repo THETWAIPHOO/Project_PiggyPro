@@ -1,4 +1,4 @@
-﻿@page "/budgets"
+﻿@page "/budgets/home"
 @layout UserLayout
 @attribute [Authorize]
 @rendermode InteractiveServer
@@ -451,7 +451,7 @@
 
             var budget = new Budget
             {
-                BudgetAmount = (double)monthlyIncome,
+                BudgetAmount = monthlyIncome,
                 AllocatedAmount = newBudgetAmount,
                 BucketType = currentBucketType,
                 StartDate = startOfMonth,
