@@ -20,29 +20,11 @@
             <NavLink href="contact" class="nav-btn">
                 Contact
             </NavLink>
-
-            <AuthorizeView>
-                <Authorized>
-                    <NavLink href="/UserDashboard" class="nav-btn">
-                        Dashboard
-                    </NavLink>
-                    <NavLink href="Account/Manage" class="nav-btn">
-                        <span class="bi bi-person-fill"></span> @context.User.Identity?.Name
-                    </NavLink>
-                    <form action="Account/Logout" method="post" style="display: inline;">
-                        <AntiforgeryToken />
-                        <input type="hidden" name="ReturnUrl" value="@currentUrl" />
-                        <button type="submit" class="logout-btn">
-                            Logout
-                        </button>
-                    </form>
-                </Authorized>
                 <NotAuthorized>
                     <NavLink href="Account/Login" class="nav-btn login-btn">
                         Login
                     </NavLink>
                 </NotAuthorized>
-            </AuthorizeView>
         </div>
     </div>
 </nav>

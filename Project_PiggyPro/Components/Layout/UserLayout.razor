@@ -1,9 +1,8 @@
-﻿@* Copilot: Apply PiggyPro global fintech design. UI only. No logic changes. *@
-
-@inherits LayoutComponentBase
+﻿@inherits LayoutComponentBase
 @using Microsoft.AspNetCore.Components.Authorization
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager Navigation
+@implements IDisposable
 
 <CascadingAuthenticationState>
     <div class="user-dashboard-page">
@@ -54,7 +53,14 @@
 
     protected override async Task OnInitializedAsync()
     {
+        AuthenticationStateProvider.AuthenticationStateChanged += OnAuthStateChanged;
         await LoadUserNameFromClaims();
+    }
+
+    private async void OnAuthStateChanged(Task<AuthenticationState> task)
+    {
+        await LoadUserNameFromClaims();
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task LoadUserNameFromClaims()
@@ -64,19 +70,21 @@
 
         if (user?.Identity?.IsAuthenticated == true)
         {
-            // Read FirstName and LastName from claims
             var firstName = user.FindFirst("FirstName")?.Value;
             var lastName = user.FindFirst("LastName")?.Value;
 
-            if (!string.IsNullOrWhiteSpace(firstName))
-            {
-                fullName = $"{firstName} {lastName}".Trim();
-            }
-            else
-            {
-                // Fallback to email
-                fullName = user.Identity?.Name ?? "User";
-            }
+            fullName = !string.IsNullOrWhiteSpace(firstName)
+                ? $"{firstName} {lastName}".Trim()
+                : (user.Identity?.Name ?? "User");
         }
+        else
+        {
+            fullName = string.Empty;
+        }
+    }
+
+    public void Dispose()
+    {
+        AuthenticationStateProvider.AuthenticationStateChanged -= OnAuthStateChanged;
     }
 }

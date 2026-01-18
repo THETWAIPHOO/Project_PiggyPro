@@ -1,6 +1,6 @@
-﻿@page "/Account/Manage"
+﻿@page "/Account/AdminManage"
 @rendermode InteractiveServer
-@layout UserLayout
+@layout AdminLayout
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Identity
 @using Project_PiggyPro.Data
@@ -131,47 +131,7 @@
             </EditForm>
         </div>
 
-        <!-- Account Statistics Card -->
-        <div class="profile-card">
-            <div class="card-header">
-                <h2>Account Statistics</h2>
-                <p>Your activity summary</p>
-            </div>
-
-            <div class="stats-list">
-                <div class="stat-item">
-                    <div class="stat-icon">📅</div>
-                    <div class="stat-info">
-                        <div class="stat-label">Member Since</div>
-                        <div class="stat-value">@memberSince</div>
-                    </div>
-                </div>
-
-                <div class="stat-item">
-                    <div class="stat-icon">💰</div>
-                    <div class="stat-info">
-                        <div class="stat-label">Total Transactions</div>
-                        <div class="stat-value">@totalTransactions</div>
-                    </div>
-                </div>
-
-                <div class="stat-item">
-                    <div class="stat-icon">📊</div>
-                    <div class="stat-info">
-                        <div class="stat-label">Active Budgets</div>
-                        <div class="stat-value">@activeBudgets</div>
-                    </div>
-                </div>
-
-                <div class="stat-item">
-                    <div class="stat-icon">🎯</div>
-                    <div class="stat-info">
-                        <div class="stat-label">Active Goals</div>
-                        <div class="stat-value">@activeGoals</div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        
 
         <!-- Security Settings Card -->
         <div class="profile-card">
@@ -272,11 +232,7 @@
     private string? successMessage;
     private string? errorMessage;
 
-    // Statistics
-    private string memberSince = "Loading...";
-    private int totalTransactions = 0;
-    private int activeBudgets = 0;
-    private int activeGoals = 0;
+    
 
     // Security
     private string passwordLastChanged = "Never";
@@ -301,7 +257,7 @@
     {
         try
         {
-            // ✅ Correct way in Blazor InteractiveServer
+            
             var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
             var principal = authState.User;
 
@@ -323,23 +279,7 @@
             Input.FirstName = user.FirstName;
             Input.LastName = user.LastName;
 
-            // ✅ Member since
-            memberSince = user.CreatedAt == default
-                ? "—"
-                : user.CreatedAt.ToString("MMMM dd, yyyy");
-
-            // ✅ Load statistics from DB
-            using var db = await DbFactory.CreateDbContextAsync();
-
-            totalTransactions = await db.Transaction.CountAsync(t => t.AppUserId == user.Id);
-
-            activeBudgets = await db.Budget.CountAsync(b =>
-                b.AppUserId == user.Id &&
-                b.EndDate >= DateTime.Today);
-
-            activeGoals = await db.Goal.CountAsync(g =>
-                g.AppUserId == user.Id &&
-                g.Status == "Active");
+            
 
             // Security
             hasTwoFactor = await UserManager.GetTwoFactorEnabledAsync(user);
