@@ -1,12 +1,14 @@
 ﻿@page "/transactions"
+@rendermode InteractiveServer
 @layout UserLayout
 @using Microsoft.EntityFrameworkCore
-@using Microsoft.AspNetCore.Components.QuickGrid
+@using Microsoft.AspNetCore.Components.Authorization
 @using Project_PiggyPro.Components.Layout
-@using Project_PiggyPro.Domain
 @using Project_PiggyPro.Data
-@implements IAsyncDisposable
+@using Project_PiggyPro.Domain
 @inject IDbContextFactory<Project_PiggyPro.Data.Project_PiggyProContext> DbFactory
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
 
 <PageTitle>Transactions - PiggyPro</PageTitle>
 
@@ -18,31 +20,281 @@
     <a href="/transactions/create" class="btn-primary">+ Add Transaction</a>
 </div>
 
-<QuickGrid Class="table" Items="context.Transaction">
-    <PropertyColumn Property="transaction => transaction.Amount" />
-    <PropertyColumn Property="transaction => transaction.TransactionDate" />
-    <PropertyColumn Property="transaction => transaction.TransactionType" />
-    <PropertyColumn Property="transaction => transaction.Description" />
-    <PropertyColumn Property="transaction => transaction.AppUserId" />
-    <PropertyColumn Property="transaction => transaction.CategoryId" />
-    <PropertyColumn Property="transaction => transaction.DateCreated" />
-    <PropertyColumn Property="transaction => transaction.DateUpdated" />
-    <PropertyColumn Property="transaction => transaction.CreatedBy" />
-    <PropertyColumn Property="transaction => transaction.UpdatedBy" />
-    <TemplateColumn Context="transaction">
-        <a href="@($"transactions/edit?Id={transaction.Id}")">Edit</a> |
-        <a href="@($"transactions/details?Id={transaction.Id}")">Details</a> |
-        <a href="@($"transactions/delete?Id={transaction.Id}")">Delete</a>
-    </TemplateColumn>
-</QuickGrid>
+<!-- Filter Section -->
+<div class="filter-section">
+    <div class="filter-group">
+        <label>Filter by Type</label>
+        <select @bind="selectedType" class="filter-select">
+            <option value="">All Transactions</option>
+            <option value="Income">Income</option>
+            <option value="Expense">Expense</option>
+        </select>
+    </div>
+
+    <div class="filter-group">
+        <label>Filter by Category</label>
+        <select @bind="selectedCategory" class="filter-select">
+            <option value="0">All Categories</option>
+            @foreach (var category in categories)
+            {
+                <option value="@category.Id">@category.CategoryName</option>
+            }
+        </select>
+    </div>
+
+    <div class="filter-group">
+        <label>Date Range</label>
+        <select @bind="selectedDateRange" class="filter-select">
+            <option value="thisMonth">This Month</option>
+            <option value="lastMonth">Last Month</option>
+            <option value="last3Months">Last 3 Months</option>
+            <option value="thisYear">This Year</option>
+            <option value="all">All Time</option>
+        </select>
+    </div>
+
+    <button @onclick="ApplyFilters" class="btn-apply-filter">Apply Filters</button>
+</div>
+
+<!-- Transaction Table -->
+<div class="transaction-table-container">
+    @if (isLoading)
+    {
+        <div class="loading">Loading transactions...</div>
+    }
+    else if (!filteredTransactions.Any())
+    {
+        <div class="no-data">No transactions found.</div>
+    }
+    else
+    {
+        <table class="transaction-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Category</th>
+                    <th>Amount</th>
+                    <th>Type</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var transaction in paginatedTransactions)
+                {
+                    <tr>
+                        <td>@transaction.TransactionDate.ToString("MMM dd, yyyy")</td>
+                        <td>@transaction.Description</td>
+                        <td>@GetCategoryName(transaction.CategoryId)</td>
+                        <td class="@(transaction.TransactionType == "Income" ? "amount-positive" : "amount-negative")">
+                            @(transaction.TransactionType == "Income" ? "+" : "-")$@transaction.Amount.ToString("N2")
+                        </td>
+                        <td>
+                            <span class="badge-@(transaction.TransactionType.ToLower())">
+                                @transaction.TransactionType
+                            </span>
+                        </td>
+                        <td class="actions-cell">
+                            <button @onclick="() => ViewTransaction(transaction.Id)" class="btn-action btn-view">View</button>
+                            <button @onclick="() => EditTransaction(transaction.Id)" class="btn-action btn-edit">Edit</button>
+                            <button @onclick="() => DeleteTransaction(transaction.Id)" class="btn-action btn-delete">Delete</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <!-- Pagination -->
+        <div class="pagination-container">
+            <div class="pagination-info">
+                Showing @((currentPage - 1) * pageSize + 1) to @Math.Min(currentPage * pageSize, totalTransactions) of @totalTransactions transactions
+            </div>
+            <div class="pagination-buttons">
+                <button @onclick="PreviousPage" disabled="@(currentPage == 1)" class="btn-page">Previous</button>
+
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    var pageNumber = i;
+                    <button @onclick="() => GoToPage(pageNumber)"
+                            class="btn-page-number @(currentPage == pageNumber ? "active" : "")">
+                        @pageNumber
+                    </button>
+                }
+
+                <button @onclick="NextPage" disabled="@(currentPage >= totalPages)" class="btn-page">Next</button>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Features List -->
+<div class="features-list">
+    <p>→ Comprehensive transaction list with filtering options</p>
+    <p>→ Filter by type (Income/Expense), category, and date range</p>
+    <p>→ View, Edit and Delete actions for each transaction</p>
+    <p>→ Pagination for large transaction lists</p>
+</div>
 
 @code {
     private Project_PiggyProContext context = default!;
+    private string userId = string.Empty;
+    private bool isLoading = true;
 
-    protected override void OnInitialized()
+    // Filter properties
+    private string selectedType = "";
+    private int selectedCategory = 0;  // Changed to int
+    private string selectedDateRange = "thisMonth";
+
+    // Data lists
+    private List<Transaction> allTransactions = new();
+    private List<Transaction> filteredTransactions = new();
+    private List<Category> categories = new();
+
+    // Pagination
+    private int currentPage = 1;
+    private int pageSize = 5;
+    private int totalTransactions = 0;
+    private int totalPages = 0;
+
+    private IEnumerable<Transaction> paginatedTransactions =>
+        filteredTransactions
+            .Skip((currentPage - 1) * pageSize)
+            .Take(pageSize);
+
+    protected override async Task OnInitializedAsync()
     {
         context = DbFactory.CreateDbContext();
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+            await LoadData();
+        }
     }
 
-    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+    private async Task LoadData()
+    {
+        isLoading = true;
+
+        // Load all transactions for the user
+        allTransactions = await context.Transaction
+            .Where(t => t.AppUserId == userId)
+            .OrderByDescending(t => t.TransactionDate)
+            .ToListAsync();
+
+        // Load categories
+        categories = await context.Category
+            .Where(c => c.AppUserId == userId)
+            .ToListAsync();
+
+        await ApplyFilters();
+        isLoading = false;
+    }
+
+    private async Task ApplyFilters()
+    {
+        filteredTransactions = allTransactions.AsQueryable().ToList();
+
+        // Filter by type
+        if (!string.IsNullOrEmpty(selectedType))
+        {
+            filteredTransactions = filteredTransactions
+                .Where(t => t.TransactionType == selectedType)
+                .ToList();
+        }
+
+        // Filter by category - Now using int comparison
+        if (selectedCategory > 0)
+        {
+            filteredTransactions = filteredTransactions
+                .Where(t => t.CategoryId == selectedCategory)
+                .ToList();
+        }
+
+        // Filter by date range
+        var now = DateTime.Now;
+        filteredTransactions = selectedDateRange switch
+        {
+            "thisMonth" => filteredTransactions
+                .Where(t => t.TransactionDate.Year == now.Year && t.TransactionDate.Month == now.Month)
+                .ToList(),
+            "lastMonth" => filteredTransactions
+                .Where(t => t.TransactionDate.Year == now.AddMonths(-1).Year &&
+                           t.TransactionDate.Month == now.AddMonths(-1).Month)
+                .ToList(),
+            "last3Months" => filteredTransactions
+                .Where(t => t.TransactionDate >= now.AddMonths(-3))
+                .ToList(),
+            "thisYear" => filteredTransactions
+                .Where(t => t.TransactionDate.Year == now.Year)
+                .ToList(),
+            _ => filteredTransactions
+        };
+
+        totalTransactions = filteredTransactions.Count;
+        totalPages = (int)Math.Ceiling((double)totalTransactions / pageSize);
+        currentPage = 1; // Reset to first page when filters change
+
+        StateHasChanged();
+    }
+
+    private string GetCategoryName(int categoryId)
+    {
+        var category = categories.FirstOrDefault(c => c.Id == categoryId);
+        return category?.CategoryName ?? "Unknown";
+    }
+
+    private void ViewTransaction(int id)
+    {
+        Navigation.NavigateTo($"/transactions/details?Id={id}");
+    }
+
+    private void EditTransaction(int id)
+    {
+        Navigation.NavigateTo($"/transactions/edit?Id={id}");
+    }
+
+    private async Task DeleteTransaction(int id)
+    {
+        // You might want to add a confirmation dialog here
+        var transaction = await context.Transaction.FindAsync(id);
+        if (transaction != null && transaction.AppUserId == userId)
+        {
+            context.Transaction.Remove(transaction);
+            await context.SaveChangesAsync();
+            await LoadData(); // Reload data
+        }
+    }
+
+    private void PreviousPage()
+    {
+        if (currentPage > 1)
+        {
+            currentPage--;
+        }
+    }
+
+    private void NextPage()
+    {
+        if (currentPage < totalPages)
+        {
+            currentPage++;
+        }
+    }
+
+    private void GoToPage(int page)
+    {
+        currentPage = page;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (context != null)
+        {
+            await context.DisposeAsync();
+        }
+    }
 }

@@ -4,8 +4,12 @@
 @using Microsoft.AspNetCore.Components.QuickGrid
 @using Project_PiggyPro.Domain
 @using Project_PiggyPro.Data
+@using Project_PiggyPro.Services
+@inject AdminService AdminService
+@inject NavigationManager NavigationManager
 @implements IAsyncDisposable
 @inject IDbContextFactory<Project_PiggyPro.Data.Project_PiggyProContext> DbFactory
+
 
 <PageTitle>Index</PageTitle>
 

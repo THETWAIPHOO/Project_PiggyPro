@@ -1,52 +1,114 @@
 ﻿@page "/transactions/details"
+@layout UserLayout
 @using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.Authorization
+@using Project_PiggyPro.Components.Layout
 @using Project_PiggyPro.Domain
+@using Project_PiggyPro.Data
 @inject IDbContextFactory<Project_PiggyPro.Data.Project_PiggyProContext> DbFactory
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
-<PageTitle>Details</PageTitle>
+<PageTitle>Transaction Details - PiggyPro</PageTitle>
 
-<h1>Details</h1>
+<div class="details-container">
+    <div class="details-header">
+        <h1>Transaction Details</h1>
+        <div class="header-actions">
+            <a href="/transactions" class="btn-secondary">← Back to List</a>
+            @if (transaction != null)
+            {
+                <a href="@($"/transactions/edit?id={transaction.Id}")" class="btn-primary">Edit</a>
+            }
+        </div>
+    </div>
 
-<div>
-    <h2>Transaction</h2>
-    <hr />
     @if (transaction is null)
     {
-        <p><em>Loading...</em></p>
+        <div class="loading-state">
+            <p>Loading transaction details...</p>
+        </div>
     }
-    else {
-        <dl class="row">
-            <dt class="col-sm-2">Amount</dt>
-            <dd class="col-sm-10">@transaction.Amount</dd>
-            <dt class="col-sm-2">TransactionDate</dt>
-            <dd class="col-sm-10">@transaction.TransactionDate</dd>
-            <dt class="col-sm-2">TransactionType</dt>
-            <dd class="col-sm-10">@transaction.TransactionType</dd>
-            <dt class="col-sm-2">Description</dt>
-            <dd class="col-sm-10">@transaction.Description</dd>
-            <dt class="col-sm-2">AppUserId</dt>
-            <dd class="col-sm-10">@transaction.AppUserId</dd>
-            <dt class="col-sm-2">CategoryId</dt>
-            <dd class="col-sm-10">@transaction.CategoryId</dd>
-            <dt class="col-sm-2">DateCreated</dt>
-            <dd class="col-sm-10">@transaction.DateCreated</dd>
-            <dt class="col-sm-2">DateUpdated</dt>
-            <dd class="col-sm-10">@transaction.DateUpdated</dd>
-            <dt class="col-sm-2">CreatedBy</dt>
-            <dd class="col-sm-10">@transaction.CreatedBy</dd>
-            <dt class="col-sm-2">UpdatedBy</dt>
-            <dd class="col-sm-10">@transaction.UpdatedBy</dd>
-        </dl>
-        <div>
-            <a href="@($"/transactions/edit?id={transaction.Id}")">Edit</a> |
-            <a href="@($"/transactions")">Back to List</a>
+    else
+    {
+        <div class="details-card">
+            <!-- Transaction Type Badge -->
+            <div class="transaction-type-badge @(transaction.TransactionType?.ToLower())">
+                @transaction.TransactionType
+            </div>
+
+            <!-- Main Details -->
+            <div class="details-section">
+                <h2>Transaction Information</h2>
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Amount</span>
+                        <span class="detail-value amount @(transaction.TransactionType == "Income" ? "positive" : "negative")">
+                            @(transaction.TransactionType == "Income" ? "+" : "-")$@transaction.Amount.ToString("N2")
+                        </span>
+                    </div>
+
+                    <div class="detail-item">
+                        <span class="detail-label">Transaction Date</span>
+                        <span class="detail-value">@transaction.TransactionDate.ToString("MMMM dd, yyyy 'at' hh:mm tt")</span>
+                    </div>
+
+                    <div class="detail-item">
+                        <span class="detail-label">Category</span>
+                        <span class="detail-value">@GetCategoryName(transaction.CategoryId)</span>
+                    </div>
+
+                    <div class="detail-item">
+                        <span class="detail-label">Description</span>
+                        <span class="detail-value description">@(string.IsNullOrEmpty(transaction.Description) ? "No description provided" : transaction.Description)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Information -->
+            <div class="details-section">
+                <h2>User Information</h2>
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Account Owner</span>
+                        <span class="detail-value">@GetUserName(transaction.AppUserId)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Audit Information -->
+            <div class="details-section audit-section">
+                <h2>Audit Information</h2>
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Created Date</span>
+                        <span class="detail-value">@transaction.DateCreated.ToString("MMMM dd, yyyy 'at' hh:mm tt")</span>
+                    </div>
+
+                    <div class="detail-item">
+                        <span class="detail-label">Created By</span>
+                        <span class="detail-value">@GetUserName(transaction.CreatedBy)</span>
+                    </div>
+
+                    <div class="detail-item">
+                        <span class="detail-label">Last Updated</span>
+                        <span class="detail-value">@transaction.DateUpdated.ToString("MMMM dd, yyyy 'at' hh:mm tt")</span>
+                    </div>
+
+                    <div class="detail-item">
+                        <span class="detail-label">Updated By</span>
+                        <span class="detail-value">@GetUserName(transaction.UpdatedBy)</span>
+                    </div>
+                </div>
+            </div>
         </div>
     }
 </div>
 
 @code {
     private Transaction? transaction;
+    private Category? category;
+    private Dictionary<string, string> userNames = new();
 
     [SupplyParameterFromQuery]
     private int Id { get; set; }
@@ -54,11 +116,68 @@
     protected override async Task OnInitializedAsync()
     {
         using var context = DbFactory.CreateDbContext();
-        transaction = await context.Transaction.FirstOrDefaultAsync(m => m.Id == Id);
+
+        transaction = await context.Transaction
+            .Include(t => t.Category)
+            .FirstOrDefaultAsync(m => m.Id == Id);
 
         if (transaction is null)
         {
             NavigationManager.NavigateTo("notfound");
+            return;
         }
+
+        // Load category
+        if (transaction.CategoryId > 0)
+        {
+            category = await context.Category
+                .FirstOrDefaultAsync(c => c.Id == transaction.CategoryId);
+        }
+
+        // Load user information
+        await LoadUserNames(context);
+    }
+
+    private async Task LoadUserNames(Project_PiggyProContext context)
+    {
+        if (transaction == null) return;
+
+        var userIds = new List<string>
+        {
+            transaction.AppUserId,
+            transaction.CreatedBy,
+            transaction.UpdatedBy
+        }.Distinct().Where(id => !string.IsNullOrEmpty(id)).ToList();
+
+        foreach (var userId in userIds)
+        {
+            // Try to get user from AspNetUsers table
+            var user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user != null)
+            {
+                userNames[userId] = user.Email ?? user.UserName ?? "Unknown User";
+            }
+            else
+            {
+                userNames[userId] = "Unknown User";
+            }
+        }
+    }
+
+    private string GetCategoryName(int categoryId)
+    {
+        if (category != null && category.Id == categoryId)
+        {
+            return category.CategoryName ?? "Unknown Category";
+        }
+        return "Unknown Category";
+    }
+
+    private string GetUserName(string userId)
+    {
+        if (string.IsNullOrEmpty(userId))
+            return "System";
+
+        return userNames.TryGetValue(userId, out var name) ? name : "Unknown User";
     }
 }

@@ -1,125 +1,333 @@
 ﻿@page "/transactions/edit"
+@rendermode InteractiveServer
+@layout UserLayout
 @using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.Authorization
+@using Project_PiggyPro.Components.Layout
 @using Project_PiggyPro.Domain
+@using Project_PiggyPro.Data
 @inject IDbContextFactory<Project_PiggyPro.Data.Project_PiggyProContext> DbFactory
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
-<PageTitle>Edit Transaction</PageTitle>
+<PageTitle>Edit Transaction - PiggyPro</PageTitle>
 
-<h1>Edit</h1>
+<div class="edit-container">
+    <div class="edit-header">
+        <div>
+            <h1>Edit Transaction</h1>
+            <p class="subtitle">Update your transaction details</p>
+        </div>
+        <a href="/transactions" class="btn-back">← Back to List</a>
+    </div>
 
-<h2>Transaction</h2>
-<hr />
-@if (Transaction is null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <div class="row">
-        <div class="col-md-4">
-            <EditForm method="post" Model="Transaction" OnValidSubmit="UpdateTransaction" FormName="edit" Enhance>
+    @if (isLoading)
+    {
+        <div class="loading-state">
+            <p>Loading transaction...</p>
+        </div>
+    }
+    else if (transactionModel is null)
+    {
+        <div class="loading-state">
+            <p>Transaction not found.</p>
+        </div>
+    }
+    else
+    {
+        <div class="edit-card">
+            <EditForm Model="transactionModel" OnValidSubmit="UpdateTransaction">
                 <DataAnnotationsValidator />
-                <ValidationSummary role="alert" />
-                <input type="hidden" name="Transaction.Id" value="@Transaction.Id" />
-                <div class="mb-3">
-                    <label for="amount" class="form-label">Amount:</label>
-                    <InputNumber id="amount" @bind-Value="Transaction.Amount" class="form-control" />
-                    <ValidationMessage For="() => Transaction.Amount" class="text-danger" />
+
+                @if (errorMessage != null)
+                {
+                    <div class="alert alert-error">
+                        <strong>Error:</strong> @errorMessage
+                    </div>
+                }
+
+                <div class="form-grid">
+                    <!-- Amount Field -->
+                    <div class="form-group full-width">
+                        <label for="amount" class="form-label">
+                            Amount <span class="required">*</span>
+                        </label>
+                        <div class="input-with-icon">
+                            <span class="input-icon">$</span>
+                            <input type="number"
+                                   id="amount"
+                                   class="form-control"
+                                   placeholder="0.00"
+                                   step="0.01"
+                                   @bind="transactionModel.Amount"
+                                   @bind:event="oninput" />
+                        </div>
+                        <ValidationMessage For="@(() => transactionModel.Amount)" class="validation-message" />
+                    </div>
+
+                    <!-- Transaction Date Field -->
+                    <div class="form-group">
+                        <label for="transactiondate" class="form-label">
+                            Transaction Date <span class="required">*</span>
+                        </label>
+                        <input type="date"
+                               id="transactiondate"
+                               class="form-control"
+                               @bind="transactionModel.TransactionDate"
+                               @bind:format="yyyy-MM-dd" />
+                        <ValidationMessage For="@(() => transactionModel.TransactionDate)" class="validation-message" />
+                    </div>
+
+                    <!-- Transaction Type Field -->
+                    <div class="form-group">
+                        <label for="transactiontype" class="form-label">
+                            Transaction Type <span class="required">*</span>
+                        </label>
+                        <select id="transactiontype"
+                                class="form-control"
+                                value="@transactionModel.TransactionType"
+                                @onchange="OnTransactionTypeChanged">
+                            <option value="">-- Select Type --</option>
+                            <option value="Income">Income</option>
+                            <option value="Expense">Expense</option>
+                        </select>
+                        <ValidationMessage For="@(() => transactionModel.TransactionType)" class="validation-message" />
+                    </div>
+
+                    <!-- Category Field -->
+                    <div class="form-group">
+                        <label for="categoryid" class="form-label">
+                            Category <span class="required">*</span>
+                        </label>
+                        <select id="categoryid"
+                                class="form-control"
+                                @bind="transactionModel.CategoryId">
+                            <option value="0">-- Select Category --</option>
+                            @foreach (var category in filteredCategories)
+                            {
+                                <option value="@category.Id">@category.CategoryName</option>
+                            }
+                        </select>
+                        <ValidationMessage For="@(() => transactionModel.CategoryId)" class="validation-message" />
+                    </div>
+
+                    <!-- Description Field -->
+                    <div class="form-group full-width">
+                        <label for="description" class="form-label">
+                            Description
+                        </label>
+                        <textarea id="description"
+                                  class="form-control"
+                                  rows="3"
+                                  placeholder="Add notes about this transaction..."
+                                  @bind="transactionModel.Description"
+                                  @bind:event="oninput"></textarea>
+                        <ValidationMessage For="@(() => transactionModel.Description)" class="validation-message" />
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label for="transactiondate" class="form-label">TransactionDate:</label>
-                    <InputDate id="transactiondate" @bind-Value="Transaction.TransactionDate" class="form-control" />
-                    <ValidationMessage For="() => Transaction.TransactionDate" class="text-danger" />
+
+                <!-- Action Buttons -->
+                <div class="form-actions">
+                    <button type="button" @onclick="Cancel" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary" disabled="@isSaving">
+                        @if (isSaving)
+                        {
+                            <span>Saving...</span>
+                        }
+                        else
+                        {
+                            <span>Save Changes</span>
+                        }
+                    </button>
                 </div>
-                <div class="mb-3">
-                    <label for="transactiontype" class="form-label">TransactionType:</label>
-                    <InputText id="transactiontype" @bind-Value="Transaction.TransactionType" class="form-control" />
-                    <ValidationMessage For="() => Transaction.TransactionType" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="description" class="form-label">Description:</label>
-                    <InputText id="description" @bind-Value="Transaction.Description" class="form-control" />
-                    <ValidationMessage For="() => Transaction.Description" class="text-danger" />
-                </div>
-                <div class="mb-3">
-                    <label for="categoryid" class="form-label">CategoryId:</label>
-                    <InputNumber id="categoryid" @bind-Value="Transaction.CategoryId" class="form-control" />
-                    <ValidationMessage For="() => Transaction.CategoryId" class="text-danger" />
-                </div>
-                <button type="submit" class="btn btn-primary">Save</button>
             </EditForm>
         </div>
-    </div>
-}
-
-<div>
-    <a href="/transactions">Back to List</a>
+    }
 </div>
 
 @code {
     [SupplyParameterFromQuery]
     private int Id { get; set; }
 
-    [SupplyParameterFromForm]
-    private Transaction? Transaction { get; set; }
+    private Transaction? transactionModel;
+    private List<Category> allCategories = new();
+    private List<Category> filteredCategories = new();
+    private string userId = string.Empty;
+    private bool isSaving = false;
+    private bool isLoading = true;
+    private string? errorMessage = null;
 
     protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        Transaction ??= await context.Transaction.FirstOrDefaultAsync(m => m.Id == Id);
+        await LoadData();
+    }
 
-        if (Transaction is null)
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id > 0 && transactionModel == null)
         {
-            NavigationManager.NavigateTo("notfound");
+            await LoadData();
+        }
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            using var context = DbFactory.CreateDbContext();
+
+            // Get authenticated user
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            if (user.Identity?.IsAuthenticated == true)
+            {
+                userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+
+                // Load all system categories
+                allCategories = await context.Category
+                    .Where(c => c.IsSystemCategory == true)
+                    .OrderBy(c => c.CategoryName)
+                    .ToListAsync();
+
+                // Load transaction
+                transactionModel = await context.Transaction
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(m => m.Id == Id);
+
+                if (transactionModel is null)
+                {
+                    NavigationManager.NavigateTo("notfound");
+                    return;
+                }
+
+                // Security check: ensure user owns this transaction
+                if (transactionModel.AppUserId != userId)
+                {
+                    NavigationManager.NavigateTo("notfound");
+                    return;
+                }
+
+                // Filter categories based on transaction type
+                FilterCategories();
+            }
+            else
+            {
+                NavigationManager.NavigateTo("/login");
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading transaction: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private void FilterCategories()
+    {
+        if (transactionModel != null && !string.IsNullOrEmpty(transactionModel.TransactionType))
+        {
+            filteredCategories = allCategories
+                .Where(c => c.CategoryType == transactionModel.TransactionType)
+                .ToList();
+        }
+        else
+        {
+            filteredCategories = allCategories.ToList();
+        }
+    }
+
+    private void OnTransactionTypeChanged(ChangeEventArgs e)
+    {
+        if (transactionModel != null)
+        {
+            transactionModel.TransactionType = e.Value?.ToString();
+            transactionModel.CategoryId = 0; // Reset category when type changes
+            FilterCategories();
+            StateHasChanged();
         }
     }
 
     private async Task UpdateTransaction()
     {
-        using var context = DbFactory.CreateDbContext();
+        if (transactionModel == null) return;
 
-        // Find the existing transaction
-        var existingTransaction = await context.Transaction.FindAsync(Transaction!.Id);
-
-        if (existingTransaction is null)
+        // Validate category is selected
+        if (transactionModel.CategoryId == 0)
         {
-            NavigationManager.NavigateTo("notfound");
+            errorMessage = "Please select a category.";
             return;
         }
 
-        // Update only the properties that should be editable
-        existingTransaction.Amount = Transaction.Amount;
-        existingTransaction.TransactionDate = Transaction.TransactionDate;
-        existingTransaction.TransactionType = Transaction.TransactionType;
-        existingTransaction.Description = Transaction.Description;
-        existingTransaction.CategoryId = Transaction.CategoryId;
-        existingTransaction.DateUpdated = DateTime.Now;
-        // Keep the existing CreatedBy and UpdatedBy values or update as needed
-        // existingTransaction.UpdatedBy = "current-user-id"; // You might want to get this from the authenticated user
+        isSaving = true;
+        errorMessage = null;
 
         try
         {
+            using var context = DbFactory.CreateDbContext();
+
+            // Find the existing transaction
+            var existingTransaction = await context.Transaction.FindAsync(transactionModel.Id);
+
+            if (existingTransaction is null)
+            {
+                NavigationManager.NavigateTo("notfound");
+                return;
+            }
+
+            // Security check: ensure user owns this transaction
+            if (existingTransaction.AppUserId != userId)
+            {
+                NavigationManager.NavigateTo("notfound");
+                return;
+            }
+
+            // Update only the properties that should be editable
+            existingTransaction.Amount = transactionModel.Amount;
+            existingTransaction.TransactionDate = transactionModel.TransactionDate;
+            existingTransaction.TransactionType = transactionModel.TransactionType;
+            existingTransaction.Description = transactionModel.Description;
+            existingTransaction.CategoryId = transactionModel.CategoryId;
+            existingTransaction.DateUpdated = DateTime.Now;
+            existingTransaction.UpdatedBy = userId;
+
             await context.SaveChangesAsync();
+            NavigationManager.NavigateTo("/transactions");
         }
         catch (DbUpdateConcurrencyException)
         {
-            if (!TransactionExists(Transaction!.Id))
+            if (!TransactionExists(transactionModel.Id))
             {
                 NavigationManager.NavigateTo("notfound");
             }
             else
             {
-                throw;
+                errorMessage = "The transaction was modified by another user. Please refresh and try again.";
+                isSaving = false;
             }
         }
-
-        NavigationManager.NavigateTo("/transactions");
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred while saving: {ex.Message}";
+            isSaving = false;
+        }
     }
 
     private bool TransactionExists(int id)
     {
         using var context = DbFactory.CreateDbContext();
         return context.Transaction.Any(e => e.Id == id);
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/transactions");
     }
 }

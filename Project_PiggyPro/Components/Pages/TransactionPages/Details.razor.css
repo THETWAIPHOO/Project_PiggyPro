@@ -1,0 +1,216 @@
+﻿/* Transaction Details Page Styles */
+
+.details-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+    .details-header h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        margin: 0;
+        color: #1a1a1a;
+    }
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn-primary,
+.btn-secondary {
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+    display: inline-block;
+}
+
+.btn-primary {
+    background-color: #4a90e2;
+    color: white;
+}
+
+    .btn-primary:hover {
+        background-color: #357abd;
+    }
+
+.btn-secondary {
+    background-color: white;
+    color: #666;
+    border: 1px solid #ddd;
+}
+
+    .btn-secondary:hover {
+        background-color: #f8f8f8;
+        border-color: #999;
+    }
+
+/* Loading State */
+.loading-state {
+    text-align: center;
+    padding: 3rem;
+    color: #666;
+    font-size: 1.1rem;
+}
+
+/* Details Card */
+.details-card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+/* Transaction Type Badge */
+.transaction-type-badge {
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+    .transaction-type-badge.income {
+        background-color: #d1fae5;
+        color: #065f46;
+    }
+
+    .transaction-type-badge.expense {
+        background-color: #fee2e2;
+        color: #991b1b;
+    }
+
+/* Details Sections */
+.details-section {
+    padding: 2rem 1.5rem;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+    .details-section:last-child {
+        border-bottom: none;
+    }
+
+    .details-section h2 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0 0 1.5rem 0;
+    }
+
+.audit-section {
+    background-color: #f9f9f9;
+}
+
+/* Details Grid */
+.details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.detail-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.detail-value {
+    font-size: 1rem;
+    color: #1a1a1a;
+    padding: 0.75rem;
+    background-color: #f8f8f8;
+    border-radius: 4px;
+    border-left: 3px solid #e0e0e0;
+}
+
+    .detail-value.description {
+        min-height: 60px;
+        white-space: pre-wrap;
+    }
+
+    /* Amount Styling */
+    .detail-value.amount {
+        font-size: 1.5rem;
+        font-weight: 700;
+        text-align: center;
+    }
+
+        .detail-value.amount.positive {
+            background-color: #d1fae5;
+            border-left-color: #22c55e;
+            color: #065f46;
+        }
+
+        .detail-value.amount.negative {
+            background-color: #fee2e2;
+            border-left-color: #ef4444;
+            color: #991b1b;
+        }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .details-container {
+        padding: 1rem;
+    }
+
+    .details-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .header-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        width: 100%;
+        text-align: center;
+    }
+
+    .details-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .details-section {
+        padding: 1.5rem 1rem;
+    }
+
+    .detail-value.amount {
+        font-size: 1.25rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .details-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .details-section h2 {
+        font-size: 1.1rem;
+    }
+}
