@@ -15,7 +15,7 @@
 <div class="page-header">
     <div>
         <h1>All Transactions</h1>
-        <p class="subtitle">Manage your income and expenses</p>
+        <p class="subtitle">Manage your income, expenses, and goal contributions</p>
     </div>
     <a href="/transactions/create" class="btn-primary">+ Add Transaction</a>
 </div>
@@ -28,6 +28,7 @@
             <option value="">All Transactions</option>
             <option value="Income">Income</option>
             <option value="Expense">Expense</option>
+            <option value="Goal">🎯 Goal Contributions</option>
         </select>
     </div>
 
@@ -92,20 +93,23 @@
             <tbody>
                 @foreach (var transaction in paginatedTransactions)
                 {
+                    var transactionType = GetTransactionType(transaction);
+                    var categoryName = GetCategoryName(transaction);
+
                     <tr>
                         <td>@transaction.TransactionDate.ToString("MMM dd, yyyy")</td>
                         <td>@transaction.Description</td>
-                        <td>@GetCategoryName(transaction.CategoryId)</td>
-                        <td class="@(transaction.TransactionType == "Income" ? "amount-positive" : "amount-negative")">
-                            @(transaction.TransactionType == "Income" ? "+" : "-")$@transaction.Amount.ToString("N2")
+                        <td>@categoryName</td>
+                        <td class="@(transactionType == "Income" ? "amount-positive" : "amount-negative")">
+                            @(transactionType == "Income" ? "+" : "-")$@transaction.Amount.ToString("N2")
                         </td>
                         <td>
-                            <span class="badge-@(transaction.TransactionType.ToLower())">
-                                @transaction.TransactionType
+                            <span class="badge-@transactionType.ToLower()">
+                                @transactionType
                             </span>
                         </td>
                         <td>
-                            @if (transaction.TransactionType == "Expense")
+                            @if (transactionType == "Expense")
                             {
                                 @if (IsCategoryBudgeted(transaction.CategoryId, transaction.TransactionDate))
                                 {
@@ -115,6 +119,10 @@
                                 {
                                     <span class="badge-unbudgeted">⚠️ Not Budgeted</span>
                                 }
+                            }
+                            else if (transactionType == "Goal")
+                            {
+                                <span class="badge-goal-status">💰 Savings</span>
                             }
                             else
                             {
@@ -157,11 +165,12 @@
 <!-- Features List -->
 <div class="features-list">
     <p>→ Comprehensive transaction list with filtering options</p>
-    <p>→ Filter by type (Income/Expense), category, and date range</p>
+    <p>→ Filter by type (Income/Expense/Goal), category, and date range</p>
     <p>→ Filter by budget status (Budgeted/Unbudgeted expenses)</p>
+    <p>→ Goal contributions tracked separately from regular expenses</p>
     <p>→ View, Edit and Delete actions for each transaction</p>
     <p>→ Pagination for large transaction lists</p>
-    <p>→ Visual indicators for unbudgeted expenses</p>
+    <p>→ Visual indicators for unbudgeted expenses and goal savings</p>
 </div>
 
 @code {
@@ -173,13 +182,13 @@
     private string selectedType = "";
     private int selectedCategory = 0;
     private string selectedDateRange = "thisMonth";
-    private string selectedBudgetStatus = ""; // New filter
+    private string selectedBudgetStatus = "";
 
     // Data lists
     private List<Transaction> allTransactions = new();
     private List<Transaction> filteredTransactions = new();
     private List<Category> categories = new();
-    private List<Budget> userBudgets = new(); // For budget checking
+    private List<Budget> userBudgets = new();
 
     // Pagination
     private int currentPage = 1;
@@ -237,11 +246,11 @@
     {
         filteredTransactions = allTransactions.AsQueryable().ToList();
 
-        // Filter by type
+        // Filter by type (Income/Expense/Goal)
         if (!string.IsNullOrEmpty(selectedType))
         {
             filteredTransactions = filteredTransactions
-                .Where(t => t.TransactionType == selectedType)
+                .Where(t => GetTransactionType(t) == selectedType)
                 .ToList();
         }
 
@@ -273,20 +282,20 @@
             _ => filteredTransactions
         };
 
-        // Filter by budget status (NEW)
+        // Filter by budget status (only applies to regular expenses, not goals)
         if (!string.IsNullOrEmpty(selectedBudgetStatus))
         {
             if (selectedBudgetStatus == "budgeted")
             {
                 filteredTransactions = filteredTransactions
-                    .Where(t => t.TransactionType == "Expense" &&
+                    .Where(t => GetTransactionType(t) == "Expense" &&
                                IsCategoryBudgeted(t.CategoryId, t.TransactionDate))
                     .ToList();
             }
             else if (selectedBudgetStatus == "unbudgeted")
             {
                 filteredTransactions = filteredTransactions
-                    .Where(t => t.TransactionType == "Expense" &&
+                    .Where(t => GetTransactionType(t) == "Expense" &&
                                !IsCategoryBudgeted(t.CategoryId, t.TransactionDate))
                     .ToList();
             }
@@ -294,20 +303,46 @@
 
         totalTransactions = filteredTransactions.Count;
         totalPages = (int)Math.Ceiling((double)totalTransactions / pageSize);
-        currentPage = 1; // Reset to first page when filters change
+        currentPage = 1;
 
         StateHasChanged();
     }
 
-    private string GetCategoryName(int categoryId)
+    private string GetTransactionType(Transaction transaction)
     {
-        var category = categories.FirstOrDefault(c => c.Id == categoryId);
+        // Check if it's a goal contribution
+        if (transaction.Description != null &&
+            transaction.Description.ToLower().Contains("goal"))
+        {
+            return "Goal";
+        }
+
+        // Check category type
+        var category = categories.FirstOrDefault(c => c.Id == transaction.CategoryId);
+        if (category?.CategoryType == "Income")
+        {
+            return "Income";
+        }
+
+        return "Expense";
+    }
+
+    private string GetCategoryName(Transaction transaction)
+    {
+        // If it's a goal contribution, return "Savings Goal"
+        if (transaction.Description != null &&
+            transaction.Description.ToLower().Contains("goal"))
+        {
+            return "Savings Goal";
+        }
+
+        // Otherwise, return the actual category name
+        var category = categories.FirstOrDefault(c => c.Id == transaction.CategoryId);
         return category?.CategoryName ?? "Unknown";
     }
 
     private bool IsCategoryBudgeted(int categoryId, DateTime transactionDate)
     {
-        // Check if this category has a budget allocation that covers the transaction date
         var periodStart = new DateTime(transactionDate.Year, transactionDate.Month, 1);
         var periodEnd = periodStart.AddMonths(1).AddDays(-1);
 
@@ -332,13 +367,12 @@
 
     private async Task DeleteTransaction(int id)
     {
-        // You might want to add a confirmation dialog here
         var transaction = await context.Transaction.FindAsync(id);
         if (transaction != null && transaction.AppUserId == userId)
         {
             context.Transaction.Remove(transaction);
             await context.SaveChangesAsync();
-            await LoadData(); // Reload data
+            await LoadData();
         }
     }
 

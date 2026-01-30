@@ -35,7 +35,13 @@
     <div class="summary-card">
         <div class="card-title">Total Expenses</div>
         <div class="card-value expense">$@totalExpenses.ToString("N2")</div>
-        <div class="card-subtitle">This month</div>
+        <div class="card-subtitle">Regular spending</div>
+    </div>
+
+    <div class="summary-card goal-card">
+        <div class="card-title">🎯 Goal Contributions</div>
+        <div class="card-value" style="color: #ff9800;">$@goalContributions.ToString("N2")</div>
+        <div class="card-subtitle">Saved this month</div>
     </div>
 
     <div class="summary-card">
@@ -61,7 +67,7 @@
     <!-- Spending Trend Chart -->
     <div class="chart-card">
         <h2 class="chart-title">Spending Trend Over Time</h2>
-        <p class="chart-subtitle">Last 30 Days</p>
+        <p class="chart-subtitle">Last 30 Days (Regular Expenses Only)</p>
         <div class="chart-container">
             <canvas id="spendingTrendChart"></canvas>
         </div>
@@ -107,7 +113,7 @@
                             @(transaction.Type == "Income" ? "+" : "-")$@transaction.Amount.ToString("N2")
                         </td>
                         <td>
-                            <span class="badge @(transaction.Type == "Income" ? "badge-income" : "badge-expense")">
+                            <span class="badge @(transaction.Type == "Income" ? "badge-income" : transaction.Type == "Goal" ? "badge-goal" : "badge-expense")">
                                 @transaction.Type
                             </span>
                         </td>
@@ -132,6 +138,7 @@
 
     private decimal totalIncome = 0;
     private decimal totalExpenses = 0;
+    private decimal goalContributions = 0;
     private decimal netBalance = 0;
     private int budgetUsedPercentage = 0;
     private decimal percentageChange = 0;
@@ -181,23 +188,48 @@
             var startOfMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
             var endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
 
-            // Load summary data
-            totalIncome = await DbContext.Transaction
+            // Load all transactions for this month
+            var allMonthTransactions = await DbContext.Transaction
                 .Where(t => t.CreatedBy == currentUserId
                     && t.DateCreated >= startOfMonth
                     && t.DateCreated <= endOfMonth)
-                .Where(t => DbContext.Category.Any(c => c.Id == t.CategoryId && c.CategoryType == "Income"))
-                .SumAsync(t => (decimal?)t.Amount) ?? 0;
+                .ToListAsync();
 
-            totalExpenses = await DbContext.Transaction
-                .Where(t => t.CreatedBy == currentUserId
-                    && t.DateCreated >= startOfMonth
-                    && t.DateCreated <= endOfMonth)
-                .Where(t => DbContext.Category.Any(c => c.Id == t.CategoryId && c.CategoryType == "Expense"))
-                .SumAsync(t => (decimal?)t.Amount) ?? 0;
+            // Get income category IDs
+            var incomeCategories = await DbContext.Category
+                .Where(c => c.CategoryType == "Income")
+                .Select(c => c.Id)
+                .ToListAsync();
 
-            netBalance = totalIncome - totalExpenses;
+            // Calculate INCOME (transactions with Income category)
+            totalIncome = allMonthTransactions
+                .Where(t => incomeCategories.Contains(t.CategoryId))
+                .Sum(t => t.Amount);
 
+            // Identify GOAL CONTRIBUTIONS (transactions with description containing "goal")
+            var goalTransactions = allMonthTransactions
+                .Where(t => !incomeCategories.Contains(t.CategoryId) &&
+                           t.Description != null &&
+                           t.Description.ToLower().Contains("goal"))
+                .ToList();
+
+            goalContributions = goalTransactions.Sum(t => t.Amount);
+
+            // Calculate REGULAR EXPENSES (everything that's not income and not a goal)
+            totalExpenses = allMonthTransactions
+                .Where(t => !incomeCategories.Contains(t.CategoryId) &&
+                           (t.Description == null || !t.Description.ToLower().Contains("goal")))
+                .Sum(t => t.Amount);
+
+            // Net balance = Income - (Expenses + Goals)
+            netBalance = totalIncome - totalExpenses - goalContributions;
+
+            Console.WriteLine($"💰 Income: ${totalIncome}");
+            Console.WriteLine($"💸 Expenses: ${totalExpenses}");
+            Console.WriteLine($"🎯 Goals: ${goalContributions}");
+            Console.WriteLine($"💵 Net: ${netBalance}");
+
+            // Budget status (only count regular expenses, not goals)
             var totalBudget = await DbContext.Budget
                 .Where(b => b.CreatedBy == currentUserId)
                 .SumAsync(b => (decimal?)b.BudgetAmount) ?? 0;
@@ -207,31 +239,39 @@
                 budgetUsedPercentage = (int)((totalExpenses / totalBudget) * 100);
             }
 
+            // Calculate last month's data for comparison
             var lastMonthStart = startOfMonth.AddMonths(-1);
             var lastMonthEnd = startOfMonth.AddDays(-1);
 
-            var lastMonthIncome = await DbContext.Transaction
+            var lastMonthTransactions = await DbContext.Transaction
                 .Where(t => t.CreatedBy == currentUserId
                     && t.DateCreated >= lastMonthStart
                     && t.DateCreated <= lastMonthEnd)
-                .Where(t => DbContext.Category.Any(c => c.Id == t.CategoryId && c.CategoryType == "Income"))
-                .SumAsync(t => (decimal?)t.Amount) ?? 0;
+                .ToListAsync();
 
-            var lastMonthExpenses = await DbContext.Transaction
-                .Where(t => t.CreatedBy == currentUserId
-                    && t.DateCreated >= lastMonthStart
-                    && t.DateCreated <= lastMonthEnd)
-                .Where(t => DbContext.Category.Any(c => c.Id == t.CategoryId && c.CategoryType == "Expense"))
-                .SumAsync(t => (decimal?)t.Amount) ?? 0;
+            var lastMonthIncome = lastMonthTransactions
+                .Where(t => incomeCategories.Contains(t.CategoryId))
+                .Sum(t => t.Amount);
 
-            var lastMonthBalance = lastMonthIncome - lastMonthExpenses;
+            var lastMonthGoals = lastMonthTransactions
+                .Where(t => !incomeCategories.Contains(t.CategoryId) &&
+                           t.Description != null &&
+                           t.Description.ToLower().Contains("goal"))
+                .Sum(t => t.Amount);
+
+            var lastMonthExpenses = lastMonthTransactions
+                .Where(t => !incomeCategories.Contains(t.CategoryId) &&
+                           (t.Description == null || !t.Description.ToLower().Contains("goal")))
+                .Sum(t => t.Amount);
+
+            var lastMonthBalance = lastMonthIncome - lastMonthExpenses - lastMonthGoals;
 
             if (lastMonthBalance != 0)
             {
                 percentageChange = ((netBalance - lastMonthBalance) / Math.Abs(lastMonthBalance)) * 100;
             }
 
-            // Load transactions
+            // Load recent transactions for display
             var transactions = await DbContext.Transaction
                 .Where(t => t.CreatedBy == currentUserId)
                 .OrderByDescending(t => t.DateCreated)
@@ -242,21 +282,37 @@
             foreach (var t in transactions)
             {
                 var category = await DbContext.Category.FindAsync(t.CategoryId);
+                var categoryType = category?.CategoryType ?? "Expense";
+
+                // Determine transaction type
+                string transactionType;
+                if (categoryType == "Income")
+                {
+                    transactionType = "Income";
+                }
+                else if (t.Description != null && t.Description.ToLower().Contains("goal"))
+                {
+                    transactionType = "Goal";
+                }
+                else
+                {
+                    transactionType = "Expense";
+                }
+
                 recentTransactions.Add(new TransactionViewModel
                 {
                     Date = t.DateCreated,
                     Description = t.Description ?? "",
                     CategoryName = category?.CategoryName ?? "Unknown",
                     Amount = t.Amount,
-                    Type = category?.CategoryType ?? "Expense"
+                    Type = transactionType
                 });
             }
 
             // Load chart data
-            await LoadChartData(startOfMonth, endOfMonth);
+            await LoadChartData(startOfMonth, endOfMonth, incomeCategories);
 
-            Console.WriteLine($"✓ Data loaded - Income: {totalIncome}, Expenses: {totalExpenses}");
-            Console.WriteLine($"✓ Chart data - Days: {dailySpendingData.Count}, Categories: {categoryExpenseData.Count}");
+            Console.WriteLine($"✓ Data loaded successfully");
         }
         catch (Exception ex)
         {
@@ -268,28 +324,32 @@
         }
     }
 
-    private async Task LoadChartData(DateTime startOfMonth, DateTime endOfMonth)
+    private async Task LoadChartData(DateTime startOfMonth, DateTime endOfMonth, List<int> incomeCategories)
     {
         try
         {
-            // Daily spending for line chart (last 30 days)
+            // Daily spending for line chart (last 30 days) - REGULAR EXPENSES ONLY
             var last30Days = DateTime.Now.AddDays(-30).Date;
             var today = DateTime.Now.Date;
 
-            var expenseTransactions = await DbContext.Transaction
+            var allTransactions = await DbContext.Transaction
                 .Where(t => t.CreatedBy == currentUserId
                     && t.DateCreated >= last30Days)
-                .Where(t => DbContext.Category.Any(c => c.Id == t.CategoryId && c.CategoryType == "Expense"))
                 .ToListAsync();
 
-            // Group existing transactions by date
+            // Filter to only regular expenses (not income, not goals)
+            var expenseTransactions = allTransactions
+                .Where(t => !incomeCategories.Contains(t.CategoryId) &&
+                           (t.Description == null || !t.Description.ToLower().Contains("goal")))
+                .ToList();
+
+            // Group by date
             var groupedExpenses = expenseTransactions
                 .GroupBy(t => t.DateCreated.Date)
                 .ToDictionary(g => g.Key, g => g.Sum(t => t.Amount));
 
-            // Create a complete list with ALL days in the range
+            // Create complete list with all days
             dailySpendingData = new List<DailySpending>();
-
             for (var date = last30Days; date <= today; date = date.AddDays(1))
             {
                 dailySpendingData.Add(new DailySpending
@@ -299,15 +359,13 @@
                 });
             }
 
-            Console.WriteLine($"✓ Chart data loaded: {dailySpendingData.Count} days");
-
-            // Category expenses for pie chart (this month)
-            var categoryExpenses = await DbContext.Transaction
-                .Where(t => t.CreatedBy == currentUserId
-                    && t.DateCreated >= startOfMonth
-                    && t.DateCreated <= endOfMonth)
-                .Where(t => DbContext.Category.Any(c => c.Id == t.CategoryId && c.CategoryType == "Expense"))
-                .ToListAsync();
+            // Category expenses for pie chart (this month) - REGULAR EXPENSES ONLY
+            var categoryExpenses = allTransactions
+                .Where(t => t.DateCreated >= startOfMonth
+                    && t.DateCreated <= endOfMonth
+                    && !incomeCategories.Contains(t.CategoryId)
+                    && (t.Description == null || !t.Description.ToLower().Contains("goal")))
+                .ToList();
 
             var groupedByCategory = categoryExpenses
                 .GroupBy(t => t.CategoryId)
@@ -324,17 +382,14 @@
             foreach (var item in groupedByCategory)
             {
                 var category = await DbContext.Category.FindAsync(item.CategoryId);
-                if (category != null)
+                categoryExpenseData.Add(new CategoryExpense
                 {
-                    categoryExpenseData.Add(new CategoryExpense
-                    {
-                        CategoryName = category.CategoryName ?? "Unknown",
-                        Amount = item.Total
-                    });
-                }
+                    CategoryName = category?.CategoryName ?? "Unknown",
+                    Amount = item.Total
+                });
             }
 
-            Console.WriteLine($"✓ Category data loaded: {categoryExpenseData.Count} categories");
+            Console.WriteLine($"✓ Chart data loaded: {dailySpendingData.Count} days, {categoryExpenseData.Count} categories");
         }
         catch (Exception ex)
         {
@@ -350,7 +405,6 @@
 
             await Task.Delay(500);
 
-            // Check if CORRECT canvases exist
             var canvas1Exists = await JSRuntime.InvokeAsync<bool>("eval",
                 "document.getElementById('spendingTrendChart') !== null");
             var canvas2Exists = await JSRuntime.InvokeAsync<bool>("eval",
@@ -365,18 +419,11 @@
                 return;
             }
 
-            // Check if we have data
-            if (dailySpendingData.Count == 0)
+            if (dailySpendingData.Count > 0)
             {
-                Console.WriteLine("⚠️ No spending data to display");
-            }
-            else
-            {
-                // Render Line Chart
                 var labels = dailySpendingData.Select(d => d.Date.ToString("MMM dd")).ToArray();
                 var data = dailySpendingData.Select(d => (double)d.Amount).ToArray();
 
-                Console.WriteLine($"Rendering line chart with {data.Length} data points");
                 await JSRuntime.InvokeVoidAsync("chartHelpers.createLineChart",
                     "spendingTrendChart",
                     labels,
@@ -385,18 +432,12 @@
                 Console.WriteLine("✓ Line chart rendered");
             }
 
-            if (categoryExpenseData.Count == 0)
+            if (categoryExpenseData.Count > 0)
             {
-                Console.WriteLine("⚠️ No category data to display");
-            }
-            else
-            {
-                // Render Pie Chart
                 var categoryLabels = categoryExpenseData.Select(c => c.CategoryName).ToArray();
                 var categoryValues = categoryExpenseData.Select(c => (double)c.Amount).ToArray();
                 var colors = new[] { "#e91e63", "#2196f3", "#4caf50", "#ff9800", "#9c27b0" };
 
-                Console.WriteLine($"Rendering pie chart with {categoryValues.Length} categories");
                 await JSRuntime.InvokeVoidAsync("chartHelpers.createPieChart",
                     "categoryChart",
                     categoryLabels,
@@ -410,7 +451,6 @@
         catch (Exception ex)
         {
             Console.WriteLine($"❌ Error rendering charts: {ex.Message}");
-            Console.WriteLine($"Stack: {ex.StackTrace}");
         }
     }
 

@@ -143,7 +143,7 @@
     font-weight: 600;
 }
 
-/* Badges */
+/* Type Badges */
 .badge-income {
     background-color: #d1fae5;
     color: #065f46;
@@ -162,6 +162,18 @@
     font-size: 0.85rem;
     font-weight: 500;
     display: inline-block;
+}
+
+/* NEW: Goal Badge */
+.badge-goal {
+    background-color: #fff3e0;
+    color: #e65100;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-block;
+    border: 1px solid #ffb74d;
 }
 
 /* Budget Status Badges */
@@ -196,6 +208,18 @@
     50% {
         opacity: 0.8;
     }
+}
+
+/* NEW: Goal Status Badge (for Budget Status column) */
+.badge-goal-status {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    padding: 0.3rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: inline-block;
+    border: 1px solid #a5d6a7;
 }
 
 .badge-na {

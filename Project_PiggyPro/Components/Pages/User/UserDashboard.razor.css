@@ -17,10 +17,10 @@
     margin: 0;
 }
 
-/* Summary Cards Grid */
+/* Summary Cards Grid - FORCE SINGLE ROW */
 .summary-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(5, 1fr); /* FIXED: Exactly 5 columns */
     gap: 1.5rem;
     margin-bottom: 2rem;
 }
@@ -31,16 +31,136 @@
     padding: 1.5rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s, box-shadow 0.2s;
+    border-left: 4px solid;
 }
 
     .summary-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
     }
+
+    /* Income Card - Green Theme */
+    .summary-card:nth-child(1) {
+        background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+        border-left-color: #4caf50;
+    }
+
+        .summary-card:nth-child(1):hover {
+            box-shadow: 0 6px 16px rgba(76, 175, 80, 0.3);
+        }
+
+        .summary-card:nth-child(1) .card-title {
+            color: #2e7d32;
+            font-weight: 600;
+        }
+
+        .summary-card:nth-child(1) .card-value {
+            color: #1b5e20 !important;
+        }
+
+        .summary-card:nth-child(1) .card-subtitle {
+            color: #388e3c;
+            font-weight: 500;
+        }
+
+    /* Expenses Card - Red Theme */
+    .summary-card:nth-child(2) {
+        background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+        border-left-color: #f44336;
+    }
+
+        .summary-card:nth-child(2):hover {
+            box-shadow: 0 6px 16px rgba(244, 67, 54, 0.3);
+        }
+
+        .summary-card:nth-child(2) .card-title {
+            color: #c62828;
+            font-weight: 600;
+        }
+
+        .summary-card:nth-child(2) .card-value {
+            color: #b71c1c !important;
+        }
+
+        .summary-card:nth-child(2) .card-subtitle {
+            color: #d32f2f;
+            font-weight: 500;
+        }
+
+    /* Goal Contributions Card - Orange Theme */
+    .summary-card:nth-child(3) {
+        background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+        border-left-color: #ff9800;
+    }
+
+        .summary-card:nth-child(3):hover {
+            box-shadow: 0 6px 16px rgba(255, 152, 0, 0.3);
+        }
+
+        .summary-card:nth-child(3) .card-title {
+            color: #e65100;
+            font-weight: 600;
+        }
+
+        .summary-card:nth-child(3) .card-value {
+            color: #ef6c00 !important;
+        }
+
+        .summary-card:nth-child(3) .card-subtitle {
+            color: #f57c00;
+            font-weight: 500;
+        }
+
+    /* Net Balance Card - Blue Theme */
+    .summary-card:nth-child(4) {
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        border-left-color: #2196f3;
+    }
+
+        .summary-card:nth-child(4):hover {
+            box-shadow: 0 6px 16px rgba(33, 150, 243, 0.3);
+        }
+
+        .summary-card:nth-child(4) .card-title {
+            color: #1565c0;
+            font-weight: 600;
+        }
+
+        .summary-card:nth-child(4) .card-value {
+            color: #0d47a1 !important;
+        }
+
+        .summary-card:nth-child(4) .card-subtitle {
+            color: #1976d2;
+            font-weight: 500;
+        }
+
+    /* Budget Status Card - Purple Theme */
+    .summary-card:nth-child(5) {
+        background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+        border-left-color: #9c27b0;
+    }
+
+        .summary-card:nth-child(5):hover {
+            box-shadow: 0 6px 16px rgba(156, 39, 176, 0.3);
+        }
+
+        .summary-card:nth-child(5) .card-title {
+            color: #6a1b9a;
+            font-weight: 600;
+        }
+
+        .summary-card:nth-child(5) .card-value {
+            color: #4a148c !important;
+        }
+
+        .summary-card:nth-child(5) .card-subtitle {
+            color: #7b1fa2;
+            font-weight: 500;
+        }
 
 .card-title {
     font-size: 0.875rem;
-    color: #666;
     font-weight: 500;
     margin-bottom: 0.5rem;
 }
@@ -55,21 +175,11 @@
 .card-value {
     font-size: 2rem;
     font-weight: 700;
-    color: #1a1a1a;
     margin-bottom: 0.5rem;
 }
 
-    .card-value.income {
-        color: #4caf50;
-    }
-
-    .card-value.expense {
-        color: #f44336;
-    }
-
 .card-subtitle {
     font-size: 0.875rem;
-    color: #999;
 }
 
 .card-change {
@@ -88,7 +198,7 @@
 
 .progress-bar-container {
     height: 8px;
-    background: #e0e0e0;
+    background: rgba(156, 39, 176, 0.2);
     border-radius: 4px;
     overflow: hidden;
     margin-top: 0.75rem;
@@ -96,16 +206,16 @@
 
 .progress-bar {
     height: 100%;
-    background: #4caf50;
+    background: linear-gradient(90deg, #9c27b0, #ba68c8);
     transition: width 0.3s ease;
 }
 
     .progress-bar.warning {
-        background: #ff9800;
+        background: linear-gradient(90deg, #ff9800, #ffb74d);
     }
 
     .progress-bar.danger {
-        background: #f44336;
+        background: linear-gradient(90deg, #f44336, #ef5350);
     }
 
 /* Charts Grid */
@@ -237,6 +347,12 @@
     color: #c62828;
 }
 
+.badge-goal {
+    background: #fff3e0;
+    color: #e65100;
+    border: 1px solid #ffb74d;
+}
+
 .text-muted {
     color: #999;
     text-align: center;
@@ -254,13 +370,25 @@
         }
 
 /* Responsive Design */
+@media (max-width: 1400px) {
+    .summary-grid {
+        grid-template-columns: repeat(3, 1fr); /* 3 columns on medium screens */
+    }
+}
+
+@media (max-width: 992px) {
+    .summary-grid {
+        grid-template-columns: repeat(2, 1fr); /* 2 columns on tablets */
+    }
+}
+
 @media (max-width: 768px) {
     .welcome-title {
         font-size: 1.5rem;
     }
 
     .summary-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr; /* 1 column on mobile */
     }
 
     .charts-grid {
@@ -294,5 +422,14 @@
 
     .chart-container {
         height: 200px;
+    }
+}
+
+/* For very large screens, ensure cards don't get too wide */
+@media (min-width: 1600px) {
+    .summary-grid {
+        max-width: 1800px;
+        margin-left: auto;
+        margin-right: auto;
     }
 }
