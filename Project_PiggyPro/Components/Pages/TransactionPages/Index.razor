@@ -53,6 +53,15 @@
         </select>
     </div>
 
+    <div class="filter-group">
+        <label>Budget Status</label>
+        <select @bind="selectedBudgetStatus" class="filter-select">
+            <option value="">All Expenses</option>
+            <option value="budgeted">Budgeted</option>
+            <option value="unbudgeted">⚠️ Unbudgeted</option>
+        </select>
+    </div>
+
     <button @onclick="ApplyFilters" class="btn-apply-filter">Apply Filters</button>
 </div>
 
@@ -76,6 +85,7 @@
                     <th>Category</th>
                     <th>Amount</th>
                     <th>Type</th>
+                    <th>Budget Status</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -93,6 +103,23 @@
                             <span class="badge-@(transaction.TransactionType.ToLower())">
                                 @transaction.TransactionType
                             </span>
+                        </td>
+                        <td>
+                            @if (transaction.TransactionType == "Expense")
+                            {
+                                @if (IsCategoryBudgeted(transaction.CategoryId, transaction.TransactionDate))
+                                {
+                                    <span class="badge-budgeted">✓ Budgeted</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-unbudgeted">⚠️ Not Budgeted</span>
+                                }
+                            }
+                            else
+                            {
+                                <span class="badge-na">-</span>
+                            }
                         </td>
                         <td class="actions-cell">
                             <button @onclick="() => ViewTransaction(transaction.Id)" class="btn-action btn-view">View</button>
@@ -131,8 +158,10 @@
 <div class="features-list">
     <p>→ Comprehensive transaction list with filtering options</p>
     <p>→ Filter by type (Income/Expense), category, and date range</p>
+    <p>→ Filter by budget status (Budgeted/Unbudgeted expenses)</p>
     <p>→ View, Edit and Delete actions for each transaction</p>
     <p>→ Pagination for large transaction lists</p>
+    <p>→ Visual indicators for unbudgeted expenses</p>
 </div>
 
 @code {
@@ -142,17 +171,19 @@
 
     // Filter properties
     private string selectedType = "";
-    private int selectedCategory = 0;  // Changed to int
+    private int selectedCategory = 0;
     private string selectedDateRange = "thisMonth";
+    private string selectedBudgetStatus = ""; // New filter
 
     // Data lists
     private List<Transaction> allTransactions = new();
     private List<Transaction> filteredTransactions = new();
     private List<Category> categories = new();
+    private List<Budget> userBudgets = new(); // For budget checking
 
     // Pagination
     private int currentPage = 1;
-    private int pageSize = 5;
+    private int pageSize = 10;
     private int totalTransactions = 0;
     private int totalPages = 0;
 
@@ -185,10 +216,18 @@
             .OrderByDescending(t => t.TransactionDate)
             .ToListAsync();
 
-        // Load categories
+        // Load ALL categories (both system and user categories)
         categories = await context.Category
-            .Where(c => c.AppUserId == userId)
+            .Where(c => c.IsSystemCategory == true || c.AppUserId == userId)
+            .OrderBy(c => c.CategoryName)
             .ToListAsync();
+
+        // Load user budgets for checking budget status
+        userBudgets = await context.Budget
+            .Where(b => b.AppUserId == userId)
+            .ToListAsync();
+
+        Console.WriteLine($"Loaded {categories.Count} categories, {userBudgets.Count} budgets");
 
         await ApplyFilters();
         isLoading = false;
@@ -206,7 +245,7 @@
                 .ToList();
         }
 
-        // Filter by category - Now using int comparison
+        // Filter by category
         if (selectedCategory > 0)
         {
             filteredTransactions = filteredTransactions
@@ -234,6 +273,25 @@
             _ => filteredTransactions
         };
 
+        // Filter by budget status (NEW)
+        if (!string.IsNullOrEmpty(selectedBudgetStatus))
+        {
+            if (selectedBudgetStatus == "budgeted")
+            {
+                filteredTransactions = filteredTransactions
+                    .Where(t => t.TransactionType == "Expense" &&
+                               IsCategoryBudgeted(t.CategoryId, t.TransactionDate))
+                    .ToList();
+            }
+            else if (selectedBudgetStatus == "unbudgeted")
+            {
+                filteredTransactions = filteredTransactions
+                    .Where(t => t.TransactionType == "Expense" &&
+                               !IsCategoryBudgeted(t.CategoryId, t.TransactionDate))
+                    .ToList();
+            }
+        }
+
         totalTransactions = filteredTransactions.Count;
         totalPages = (int)Math.Ceiling((double)totalTransactions / pageSize);
         currentPage = 1; // Reset to first page when filters change
@@ -245,6 +303,21 @@
     {
         var category = categories.FirstOrDefault(c => c.Id == categoryId);
         return category?.CategoryName ?? "Unknown";
+    }
+
+    private bool IsCategoryBudgeted(int categoryId, DateTime transactionDate)
+    {
+        // Check if this category has a budget allocation that covers the transaction date
+        var periodStart = new DateTime(transactionDate.Year, transactionDate.Month, 1);
+        var periodEnd = periodStart.AddMonths(1).AddDays(-1);
+
+        var hasBudget = userBudgets.Any(b =>
+            b.CategoryId == categoryId &&
+            b.StartDate <= periodEnd &&
+            b.EndDate >= periodStart
+        );
+
+        return hasBudget;
     }
 
     private void ViewTransaction(int id)

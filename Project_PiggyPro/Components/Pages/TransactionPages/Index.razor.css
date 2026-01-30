@@ -41,7 +41,7 @@
 /* Filter Section */
 .filter-section {
     display: grid;
-    grid-template-columns: repeat(3, 1fr) auto;
+    grid-template-columns: repeat(4, 1fr) auto;
     gap: 1.5rem;
     padding: 1.5rem;
     background-color: #f9f9f9;
@@ -151,6 +151,7 @@
     border-radius: 4px;
     font-size: 0.85rem;
     font-weight: 500;
+    display: inline-block;
 }
 
 .badge-expense {
@@ -160,6 +161,51 @@
     border-radius: 4px;
     font-size: 0.85rem;
     font-weight: 500;
+    display: inline-block;
+}
+
+/* Budget Status Badges */
+.badge-budgeted {
+    background-color: #d1fae5;
+    color: #065f46;
+    padding: 0.3rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: inline-block;
+    border: 1px solid #a7f3d0;
+}
+
+.badge-unbudgeted {
+    background-color: #fff3cd;
+    color: #856404;
+    padding: 0.3rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-block;
+    border: 1px solid #ffc107;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.8;
+    }
+}
+
+.badge-na {
+    background-color: #f5f5f5;
+    color: #999;
+    padding: 0.3rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: inline-block;
 }
 
 /* Action Buttons */
@@ -297,9 +343,9 @@
     }
 
 /* Responsive Design */
-@media (max-width: 1024px) {
+@media (max-width: 1200px) {
     .filter-section {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, 1fr);
     }
 
     .btn-apply-filter {
@@ -326,6 +372,15 @@
         .transaction-table td {
             padding: 0.6rem;
         }
+
+    /* Make table scrollable on mobile */
+    .transaction-table-container {
+        overflow-x: auto;
+    }
+
+    .transaction-table {
+        min-width: 900px;
+    }
 
     .actions-cell {
         flex-direction: column;

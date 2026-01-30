@@ -97,6 +97,113 @@
         font-family: inherit;
     }
 
+/* Budget Warning Card */
+.budget-warning-card {
+    background: #fff3cd;
+    border: 2px solid #ffc107;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.warning-icon {
+    font-size: 2.5rem;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.warning-content {
+    flex: 1;
+}
+
+    .warning-content h4 {
+        margin: 0 0 0.5rem 0;
+        color: #856404;
+        font-size: 1.1rem;
+        font-weight: 700;
+    }
+
+    .warning-content p {
+        margin: 0 0 0.75rem 0;
+        color: #856404;
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+
+        .warning-content p:last-of-type {
+            margin-bottom: 1rem;
+        }
+
+        .warning-content p strong {
+            font-weight: 600;
+            color: #664d03;
+        }
+
+.warning-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.btn-allocate {
+    padding: 0.75rem 1.5rem;
+    background: #856404;
+    color: white;
+    border: 2px solid #856404;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+}
+
+    .btn-allocate:hover {
+        background: #664d03;
+        border-color: #664d03;
+    }
+
+.btn-proceed-anyway {
+    padding: 0.75rem 1.5rem;
+    background: white;
+    color: #856404;
+    border: 2px solid #856404;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+    .btn-proceed-anyway:hover {
+        background: #fff8e1;
+    }
+
+.or-text {
+    color: #856404;
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
 /* Form Actions */
 .form-actions {
     display: grid;
@@ -117,9 +224,16 @@
     transition: all 0.2s;
 }
 
-    .btn-save:hover {
+    .btn-save:hover:not(:disabled) {
         background: #555;
         border-color: #555;
+    }
+
+    .btn-save:disabled {
+        background: #ccc;
+        border-color: #ccc;
+        cursor: not-allowed;
+        opacity: 0.6;
     }
 
 .btn-cancel {
@@ -193,4 +307,21 @@
     .form-actions {
         grid-template-columns: 1fr;
     }
+
+    .budget-warning-card {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .warning-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+        .warning-actions .btn-allocate,
+        .warning-actions .btn-proceed-anyway {
+            width: 100%;
+            justify-content: center;
+        }
 }

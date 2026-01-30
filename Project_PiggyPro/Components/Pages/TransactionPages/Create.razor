@@ -54,7 +54,7 @@
             <!-- Category Dropdown -->
             <div class="form-group">
                 <label for="category" class="form-label-custom">Category</label>
-                <InputSelect id="category" @bind-Value="Transaction.CategoryId" class="form-control-custom">
+                <InputSelect id="category" @bind-Value="SelectedCategoryId" class="form-control-custom">
                     <option value="0">Select a category...</option>
                     @foreach (var category in filteredCategories)
                     {
@@ -63,6 +63,32 @@
                 </InputSelect>
                 <ValidationMessage For="() => Transaction.CategoryId" class="text-danger" />
             </div>
+
+            <!-- Budget Allocation Warning for Expenses -->
+            @if (selectedType == "Expense" && Transaction.CategoryId > 0 && !isCategoryAllocated)
+            {
+                <div class="budget-warning-card">
+                    <div class="warning-icon">⚠️</div>
+                    <div class="warning-content">
+                        <h4>Budget Not Allocated</h4>
+                        <p>
+                            The selected category <strong>"@GetSelectedCategoryName()"</strong> has not been allocated in your budget for @DateTime.Now.ToString("MMMM yyyy").
+                        </p>
+                        <p>
+                            To track your expenses properly and stay within budget, please allocate this category first.
+                        </p>
+                        <div class="warning-actions">
+                            <a href="/budgets" class="btn-allocate">
+                                📊 Go to Budget Management
+                            </a>
+                            <span class="or-text">or</span>
+                            <button type="button" @onclick="ProceedWithoutBudget" class="btn-proceed-anyway">
+                                Proceed Anyway
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
 
             <!-- Date -->
             <div class="form-group">
@@ -79,7 +105,11 @@
 
             <!-- Buttons -->
             <div class="form-actions">
-                <button type="submit" class="btn-save">Save Transaction</button>
+                <button type="submit"
+                        class="btn-save"
+                        disabled="@(selectedType == "Expense" && Transaction.CategoryId > 0 && !isCategoryAllocated && !userConfirmedProceed)">
+                    Save Transaction
+                </button>
                 <button type="button" class="btn-cancel" @onclick="Cancel">Cancel</button>
             </div>
         </EditForm>
@@ -90,6 +120,7 @@
             <ul>
                 <li>Choose the correct transaction type (Income or Expense)</li>
                 <li>Select an appropriate category to track spending patterns</li>
+                <li>For expenses, ensure the category is allocated in your budget</li>
                 <li>Add descriptions for easier future reference</li>
             </ul>
         </div>
@@ -102,6 +133,33 @@
     private List<Category> filteredCategories = new();
     private string currentUserId = string.Empty;
     private string selectedType = "Expense";
+    private bool isCategoryAllocated = true;
+    private bool userConfirmedProceed = false;
+
+    private int selectedCategoryId;
+    private int SelectedCategoryId
+    {
+        get => selectedCategoryId;
+        set
+        {
+            if (selectedCategoryId != value)
+            {
+                selectedCategoryId = value;
+                Transaction.CategoryId = value;
+                userConfirmedProceed = false;
+
+                // Check allocation when category changes
+                if (selectedType == "Expense" && value > 0)
+                {
+                    _ = CheckCategoryAllocation();
+                }
+                else
+                {
+                    isCategoryAllocated = true;
+                }
+            }
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -131,6 +189,9 @@
         selectedType = type;
         Transaction.TransactionType = type;
         Transaction.CategoryId = 0;
+        SelectedCategoryId = 0;
+        isCategoryAllocated = true;
+        userConfirmedProceed = false;
         FilterCategories();
     }
 
@@ -141,9 +202,46 @@
             .ToList();
     }
 
+    private async Task CheckCategoryAllocation()
+    {
+        using var context = DbFactory.CreateDbContext();
+
+        // Get current month period
+        var currentMonthStart = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+        var currentMonthEnd = currentMonthStart.AddMonths(1).AddDays(-1);
+
+        // Check if this category has an allocated budget for current month
+        var hasBudget = await context.Budget
+            .AnyAsync(b => b.AppUserId == currentUserId
+                && b.CategoryId == Transaction.CategoryId
+                && b.StartDate <= currentMonthEnd
+                && b.EndDate >= currentMonthStart);
+
+        isCategoryAllocated = hasBudget;
+        StateHasChanged(); // Force UI update
+    }
+
+    private string GetSelectedCategoryName()
+    {
+        var category = allCategories.FirstOrDefault(c => c.Id == Transaction.CategoryId);
+        return category?.CategoryName ?? "Unknown";
+    }
+
+    private void ProceedWithoutBudget()
+    {
+        userConfirmedProceed = true;
+        StateHasChanged();
+    }
+
     private async Task AddTransaction()
     {
         if (Transaction.CategoryId == 0)
+        {
+            return;
+        }
+
+        // Double-check budget allocation for expenses (unless user confirmed to proceed)
+        if (selectedType == "Expense" && !isCategoryAllocated && !userConfirmedProceed)
         {
             return;
         }
