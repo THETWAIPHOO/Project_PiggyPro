@@ -67,7 +67,7 @@
             </div>
 
             <!-- Budget Allocation Warning for Expenses -->
-            @if ((selectedType == "Expense" || selectedType =="Savings") && Transaction.CategoryId > 0 && !isCategoryAllocated)
+            @if (selectedType == "Expense"  && Transaction.CategoryId > 0 && !isCategoryAllocated)
             {
                 <div class="budget-warning-card">
                     <div class="warning-icon">⚠️</div>
