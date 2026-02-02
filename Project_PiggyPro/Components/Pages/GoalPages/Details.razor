@@ -13,6 +13,7 @@
 @inject UserManager<Project_PiggyProUser> UserManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager Navigation
+@inject IInAppNotificationService NotificationService
 
 <PageTitle>Goal Details - PiggyPro</PageTitle>
 
@@ -333,14 +334,83 @@
                 return;
             }
 
+            // Store previous amount BEFORE adding funds
+            var previousAmount = goal!.CurrentAmount;
+            var previousPercentage = (previousAmount / goal.TargetAmount) * 100;
+
             var success = await GoalService.AddFundsToGoalAsync(Id, addAmount, currentUserId);
             if (success)
             {
                 isSuccess = true;
                 statusMessage = $"✅ Successfully added {addAmount:C2} to your goal from savings!";
-                addAmount = 0;
+
+                // Reload goal to get updated values
                 await LoadGoal();
                 await LoadSavingsInfo();
+
+                // 🔔 TRIGGER NOTIFICATIONS
+                try
+                {
+                    if (goal != null)
+                    {
+                        var newPercentage = (goal.CurrentAmount / goal.TargetAmount) * 100;
+
+                        // Notify at milestone crossings (25%, 50%, 75%)
+                        if (previousPercentage < 25 && newPercentage >= 25)
+                        {
+                            await NotificationService.NotifyGoalProgressAsync(
+                                currentUserId,
+                                goal.GoalName,
+                                goal.CurrentAmount,
+                                goal.TargetAmount,
+                                newPercentage
+                            );
+                        }
+                        else if (previousPercentage < 50 && newPercentage >= 50)
+                        {
+                            await NotificationService.NotifyGoalProgressAsync(
+                                currentUserId,
+                                goal.GoalName,
+                                goal.CurrentAmount,
+                                goal.TargetAmount,
+                                newPercentage
+                            );
+                        }
+                        else if (previousPercentage < 75 && newPercentage >= 75)
+                        {
+                            await NotificationService.NotifyGoalProgressAsync(
+                                currentUserId,
+                                goal.GoalName,
+                                goal.CurrentAmount,
+                                goal.TargetAmount,
+                                newPercentage
+                            );
+                        }
+
+                        // 🎉 Notify when goal is ACHIEVED!
+                        if (goal.CurrentAmount >= goal.TargetAmount && goal.Status != "Completed")
+                        {
+                            await NotificationService.NotifyGoalAchievedAsync(
+                                currentUserId,
+                                goal.GoalName,
+                                goal.TargetAmount
+                            );
+
+                            // Update goal status to completed
+                            goal.Status = "Completed";
+                            await GoalService.UpdateGoalAsync(goal);
+
+                            // Update the success message to show completion
+                            statusMessage = $"🎉 Congratulations! You've completed your {goal.GoalName} goal!";
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error sending notification: {ex.Message}");
+                }
+
+                addAmount = 0;
             }
             else
             {

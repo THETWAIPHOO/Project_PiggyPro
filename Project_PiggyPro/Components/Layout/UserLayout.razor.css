@@ -118,4 +118,48 @@
     padding: 2rem 3rem;
 }
 
+/* Notification Bell */
+.notification-bell {
+    position: relative;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s;
+    text-decoration: none !important;
+}
+
+.notification-bell:focus {
+        outline: none;
+        text-decoration: none !important;
+ }
+
+.notification-bell:hover {
+        opacity: 0.7;
+        text-decoration: none !important;
+}
+
+.bell-icon {
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.notification-badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background: #ff4444;
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.15rem 0.4rem;
+    border-radius: 10px;
+    min-width: 16px;
+    text-align: center;
+    line-height: 1.2;
+}
+
 

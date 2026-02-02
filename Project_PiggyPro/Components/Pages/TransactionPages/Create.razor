@@ -9,6 +9,8 @@
 @using Project_PiggyPro.Data
 @using Project_PiggyPro.Domain
 @using Project_PiggyPro.Configurations.Entities
+@using Project_PiggyPro.Services
+@inject IInAppNotificationService NotificationService
 @inject IDbContextFactory<Project_PiggyPro.Data.Project_PiggyProContext> DbFactory
 @inject UserManager<Project_PiggyProUser> UserManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -100,64 +102,51 @@
             <!-- Description -->
             <div class="form-group">
                 <label for="description" class="form-label-custom">Description (Optional)</label>
-                <InputTextArea id="description" @bind-Value="Transaction.Description" class="form-control-custom textarea" placeholder="Add notes about this transaction..." rows="4" />
+                <InputTextArea id="description" @bind-Value="Transaction.Description" class="form-control-custom textarea" rows="3" placeholder="Add notes about this transaction..." />
+                <ValidationMessage For="() => Transaction.Description" class="text-danger" />
             </div>
 
-            <!-- Buttons -->
+            <!-- Form Actions -->
             <div class="form-actions">
-                <button type="submit"
-                        class="btn-save"
-                        disabled="@(selectedType == "Expense" && Transaction.CategoryId > 0 && !isCategoryAllocated && !userConfirmedProceed)">
-                    Save Transaction
-                </button>
                 <button type="button" class="btn-cancel" @onclick="Cancel">Cancel</button>
+                <button type="submit" class="btn-save">Save Transaction</button>
             </div>
         </EditForm>
+    </div>
 
-        <!-- Quick Tips -->
-        <div class="quick-tips">
-            <h4>Quick Tips</h4>
-            <ul>
-                <li>Choose the correct transaction type (Income or Expense)</li>
-                <li>Select an appropriate category to track spending patterns</li>
-                <li>For expenses, ensure the category is allocated in your budget</li>
-                <li>Add descriptions for easier future reference</li>
-            </ul>
-        </div>
+    <!-- Quick Tips -->
+    <div class="quick-tips">
+        <h4>💡 Quick Tips</h4>
+        <ul>
+            <li>Set up budgets for your expense categories to track spending</li>
+            <li>Add descriptions to remember what each transaction was for</li>
+            <li>Review your transactions regularly to stay on track</li>
+            <li>Income transactions increase your available budget</li>
+        </ul>
     </div>
 </div>
 
 @code {
-    private Transaction Transaction { get; set; } = new();
-    private List<Category> allCategories = new();
-    private List<Category> filteredCategories = new();
+    private Project_PiggyPro.Domain.Transaction Transaction { get; set; } = new()
+    {
+        TransactionDate = DateTime.Today
+    };
+
     private string currentUserId = string.Empty;
     private string selectedType = "Expense";
+    private List<Category> allCategories = new();
+    private List<Category> filteredCategories = new();
     private bool isCategoryAllocated = true;
     private bool userConfirmedProceed = false;
 
-    private int selectedCategoryId;
     private int SelectedCategoryId
     {
-        get => selectedCategoryId;
+        get => Transaction.CategoryId;
         set
         {
-            if (selectedCategoryId != value)
-            {
-                selectedCategoryId = value;
-                Transaction.CategoryId = value;
-                userConfirmedProceed = false;
-
-                // Check allocation when category changes
-                if (selectedType == "Expense" && value > 0)
-                {
-                    _ = CheckCategoryAllocation();
-                }
-                else
-                {
-                    isCategoryAllocated = true;
-                }
-            }
+            Transaction.CategoryId = value;
+            userConfirmedProceed = false;
+            _ = CheckCategoryAllocation();
         }
     }
 
@@ -168,31 +157,25 @@
 
         if (user.Identity?.IsAuthenticated == true)
         {
-            currentUserId = UserManager.GetUserId(user);
+            var appUser = await UserManager.GetUserAsync(user);
+            if (appUser != null)
+            {
+                currentUserId = appUser.Id;
+            }
         }
 
-        Transaction.TransactionDate = DateTime.Today;
-        Transaction.TransactionType = "Expense";
-        selectedType = "Expense";
-
         using var context = DbFactory.CreateDbContext();
-        allCategories = await context.Category
-            .Where(c => c.IsSystemCategory == true)
-            .OrderBy(c => c.CategoryName)
-            .ToListAsync();
-
+        allCategories = await context.Category.ToListAsync();
         FilterCategories();
     }
 
     private void SelectType(string type)
     {
         selectedType = type;
-        Transaction.TransactionType = type;
         Transaction.CategoryId = 0;
-        SelectedCategoryId = 0;
+        FilterCategories();
         isCategoryAllocated = true;
         userConfirmedProceed = false;
-        FilterCategories();
     }
 
     private void FilterCategories()
@@ -257,6 +240,85 @@
 
         context.Transaction.Add(Transaction);
         await context.SaveChangesAsync();
+
+        // 🔔 TRIGGER NOTIFICATIONS FOR BUDGET ALERTS
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var userId = UserManager.GetUserId(authState.User);
+
+            if (!string.IsNullOrEmpty(userId) && Transaction.CategoryId > 0)
+            {
+                // Get category to check if it's income or expense
+                var category = await context.Category.FindAsync(Transaction.CategoryId);
+
+                // Only check budget for expenses (not income)
+                if (category?.CategoryType != "Income")
+                {
+                    // ✅ FIXED: Check budget for CURRENT MONTH with date range
+                    var startOfMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+                    var endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
+
+                    var budget = await context.Budget
+                        .FirstOrDefaultAsync(b =>
+                            b.CategoryId == Transaction.CategoryId &&
+                            b.CreatedBy == userId &&
+                            b.StartDate <= endOfMonth &&
+                            b.EndDate >= startOfMonth);
+
+                    if (budget != null)
+                    {
+                        // Calculate total spent this month in this category
+                        var spent = await context.Transaction
+                            .Where(t =>
+                                t.CategoryId == Transaction.CategoryId &&
+                                t.CreatedBy == userId &&
+                                t.DateCreated >= startOfMonth &&
+                                t.DateCreated <= endOfMonth)
+                            .SumAsync(t => t.Amount);
+
+                        var percentage = (spent / budget.AllocatedAmount) * 100;
+                        var categoryName = category?.CategoryName ?? "Unknown";
+
+                        Console.WriteLine($"📊 Budget Check: {categoryName} - Spent: ${spent:N2} / ${budget.AllocatedAmount:N2} ({percentage:N1}%)");
+
+                        // Send alert if 80% or more BUT less than 100%
+                        if (percentage >= 80 && percentage < 100)
+                        {
+                            Console.WriteLine($"⚠️ Sending 80% alert for {categoryName}");
+                            await NotificationService.NotifyBudgetAlertAsync(
+                                userId,
+                                categoryName,
+                                spent,
+                                budget.AllocatedAmount,
+                                percentage
+                            );
+                        }
+
+                        // Send exceeded alert if over 100%
+                        if (percentage >= 100)
+                        {
+                            Console.WriteLine($"🚨 Sending budget exceeded alert for {categoryName}");
+                            await NotificationService.NotifyBudgetExceededAsync(
+                                userId,
+                                categoryName,
+                                spent,
+                                budget.AllocatedAmount
+                            );
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine($"⚠️ No budget found for category: {category?.CategoryName}");
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log error but don't block transaction
+            Console.WriteLine($"❌ Error sending notification: {ex.Message}");
+        }
 
         NavigationManager.NavigateTo("/transactions");
     }

@@ -1,7 +1,11 @@
 ﻿@inherits LayoutComponentBase
 @using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Identity
+@using Project_PiggyPro.Services
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager Navigation
+@inject UserManager<Project_PiggyPro.Data.Project_PiggyProUser> UserManager
+@inject IInAppNotificationService NotificationService
 @implements IDisposable
 
 <CascadingAuthenticationState>
@@ -32,8 +36,16 @@
                 <AuthorizeView>
                     <Authorized>
                         <div class="user-section">
+
                             <a href="Account/Manage" class="user-name">@fullName</a>
                             <a href="/Account/Logout" class="btn-logout">Logout</a>
+                            <a href="/notifications" class="notification-bell" title="Notifications">
+                                <span class="bell-icon">🔔</span>
+                                @if (unreadCount > 0)
+                                {
+                                    <span class="notification-badge">@unreadCount</span>
+                                }
+                            </a>
                         </div>
                     </Authorized>
                 </AuthorizeView>
@@ -46,15 +58,27 @@
     </div>
 </CascadingAuthenticationState>
 
-
-
 @code {
     private string fullName = string.Empty;
+    private int unreadCount = 0;
+    private string currentUserId = string.Empty;
+    private System.Threading.Timer? refreshTimer;
 
     protected override async Task OnInitializedAsync()
     {
         AuthenticationStateProvider.AuthenticationStateChanged += OnAuthStateChanged;
         await LoadUserNameFromClaims();
+        await LoadNotificationCount();
+
+        // Auto-refresh notification count every 30 seconds
+        refreshTimer = new System.Threading.Timer(async _ =>
+        {
+            await InvokeAsync(async () =>
+            {
+                await LoadNotificationCount();
+                StateHasChanged();
+            });
+        }, null, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
     }
 
     private async void OnAuthStateChanged(Task<AuthenticationState> task)
@@ -70,6 +94,8 @@
 
         if (user?.Identity?.IsAuthenticated == true)
         {
+            currentUserId = UserManager.GetUserId(user) ?? string.Empty;
+
             var firstName = user.FindFirst("FirstName")?.Value;
             var lastName = user.FindFirst("LastName")?.Value;
 
@@ -80,11 +106,26 @@
         else
         {
             fullName = string.Empty;
+            currentUserId = string.Empty;
         }
+    }
+
+    private async Task LoadNotificationCount()
+    {
+        if (!string.IsNullOrEmpty(currentUserId))
+        {
+            unreadCount = await NotificationService.GetUnreadCountAsync(currentUserId);
+        }
+    }
+
+    private void GoToNotifications()
+    {
+        Navigation.NavigateTo("/notifications");
     }
 
     public void Dispose()
     {
         AuthenticationStateProvider.AuthenticationStateChanged -= OnAuthStateChanged;
+        refreshTimer?.Dispose();
     }
 }
