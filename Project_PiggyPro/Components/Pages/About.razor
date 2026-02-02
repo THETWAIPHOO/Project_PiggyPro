@@ -1,0 +1,531 @@
+﻿@page "/about"
+@using Project_PiggyPro.Components.Layout
+@layout MainLayout
+
+<PageTitle>About Us - PiggyPro</PageTitle>
+
+<div class="about-page">
+    <div class="hero-section">
+        <div class="hero-content">
+            <h1>About PiggyPro</h1>
+            <p class="hero-subtitle">Your Personal Budget Assistant</p>
+            <div class="pig-logo">🐖💰</div>
+        </div>
+    </div>
+
+    <div class="content-section">
+        <div class="section-card">
+            <h2>Our Mission</h2>
+            <p>
+                At PiggyPro, we believe that everyone deserves access to powerful, intuitive financial management tools.
+                Our mission is to empower individuals to take control of their finances through smart budgeting,
+                goal tracking, and actionable insights—without the complexity, clutter, or cost of traditional budget apps.
+            </p>
+        </div>
+
+        <div class="section-card">
+            <h2>Why We Built PiggyPro</h2>
+            <p>
+                Traditional budgeting methods like spreadsheets are time-consuming and error-prone. Existing budget apps
+                often suffer from cluttered interfaces, aggressive advertising, or expensive subscriptions that exclude
+                those who need help most.
+            </p>
+            <p>
+                PiggyPro was born from a simple idea: personal finance management should be <strong>
+                    accessible,
+                    intuitive, and empowering
+                </strong>. We've eliminated the barriers—no ads, no fees, no complexity—so
+                you can focus on what matters: achieving your financial goals.
+            </p>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>50/30/20 Framework</h3>
+                <p>Simple, proven budgeting methodology: 50% Needs, 30% Wants, 20% Savings</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🔔</div>
+                <h3>Smart Notifications</h3>
+                <p>Proactive alerts at 80% budget usage to prevent overspending before it happens</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <h3>Goal Tracking</h3>
+                <p>Set savings goals, track progress, and celebrate milestones along the way</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📈</div>
+                <h3>Visual Analytics</h3>
+                <p>Beautiful charts and progress bars make understanding your finances effortless</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <h3>Privacy First</h3>
+                <p>Your financial data is yours alone—no selling, no sharing, no compromises</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">💯</div>
+                <h3>Completely Free</h3>
+                <p>No subscriptions, no hidden fees, no ads—financial tools should be accessible to all</p>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <h2>How PiggyPro Works</h2>
+            <div class="how-it-works">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h4>Track Income</h4>
+                    <p>Record your monthly income to establish your total budget</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h4>Allocate Budgets</h4>
+                    <p>Distribute funds across Needs (50%), Wants (30%), and Savings (20%)</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h4>Log Expenses</h4>
+                    <p>Add transactions as you spend and watch your budgets update in real-time</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h4>Achieve Goals</h4>
+                    <p>Set financial goals, monitor progress, and celebrate when you reach them</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <h2>Built with Modern Technology</h2>
+            <p>
+                PiggyPro is built using cutting-edge web technologies to ensure fast performance,
+                real-time updates, and a seamless user experience:
+            </p>
+            <div class="tech-stack">
+                <div class="tech-item">
+                    <strong>Frontend:</strong> Blazor Server with C# for reactive, real-time UI
+                </div>
+                <div class="tech-item">
+                    <strong>Backend:</strong> ASP.NET Core for robust, secure server-side logic
+                </div>
+                <div class="tech-item">
+                    <strong>Database:</strong> SQL Server with Entity Framework for reliable data management
+                </div>
+                <div class="tech-item">
+                    <strong>Security:</strong> ASP.NET Identity with role-based access control
+                </div>
+            </div>
+        </div>
+
+        <div class="section-card stats-section">
+            <h2>PiggyPro by the Numbers</h2>
+            <div class="stats-grid">
+                <div class="stat">
+                    <div class="stat-number">$0</div>
+                    <div class="stat-label">Cost Forever</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">Advertisements</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">Privacy Protected</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">5 min</div>
+                    <div class="stat-label">Setup Time</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <h2>Our Commitment to You</h2>
+            <ul class="commitment-list">
+                <li><strong>Always Free:</strong> Core features will always be free—no surprise fees or premium tiers</li>
+                <li><strong>Ad-Free Experience:</strong> Your financial data deserves respect, not monetization</li>
+                <li><strong>Privacy First:</strong> We don't sell, share, or monetize your personal information</li>
+                <li><strong>Continuous Improvement:</strong> Regular updates based on user feedback</li>
+                <li><strong>Accessibility:</strong> Financial wellness tools should be available to everyone</li>
+            </ul>
+        </div>
+
+        <div class="section-card team-section">
+            <h2>Meet the Team</h2>
+            <p class="team-intro">
+                PiggyPro was created by a dedicated team of developers passionate about making financial
+                management accessible to everyone.
+            </p>
+            <div class="team-grid">
+                <div class="team-member">
+                    <div class="member-avatar">👨‍💻</div>
+                    <h4>Myo Hein Tun</h4>
+                    <p class="member-role">Full-Stack Developer</p>
+                    <p class="member-bio">
+                        Specializing in dashboard design, budget management, and notification systems
+                    </p>
+                </div>
+                <div class="team-member">
+                    <div class="member-avatar">👨‍💻</div>
+                    <h4>Thet Wai Phoo</h4>
+                    <p class="member-role">Full-Stack Developer</p>
+                    <p class="member-bio">
+                        Expert in transaction tracking, goals features, and user profile management
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="cta-section">
+            <h2>Ready to Take Control of Your Finances?</h2>
+            <p>Join thousands of users who are achieving their financial goals with PiggyPro</p>
+            <div class="cta-buttons">
+                <a href="/Account/Register" class="btn-primary">Get Started Free</a>
+                <a href="/userguide" class="btn-secondary">View User Guide</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .about-page {
+        min-height: 100vh;
+        background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%);
+    }
+
+    .hero-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 4rem 2rem;
+        text-align: center;
+    }
+
+    .hero-content h1 {
+        font-size: 3rem;
+        font-weight: 700;
+        margin: 0 0 1rem 0;
+    }
+
+    .hero-subtitle {
+        font-size: 1.5rem;
+        opacity: 0.95;
+        margin-bottom: 2rem;
+    }
+
+    .pig-logo {
+        font-size: 4rem;
+        animation: bounce 2s infinite;
+    }
+
+    @@keyframes bounce {
+        0%, 100% {
+            transform: translateY(0);
+        }
+
+        50% {
+            transform: translateY(-20px);
+        }
+    }
+
+    .content-section {
+        max-width: 1200px;
+        margin: -3rem auto 0;
+        padding: 0 2rem 4rem;
+    }
+
+    .section-card {
+        background: white;
+        border-radius: 12px;
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+
+        .section-card h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin: 0 0 1.5rem 0;
+        }
+
+        .section-card p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #666;
+            margin-bottom: 1rem;
+        }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .feature-card {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        text-align: center;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+
+    .feature-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+
+    .feature-card h3 {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin: 0 0 0.75rem 0;
+    }
+
+    .feature-card p {
+        font-size: 1rem;
+        color: #666;
+        margin: 0;
+    }
+
+    .how-it-works {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+
+    .step {
+        text-align: center;
+    }
+
+    .step-number {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 0 auto 1rem;
+    }
+
+    .step h4 {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin: 0 0 0.5rem 0;
+    }
+
+    .step p {
+        font-size: 1rem;
+        color: #666;
+        margin: 0;
+    }
+
+    .tech-stack {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .tech-item {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        border-left: 4px solid #667eea;
+    }
+
+    .stats-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+        .stats-section h2 {
+            color: white;
+        }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+
+    .stat {
+        text-align: center;
+    }
+
+    .stat-number {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        font-size: 1rem;
+        opacity: 0.9;
+    }
+
+    .commitment-list {
+        list-style: none;
+        padding: 0;
+        margin: 1.5rem 0 0 0;
+    }
+
+        .commitment-list li {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #666;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+            .commitment-list li:last-child {
+                border-bottom: none;
+            }
+
+    .team-intro {
+        text-align: center;
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+    }
+
+    .team-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+
+    .team-member {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .member-avatar {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+    }
+
+    .team-member h4 {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin: 0 0 0.5rem 0;
+    }
+
+    .member-role {
+        color: #667eea;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .member-bio {
+        font-size: 1rem;
+        color: #666;
+        margin: 0;
+    }
+
+    .cta-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 3rem;
+        text-align: center;
+    }
+
+        .cta-section h2 {
+            color: white;
+            margin-bottom: 1rem;
+        }
+
+        .cta-section p {
+            font-size: 1.2rem;
+            color: white;
+            opacity: 0.95;
+            margin-bottom: 2rem;
+        }
+
+    .cta-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn-primary, .btn-secondary {
+        padding: 1rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+
+    .btn-primary {
+        background: white;
+        color: #667eea;
+    }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255,255,255,0.3);
+        }
+
+    .btn-secondary {
+        background: transparent;
+        color: white;
+        border: 2px solid white;
+    }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+    @@media (max-width: 768px) {
+        .hero-content h1 {
+            font-size: 2rem;
+        }
+
+        .hero-subtitle {
+            font-size: 1.2rem;
+        }
+
+        .section-card {
+            padding: 1.5rem;
+        }
+
+        .features-grid, .how-it-works, .tech-stack, .stats-grid, .team-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .cta-buttons {
+            flex-direction: column;
+        }
+
+        .btn-primary, .btn-secondary {
+            width: 100%;
+        }
+    }
+</style>

@@ -1,0 +1,986 @@
+﻿@page "/userguide"
+@using Project_PiggyPro.Components.Layout
+@layout MainLayout
+
+<PageTitle>User Guide - PiggyPro</PageTitle>
+
+<div class="guide-page">
+    <div class="hero-section">
+        <h1>PiggyPro User Guide</h1>
+        <p>Everything you need to know to master your finances with PiggyPro</p>
+    </div>
+
+    <div class="guide-container">
+        <!-- Table of Contents -->
+        <div class="toc-sidebar">
+            <h3>Contents</h3>
+            <nav class="toc">
+                <a href="#getting-started">Getting Started</a>
+                <a href="#dashboard">Dashboard Overview</a>
+                <a href="#transactions">Managing Transactions</a>
+                <a href="#budgets">Budget Management</a>
+                <a href="#goals">Setting Financial Goals</a>
+                <a href="#notifications">Notifications</a>
+                <a href="#reports">Reports & Analytics</a>
+                <a href="#profile">Profile Settings</a>
+                <a href="#tips">Pro Tips</a>
+                <a href="#faq">FAQ</a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="guide-content">
+            <!-- Getting Started -->
+            <section id="getting-started" class="guide-section">
+                <h2>🚀 Getting Started</h2>
+                <p>Welcome to PiggyPro! Let's get you set up in 5 easy steps:</p>
+
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Create Your Account</h3>
+                        <p>Sign up with your email address and create a secure password. You'll receive a verification email to activate your account.</p>
+                    </div>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Add Your Monthly Income</h3>
+                        <p>Go to Transactions and add your income sources. This establishes your total budget for the 50/30/20 allocation.</p>
+                    </div>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Set Up Your Budgets</h3>
+                        <p>Navigate to the Budget page and allocate funds across categories following the 50/30/20 rule.</p>
+                    </div>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>Track Your Expenses</h3>
+                        <p>Start logging your daily expenses. Watch your budget bars update in real-time!</p>
+                    </div>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">5</div>
+                    <div class="step-content">
+                        <h3>Create Savings Goals</h3>
+                        <p>Set financial goals and track your progress toward achieving them.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Dashboard -->
+            <section id="dashboard" class="guide-section">
+                <h2>📊 Dashboard Overview</h2>
+                <p>Your dashboard is your financial command center. Here's what you'll find:</p>
+
+                <div class="feature-box">
+                    <h4>Financial Overview Cards</h4>
+                    <p>Five colorful cards display your current financial status:</p>
+                    <ul>
+                        <li><strong>Needs (50%):</strong> Green card showing essential expenses</li>
+                        <li><strong>Wants (30%):</strong> Blue card for discretionary spending</li>
+                        <li><strong>Savings (20%):</strong> Orange card tracking your savings</li>
+                        <li><strong>Total Income:</strong> Your monthly income</li>
+                        <li><strong>Current Balance:</strong> Income minus expenses</li>
+                    </ul>
+                </div>
+
+                <div class="feature-box">
+                    <h4>Recent Transactions</h4>
+                    <p>Quick view of your latest 5 transactions with amounts and categories.</p>
+                </div>
+
+                <div class="feature-box">
+                    <h4>Active Goals</h4>
+                    <p>Visual progress bars showing how close you are to achieving your financial goals.</p>
+                </div>
+
+                <div class="pro-tip">
+                    <strong>💡 Pro Tip:</strong> Check your dashboard daily to stay aware of your spending patterns and budget status.
+                </div>
+            </section>
+
+            <!-- Transactions -->
+            <section id="transactions" class="guide-section">
+                <h2>💰 Managing Transactions</h2>
+
+                <h3>Adding a Transaction</h3>
+                <div class="instruction-list">
+                    <div class="instruction">
+                        <span class="number">1</span>
+                        <p>Click the "Add Transaction" button</p>
+                    </div>
+                    <div class="instruction">
+                        <span class="number">2</span>
+                        <p>Select transaction type: <strong>Income</strong> or <strong>Expense</strong></p>
+                    </div>
+                    <div class="instruction">
+                        <span class="number">3</span>
+                        <p>Enter the amount</p>
+                    </div>
+                    <div class="instruction">
+                        <span class="number">4</span>
+                        <p>Choose a category from the dropdown</p>
+                    </div>
+                    <div class="instruction">
+                        <span class="number">5</span>
+                        <p>Select the transaction date</p>
+                    </div>
+                    <div class="instruction">
+                        <span class="number">6</span>
+                        <p>Add an optional description</p>
+                    </div>
+                    <div class="instruction">
+                        <span class="number">7</span>
+                        <p>Click "Save Transaction"</p>
+                    </div>
+                </div>
+
+                <div class="warning-box">
+                    <strong>⚠️ Unbudgeted Expense Warning:</strong> If you try to add an expense to a category without a budget, PiggyPro will warn you and suggest setting up a budget first.
+                </div>
+
+                <h3>Viewing Transactions</h3>
+                <p>The Transactions page displays all your financial activity in a clean table format with:</p>
+                <ul>
+                    <li>Date, Category, Amount, Type (Income/Expense)</li>
+                    <li>Description and creation timestamp</li>
+                    <li>Edit and Delete buttons for each transaction</li>
+                </ul>
+
+                <h3>Editing or Deleting</h3>
+                <p>Click the ✏️ icon to edit a transaction or the 🗑️ icon to delete it. Changes update your budgets and dashboard instantly.</p>
+            </section>
+
+            <!-- Budgets -->
+            <section id="budgets" class="guide-section">
+                <h2>📊 Budget Management</h2>
+
+                <h3>Understanding the 50/30/20 Rule</h3>
+                <div class="rule-explanation">
+                    <div class="rule-item">
+                        <div class="rule-badge needs">50%</div>
+                        <div>
+                            <h4>Needs</h4>
+                            <p>Essential expenses you cannot avoid:</p>
+                            <ul>
+                                <li>Groceries</li>
+                                <li>Healthcare</li>
+                                <li>Housing/Rent</li>
+                                <li>Utilities</li>
+                                <li>Transportation</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="rule-item">
+                        <div class="rule-badge wants">30%</div>
+                        <div>
+                            <h4>Wants</h4>
+                            <p>Discretionary spending you enjoy:</p>
+                            <ul>
+                                <li>Dining Out</li>
+                                <li>Entertainment</li>
+                                <li>Hobbies</li>
+                                <li>Subscriptions</li>
+                                <li>Shopping</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="rule-item">
+                        <div class="rule-badge savings">20%</div>
+                        <div>
+                            <h4>Savings</h4>
+                            <p>Money for your future:</p>
+                            <ul>
+                                <li>Emergency Fund</li>
+                                <li>Savings Goals</li>
+                                <li>Investments</li>
+                                <li>Debt Repayment</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <h3>Allocating Budgets</h3>
+                <div class="instruction-list">
+                    <div class="instruction">
+                        <span class="number">1</span>
+                        <p>Navigate to the Budget page</p>
+                    </div>
+                    <div class="instruction">
+                        <span class="number">2</span>
+                        <p>See the recommended amounts based on your income</p>
+                    </div>
+                    <div class="instruction">
+                        <span class="number">3</span>
+                        <p>Click "Add Category" under Needs, Wants, or Savings</p>
+                    </div>
+                    <div class="instruction">
+                        <span class="number">4</span>
+                        <p>Select a category and enter your budget amount</p>
+                    </div>
+                    <div class="instruction">
+                        <span class="number">5</span>
+                        <p>Save and repeat for all your categories</p>
+                    </div>
+                </div>
+
+                <h3>Monitoring Budget Status</h3>
+                <p>Each budget category shows:</p>
+                <ul>
+                    <li><strong>Budget Amount:</strong> Your allocated limit</li>
+                    <li><strong>Spent Amount:</strong> What you've used so far</li>
+                    <li><strong>Progress Bar:</strong> Visual representation of usage</li>
+                    <li><strong>Percentage:</strong> Exact percentage used</li>
+                    <li><strong>Remaining Balance:</strong> Money left in this category</li>
+                </ul>
+
+                <div class="color-guide">
+                    <h4>Color Indicators:</h4>
+                    <div class="color-item">
+                        <span class="color-box green"></span>
+                        <p><strong>Green (0-79%):</strong> Safe spending level</p>
+                    </div>
+                    <div class="color-item">
+                        <span class="color-box orange"></span>
+                        <p><strong>Orange (80-99%):</strong> Approaching limit - you'll receive a notification</p>
+                    </div>
+                    <div class="color-item">
+                        <span class="color-box red"></span>
+                        <p><strong>Red (100%+):</strong> Budget exceeded - you'll receive an alert</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Goals -->
+            <section id="goals" class="guide-section">
+                <h2>🎯 Setting Financial Goals</h2>
+
+                <h3>Creating a Goal</h3>
+                <div class="instruction-list">
+                    <div class="instruction">
+                        <span class="number">1</span>
+                        <p>Go to the Goals page</p>
+                    </div>
+                    <div class="instruction">
+                        <span class="number">2</span>
+                        <p>Click "Create New Goal"</p>
+                    </div>
+                    <div class="instruction">
+                        <span class="number">3</span>
+                        <p>Enter goal name (e.g., "Vacation Fund")</p>
+                    </div>
+                    <div class="instruction">
+                        <span class="number">4</span>
+                        <p>Set target amount</p>
+                    </div>
+                    <div class="instruction">
+                        <span class="number">5</span>
+                        <p>Optionally set a deadline</p>
+                    </div>
+                    <div class="instruction">
+                        <span class="number">6</span>
+                        <p>Save your goal</p>
+                    </div>
+                </div>
+
+                <h3>Adding Funds to Goals</h3>
+                <p>Click "Add Funds" on any active goal, enter the amount you're contributing, and watch your progress bar grow!</p>
+
+                <h3>Goal Milestones</h3>
+                <p>PiggyPro celebrates your progress with notifications at:</p>
+                <ul>
+                    <li><strong>25% Complete:</strong> "You're making great progress!"</li>
+                    <li><strong>50% Complete:</strong> "Halfway there!"</li>
+                    <li><strong>75% Complete:</strong> "Almost there!"</li>
+                    <li><strong>100% Complete:</strong> "Goal achieved! 🎉"</li>
+                </ul>
+
+                <div class="pro-tip">
+                    <strong>💡 Pro Tip:</strong> Set realistic, specific goals. Instead of "Save Money," try "Save $500 for Emergency Fund by March."
+                </div>
+            </section>
+
+            <!-- Notifications -->
+            <section id="notifications" class="guide-section">
+                <h2>🔔 Notifications</h2>
+
+                <h3>Types of Notifications</h3>
+                <div class="notification-type">
+                    <div class="notif-icon budget">⚠️</div>
+                    <div>
+                        <h4>Budget Alerts (80%)</h4>
+                        <p>Sent when a budget category reaches 80% usage to help you avoid overspending.</p>
+                    </div>
+                </div>
+
+                <div class="notification-type">
+                    <div class="notif-icon budget-exceeded">🚨</div>
+                    <div>
+                        <h4>Budget Exceeded (100%)</h4>
+                        <p>Alerts you when you've exceeded a budget limit.</p>
+                    </div>
+                </div>
+
+                <div class="notification-type">
+                    <div class="notif-icon goal">🎯</div>
+                    <div>
+                        <h4>Goal Milestones</h4>
+                        <p>Celebrates when you reach 25%, 50%, 75% of your goal.</p>
+                    </div>
+                </div>
+
+                <div class="notification-type">
+                    <div class="notif-icon achievement">🎉</div>
+                    <div>
+                        <h4>Goal Achievement</h4>
+                        <p>Congratulates you when you reach 100% of your goal!</p>
+                    </div>
+                </div>
+
+                <h3>Managing Notifications</h3>
+                <ul>
+                    <li>Click the 🔔 bell icon in the navigation to view all notifications</li>
+                    <li>Filter by type: All, Unread, Budget, Goals, Transactions</li>
+                    <li>Mark individual notifications as read</li>
+                    <li>Delete notifications you no longer need</li>
+                    <li>View details by clicking on any notification</li>
+                </ul>
+            </section>
+
+            <!-- Reports -->
+            <section id="reports" class="guide-section">
+                <h2>📈 Reports & Analytics</h2>
+                <p>The Reports page provides visual insights into your financial health:</p>
+
+                <div class="feature-box">
+                    <h4>Spending by Category</h4>
+                    <p>See which categories consume most of your budget with interactive charts.</p>
+                </div>
+
+                <div class="feature-box">
+                    <h4>Income vs Expenses</h4>
+                    <p>Compare your earnings against spending over time.</p>
+                </div>
+
+                <div class="feature-box">
+                    <h4>Budget Performance</h4>
+                    <p>Analyze how well you're sticking to your budgets.</p>
+                </div>
+
+                <div class="feature-box">
+                    <h4>Export Data</h4>
+                    <p>Download your transaction history in CSV format for external analysis.</p>
+                </div>
+            </section>
+
+            <!-- Profile -->
+            <section id="profile" class="guide-section">
+                <h2>👤 Profile Settings</h2>
+
+                <h3>Managing Your Profile</h3>
+                <p>Click your name in the navigation bar to access profile settings where you can:</p>
+                <ul>
+                    <li>Update your first and last name</li>
+                    <li>Change phone number</li>
+                    <li>View account statistics (transactions, budgets, goals)</li>
+                    <li>Change your password</li>
+                    <li>Set up two-factor authentication</li>
+                    <li>Customize notification preferences</li>
+                </ul>
+
+                <div class="warning-box">
+                    <strong>🔒 Security Tip:</strong> Use a strong, unique password and enable two-factor authentication for extra security.
+                </div>
+            </section>
+
+            <!-- Pro Tips -->
+            <section id="tips" class="guide-section">
+                <h2>💎 Pro Tips</h2>
+
+                <div class="tip-card">
+                    <h4>1. Log Expenses Daily</h4>
+                    <p>Make it a habit to log expenses as they happen. This prevents forgetting transactions and keeps your budgets accurate.</p>
+                </div>
+
+                <div class="tip-card">
+                    <h4>2. Review Weekly</h4>
+                    <p>Set aside 10 minutes every Sunday to review your spending, adjust budgets if needed, and plan for the week ahead.</p>
+                </div>
+
+                <div class="tip-card">
+                    <h4>3. Start Conservative</h4>
+                    <p>If unsure about budget amounts, start conservative. You can always adjust based on your actual spending patterns.</p>
+                </div>
+
+                <div class="tip-card">
+                    <h4>4. Use Descriptions</h4>
+                    <p>Add descriptions to transactions to remember context. "Groceries - weekly shopping" is more helpful than just "Groceries."</p>
+                </div>
+
+                <div class="tip-card">
+                    <h4>5. Multiple Small Goals</h4>
+                    <p>Instead of one big goal, create multiple smaller goals. Achieving them provides motivation to keep going!</p>
+                </div>
+
+                <div class="tip-card">
+                    <h4>6. Emergency Fund First</h4>
+                    <p>Before other savings goals, build an emergency fund covering 3-6 months of expenses for financial security.</p>
+                </div>
+
+                <div class="tip-card">
+                    <h4>7. Monitor the Dashboard</h4>
+                    <p>Make the dashboard your first stop when opening PiggyPro. It gives you an instant snapshot of your financial health.</p>
+                </div>
+
+                <div class="tip-card">
+                    <h4>8. Act on Notifications</h4>
+                    <p>When you receive an 80% budget alert, review that category immediately and adjust spending if necessary.</p>
+                </div>
+            </section>
+
+            <!-- FAQ -->
+            <section id="faq" class="guide-section">
+                <h2>❓ Frequently Asked Questions</h2>
+
+                <div class="faq-item">
+                    <h4>Can I change the 50/30/20 percentages?</h4>
+                    <p>Currently, PiggyPro uses the standard 50/30/20 framework, but you have flexibility in how you allocate within each bucket. You can create custom categories and adjust individual budget amounts.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h4>What if I have irregular income?</h4>
+                    <p>Use your average monthly income over the past 3-6 months as your baseline. In months with higher income, allocate extra to savings goals.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h4>Can I track multiple income sources?</h4>
+                    <p>Yes! Add each income source as a separate transaction. PiggyPro will sum them for your total income.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h4>How do I handle shared expenses?</h4>
+                    <p>Log your portion of shared expenses. For example, if rent is $1,000 split between two people, log $500 as your expense.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h4>What happens if I exceed a budget?</h4>
+                    <p>PiggyPro will alert you but won't prevent the transaction. It's a tool for awareness, not restriction. Review and adjust for next month.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h4>Can I delete old transactions?</h4>
+                    <p>Yes, you can edit or delete any transaction. This will update your budget calculations accordingly.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h4>Is my data backed up?</h4>
+                    <p>Your data is securely stored in our database with regular backups. However, we recommend exporting your data periodically as a personal backup.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h4>Can I use PiggyPro on mobile?</h4>
+                    <p>Yes! PiggyPro is fully responsive and works great on phones and tablets through your web browser.</p>
+                </div>
+            </section>
+
+            <!-- Help Section -->
+            <div class="help-section">
+                <h2>Need More Help?</h2>
+                <p>Can't find what you're looking for? We're here to help!</p>
+                <div class="help-buttons">
+                    <a href="/contact" class="btn-primary">Contact Support</a>
+                    <a href="/about" class="btn-secondary">Learn More About PiggyPro</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .guide-page {
+        background: #f8f9fa;
+        min-height: 100vh;
+    }
+
+    .hero-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 3rem 2rem;
+        text-align: center;
+    }
+
+        .hero-section h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0 0 1rem 0;
+        }
+
+        .hero-section p {
+            font-size: 1.2rem;
+            opacity: 0.95;
+        }
+
+    .guide-container {
+        max-width: 1400px;
+        margin: -2rem auto 0;
+        padding: 0 2rem 4rem;
+        display: grid;
+        grid-template-columns: 250px 1fr;
+        gap: 2rem;
+    }
+
+    /* Table of Contents */
+    .toc-sidebar {
+        position: sticky;
+        top: 2rem;
+        height: fit-content;
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+
+        .toc-sidebar h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin: 0 0 1rem 0;
+            color: #1a1a1a;
+        }
+
+    .toc {
+        display: flex;
+        flex-direction: column;
+    }
+
+        .toc a {
+            padding: 0.75rem 1rem;
+            color: #666;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: background 0.3s, color 0.3s;
+            font-size: 0.95rem;
+        }
+
+            .toc a:hover {
+                background: #f0f0f0;
+                color: #667eea;
+            }
+
+    /* Main Content */
+    .guide-content {
+        background: white;
+        border-radius: 12px;
+        padding: 3rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+
+    .guide-section {
+        margin-bottom: 4rem;
+        scroll-margin-top: 2rem;
+    }
+
+        .guide-section:last-child {
+            margin-bottom: 2rem;
+        }
+
+        .guide-section h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin: 0 0 1.5rem 0;
+            padding-bottom: 0.75rem;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .guide-section h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin: 2rem 0 1rem 0;
+        }
+
+        .guide-section h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin: 1.5rem 0 0.75rem 0;
+        }
+
+        .guide-section p {
+            font-size: 1.05rem;
+            line-height: 1.8;
+            color: #666;
+            margin-bottom: 1rem;
+        }
+
+        .guide-section ul {
+            margin: 1rem 0 1rem 1.5rem;
+        }
+
+        .guide-section li {
+            font-size: 1.05rem;
+            line-height: 1.8;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+    /* Step Cards */
+    .step-card {
+        display: flex;
+        gap: 1.5rem;
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        align-items: flex-start;
+    }
+
+    .step-number {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .step-content h3 {
+        font-size: 1.2rem;
+        margin: 0 0 0.5rem 0;
+        color: #1a1a1a;
+    }
+
+    .step-content p {
+        margin: 0;
+        color: #666;
+    }
+
+    /* Feature Boxes */
+    .feature-box {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid #667eea;
+    }
+
+        .feature-box h4 {
+            margin-top: 0;
+        }
+
+    /* Instructions */
+    .instruction-list {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin: 1.5rem 0;
+    }
+
+    .instruction {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+        .instruction:last-child {
+            border-bottom: none;
+        }
+
+        .instruction .number {
+            width: 30px;
+            height: 30px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .instruction p {
+            margin: 0;
+        }
+
+    /* Boxes */
+    .pro-tip {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+        border: 2px solid #ffc107;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        margin: 1.5rem 0;
+    }
+
+    .warning-box {
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        border: 2px solid #ef4444;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        margin: 1.5rem 0;
+    }
+
+    /* Rule Explanation */
+    .rule-explanation {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        margin: 1.5rem 0;
+    }
+
+    .rule-item {
+        display: flex;
+        gap: 1.5rem;
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-radius: 12px;
+    }
+
+    .rule-badge {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: white;
+        flex-shrink: 0;
+    }
+
+        .rule-badge.needs {
+            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+        }
+
+        .rule-badge.wants {
+            background: linear-gradient(135deg, #2196f3 0%, #1e88e5 100%);
+        }
+
+        .rule-badge.savings {
+            background: linear-gradient(135deg, #ff9800 0%, #fb8c00 100%);
+        }
+
+    /* Color Guide */
+    .color-guide {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin: 1.5rem 0;
+    }
+
+    .color-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+        .color-item:last-child {
+            margin-bottom: 0;
+        }
+
+    .color-box {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        flex-shrink: 0;
+    }
+
+        .color-box.green {
+            background: #4caf50;
+        }
+
+        .color-box.orange {
+            background: #ff9800;
+        }
+
+        .color-box.red {
+            background: #f44336;
+        }
+
+    /* Notification Types */
+    .notification-type {
+        display: flex;
+        gap: 1rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        align-items: flex-start;
+    }
+
+    .notif-icon {
+        font-size: 2.5rem;
+        flex-shrink: 0;
+    }
+
+    .notification-type h4 {
+        margin: 0 0 0.5rem 0;
+    }
+
+    .notification-type p {
+        margin: 0;
+    }
+
+    /* Tips */
+    .tip-card {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        border-left: 4px solid #4caf50;
+    }
+
+        .tip-card h4 {
+            margin: 0 0 0.5rem 0;
+            color: #4caf50;
+        }
+
+        .tip-card p {
+            margin: 0;
+        }
+
+    /* FAQ */
+    .faq-item {
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+    }
+
+        .faq-item h4 {
+            margin: 0 0 0.75rem 0;
+            color: #667eea;
+        }
+
+        .faq-item p {
+            margin: 0;
+        }
+
+    /* Help Section */
+    .help-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 3rem;
+        border-radius: 12px;
+        text-align: center;
+        margin-top: 3rem;
+    }
+
+        .help-section h2 {
+            color: white;
+            border: none;
+            margin-bottom: 1rem;
+        }
+
+        .help-section p {
+            color: white;
+            opacity: 0.95;
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+    .help-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn-primary, .btn-secondary {
+        padding: 1rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+
+    .btn-primary {
+        background: white;
+        color: #667eea;
+    }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255,255,255,0.3);
+        }
+
+    .btn-secondary {
+        background: transparent;
+        color: white;
+        border: 2px solid white;
+    }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+    /* Responsive */
+    @@media (max-width: 992px) {
+        .guide-container {
+            grid-template-columns: 1fr;
+        }
+
+        .toc-sidebar {
+            position: relative;
+            top: 0;
+        }
+
+        .toc {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .guide-content {
+            padding: 1.5rem;
+        }
+
+        .guide-section h2 {
+            font-size: 1.5rem;
+        }
+
+        .toc {
+            grid-template-columns: 1fr;
+        }
+
+        .step-card {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .rule-item {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .help-buttons {
+            flex-direction: column;
+        }
+
+        .btn-primary, .btn-secondary {
+            width: 100%;
+        }
+    }
+</style>
