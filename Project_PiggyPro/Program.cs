@@ -40,6 +40,7 @@ builder.Services.AddSingleton<IEmailSender<Project_PiggyProUser>, IdentityNoOpEm
 builder.Services.AddScoped<AdminService>();
 builder.Services.AddScoped<ReportsService>();
 builder.Services.AddScoped<GoalService>();
+builder.Services.AddControllers();
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -64,4 +65,8 @@ app.MapRazorComponents<App>()
 
 app.MapAdditionalIdentityEndpoints();
 
+app.MapControllers();
+
 app.Run();
+
+

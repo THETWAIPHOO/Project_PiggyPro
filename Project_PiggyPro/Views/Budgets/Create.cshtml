@@ -1,0 +1,107 @@
+﻿@model Project_PiggyPro.Domain.Budget
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Create</h1>
+
+<h4>Budget</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="BudgetAmount" class="control-label"></label>
+                <input asp-for="BudgetAmount" class="form-control" />
+                <span asp-validation-for="BudgetAmount" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="StartDate" class="control-label"></label>
+                <input asp-for="StartDate" class="form-control" />
+                <span asp-validation-for="StartDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="EndDate" class="control-label"></label>
+                <input asp-for="EndDate" class="form-control" />
+                <span asp-validation-for="EndDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="BudgetPeriod" class="control-label"></label>
+                <input asp-for="BudgetPeriod" class="form-control" />
+                <span asp-validation-for="BudgetPeriod" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="RuleName" class="control-label"></label>
+                <input asp-for="RuleName" class="form-control" />
+                <span asp-validation-for="RuleName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="NeedsPercentage" class="control-label"></label>
+                <input asp-for="NeedsPercentage" class="form-control" />
+                <span asp-validation-for="NeedsPercentage" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="WantsPercentage" class="control-label"></label>
+                <input asp-for="WantsPercentage" class="form-control" />
+                <span asp-validation-for="WantsPercentage" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="SavingsPercentage" class="control-label"></label>
+                <input asp-for="SavingsPercentage" class="form-control" />
+                <span asp-validation-for="SavingsPercentage" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="BucketType" class="control-label"></label>
+                <input asp-for="BucketType" class="form-control" />
+                <span asp-validation-for="BucketType" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="AllocatedAmount" class="control-label"></label>
+                <input asp-for="AllocatedAmount" class="form-control" />
+                <span asp-validation-for="AllocatedAmount" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="AppUserId" class="control-label"></label>
+                <input asp-for="AppUserId" class="form-control" />
+                <span asp-validation-for="AppUserId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CategoryId" class="control-label"></label>
+                <select asp-for="CategoryId" class ="form-control" asp-items="ViewBag.CategoryId"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="DateCreated" class="control-label"></label>
+                <input asp-for="DateCreated" class="form-control" />
+                <span asp-validation-for="DateCreated" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="DateUpdated" class="control-label"></label>
+                <input asp-for="DateUpdated" class="form-control" />
+                <span asp-validation-for="DateUpdated" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CreatedBy" class="control-label"></label>
+                <input asp-for="CreatedBy" class="form-control" />
+                <span asp-validation-for="CreatedBy" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="UpdatedBy" class="control-label"></label>
+                <input asp-for="UpdatedBy" class="form-control" />
+                <span asp-validation-for="UpdatedBy" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
