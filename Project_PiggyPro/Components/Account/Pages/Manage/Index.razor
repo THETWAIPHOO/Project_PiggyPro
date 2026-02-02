@@ -12,6 +12,7 @@
 @using Microsoft.EntityFrameworkCore
 @inject IDbContextFactory<Project_PiggyProContext> DbFactory
 @inject SignInManager<Project_PiggyProUser> SignInManager
+@inject NavigationManager NavigationManager
 
 <PageTitle>Profile Settings - PiggyPro</PageTitle>
 
@@ -117,7 +118,10 @@
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" class="btn-primary" disabled="@isSaving">
+                    <button type="submit"
+                            class="btn-primary"
+                            @onclick="SaveAndRedirect"
+                            disabled="@isSaving">
                         @if (isSaving)
                         {
                             <span>Saving...</span>
@@ -125,6 +129,7 @@
                         else
                         {
                             <span>Save Changes</span>
+
                         }
                     </button>
                 </div>
@@ -221,7 +226,7 @@
 
             <EditForm Model="PreferencesInput" OnValidSubmit="SavePreferences">
                 <div class="preferences-list">
-                    <div class="preference-item">
+                    @* <div class="preference-item">
                         <div class="preference-info">
                             <h3>Email Notifications</h3>
                             <p>Receive budget alerts and updates</p>
@@ -230,7 +235,7 @@
                             <input type="checkbox" @bind="PreferencesInput.EmailNotifications" />
                             <span class="toggle-slider"></span>
                         </label>
-                    </div>
+                    </div> *@
 
                     <div class="preference-item">
                         <div class="preference-info">
@@ -356,33 +361,68 @@
         }
     }
 
+    private void SaveAndRedirect()
+    {
+        // Start save (don't wait)
+        _ = UpdateProfileAsync();
 
+        // Redirect immediately
+        NavigationManager.NavigateTo("/", forceLoad: true);
+    }
+
+    private async Task UpdateProfileAsync()
+    {
+        try
+        {
+            user.FirstName = Input.FirstName;
+            user.LastName = Input.LastName;
+            await UserManager.UpdateAsync(user);
+            await SignInManager.RefreshSignInAsync(user);
+        }
+        catch { }
+    }
     private async Task OnValidSubmitAsync()
     {
+        Console.WriteLine("=== FORM SUBMIT STARTED ===");
+
+        // ✅ CRITICAL: Give Blazor time to finish binding
+        await Task.Delay(300);
+
         isSaving = true;
         successMessage = null;
         errorMessage = null;
 
         try
         {
+            Console.WriteLine($"Input.FirstName: '{Input.FirstName}'");
+            Console.WriteLine($"Input.LastName: '{Input.LastName}'");
+            Console.WriteLine($"Input.PhoneNumber: '{Input.PhoneNumber}'");
+            Console.WriteLine($"User.FirstName: '{user.FirstName}'");
+            Console.WriteLine($"User.LastName: '{user.LastName}'");
+
             bool hasChanges = false;
 
             // Update phone number
             if (Input.PhoneNumber != phoneNumber)
             {
+                Console.WriteLine($"Phone number changed from '{phoneNumber}' to '{Input.PhoneNumber}'");
                 var setPhoneResult = await UserManager.SetPhoneNumberAsync(user, Input.PhoneNumber);
                 if (!setPhoneResult.Succeeded)
                 {
-                    errorMessage = "Failed to update phone number.";
+                    var errors = string.Join(", ", setPhoneResult.Errors.Select(e => e.Description));
+                    errorMessage = $"Failed to update phone number: {errors}";
+                    Console.WriteLine($"❌ Phone update failed: {errors}");
                     isSaving = false;
                     return;
                 }
                 hasChanges = true;
+                Console.WriteLine("✅ Phone number updated");
             }
 
             // Update first name
             if (Input.FirstName != user.FirstName)
             {
+                Console.WriteLine($"First name changed from '{user.FirstName}' to '{Input.FirstName}'");
                 user.FirstName = Input.FirstName;
                 hasChanges = true;
             }
@@ -390,35 +430,54 @@
             // Update last name
             if (Input.LastName != user.LastName)
             {
+                Console.WriteLine($"Last name changed from '{user.LastName}' to '{Input.LastName}'");
                 user.LastName = Input.LastName;
                 hasChanges = true;
             }
 
+            Console.WriteLine($"Has changes: {hasChanges}");
+
             if (hasChanges)
             {
+                Console.WriteLine("Updating user in database...");
                 var updateResult = await UserManager.UpdateAsync(user);
+
                 if (updateResult.Succeeded)
                 {
+                    Console.WriteLine("✅ User updated successfully");
+                    Console.WriteLine("Refreshing sign-in...");
+
                     await SignInManager.RefreshSignInAsync(user);
-                    successMessage = "Your profile has been updated successfully!";
+
+                    Console.WriteLine("✅ Sign-in refreshed");
+                    Console.WriteLine("Redirecting to login...");
+
+                    // ✅ Redirect to login page with full reload
+                    NavigationManager.NavigateTo("/Account/Login", forceLoad: true);
                 }
                 else
                 {
-                    errorMessage = "Failed to update profile.";
+                    var errors = string.Join(", ", updateResult.Errors.Select(e => e.Description));
+                    errorMessage = $"Failed to update profile: {errors}";
+                    Console.WriteLine($"❌ Update failed: {errors}");
                 }
             }
             else
             {
                 successMessage = "No changes detected.";
+                Console.WriteLine("ℹ️ No changes detected");
             }
         }
         catch (Exception ex)
         {
-            errorMessage = "An error occurred while updating your profile.";
+            errorMessage = $"An error occurred: {ex.Message}";
+            Console.WriteLine($"❌ EXCEPTION: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
         }
         finally
         {
             isSaving = false;
+            Console.WriteLine("=== FORM SUBMIT ENDED ===");
         }
     }
 
