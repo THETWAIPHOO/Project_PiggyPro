@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Project_PiggyPro.Migrations
 {
     /// <inheritdoc />
-    public partial class inital : Migration
+    public partial class initiala : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -85,6 +85,13 @@ namespace Project_PiggyPro.Migrations
                     Title = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Message = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     NotificationType = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Icon = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ActionUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsRead = table.Column<bool>(type: "bit", nullable: false),
+                    ReadAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Priority = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    RelatedEntityId = table.Column<int>(type: "int", nullable: true),
+                    RelatedEntityType = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     AppUserId = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     DateCreated = table.Column<DateTime>(type: "datetime2", nullable: false),
                     DateUpdated = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -339,31 +346,32 @@ namespace Project_PiggyPro.Migrations
             migrationBuilder.InsertData(
                 table: "AspNetUsers",
                 columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "CreatedAt", "Email", "EmailConfirmed", "FirstName", "LastLoginDate", "LastName", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "TwoFactorEnabled", "UserName" },
-                values: new object[] { "3781efa7-66dc-47f0-860f-e506d04102e4", 0, "14a5e980-54fc-4733-8373-9297b2007e3c", new DateTime(2026, 1, 18, 12, 38, 46, 261, DateTimeKind.Utc).AddTicks(1390), "admin@localhost.com", true, "Admin", null, "User", false, null, "ADMIN@LOCALHOST.COM", "ADMIN@LOCALHOST.COM", "AQAAAAIAAYagAAAAEGZI+r9TbQwt/GwZC5tr4hNt0QjWSIfcVqld4uyISXDNtNIzz1X84Qn/rGt/EspV9w==", null, false, "a9ad5f1b-a1a8-4d95-87a1-b423e78cbf83", false, "admin@localhost.com" });
+                values: new object[] { "3781efa7-66dc-47f0-860f-e506d04102e4", 0, "ba0de11d-8c12-4e47-a0ea-1e41114e3446", new DateTime(2026, 2, 1, 11, 45, 37, 688, DateTimeKind.Utc).AddTicks(1955), "admin@localhost.com", true, "Admin", null, "User", false, null, "ADMIN@LOCALHOST.COM", "ADMIN@LOCALHOST.COM", "AQAAAAIAAYagAAAAEO2tUWbeAwvsKP0F0e1/Ia6LtGDIjlsCDx5xVnvcvbTPJEfSAQks6elYabUFAXa4/g==", null, false, "7c0e8a40-e3a2-412d-a638-974ba8f8db08", false, "admin@localhost.com" });
 
             migrationBuilder.InsertData(
                 table: "Category",
                 columns: new[] { "Id", "AppUserId", "CategoryName", "CategoryType", "CreatedBy", "DateCreated", "DateUpdated", "IsSystemCategory", "UpdatedBy" },
                 values: new object[,]
                 {
-                    { 1, null, "Housing & Rent", "Expense", "System", new DateTime(2026, 1, 18, 20, 38, 46, 261, DateTimeKind.Local).AddTicks(1037), new DateTime(2026, 1, 18, 20, 38, 46, 261, DateTimeKind.Local).AddTicks(1048), true, "System" },
-                    { 2, null, "Groceries", "Expense", "System", new DateTime(2026, 1, 18, 20, 38, 46, 261, DateTimeKind.Local).AddTicks(1050), new DateTime(2026, 1, 18, 20, 38, 46, 261, DateTimeKind.Local).AddTicks(1050), true, "System" },
-                    { 3, null, "Utilities", "Expense", "System", new DateTime(2026, 1, 18, 20, 38, 46, 261, DateTimeKind.Local).AddTicks(1052), new DateTime(2026, 1, 18, 20, 38, 46, 261, DateTimeKind.Local).AddTicks(1053), true, "System" },
-                    { 4, null, "Transportation", "Expense", "System", new DateTime(2026, 1, 18, 20, 38, 46, 261, DateTimeKind.Local).AddTicks(1054), new DateTime(2026, 1, 18, 20, 38, 46, 261, DateTimeKind.Local).AddTicks(1054), true, "System" },
-                    { 5, null, "Healthcare", "Expense", "System", new DateTime(2026, 1, 18, 20, 38, 46, 261, DateTimeKind.Local).AddTicks(1055), new DateTime(2026, 1, 18, 20, 38, 46, 261, DateTimeKind.Local).AddTicks(1056), true, "System" },
-                    { 6, null, "Dining Out", "Expense", "System", new DateTime(2026, 1, 18, 20, 38, 46, 261, DateTimeKind.Local).AddTicks(1057), new DateTime(2026, 1, 18, 20, 38, 46, 261, DateTimeKind.Local).AddTicks(1057), true, "System" },
-                    { 7, null, "Entertainment", "Expense", "System", new DateTime(2026, 1, 18, 20, 38, 46, 261, DateTimeKind.Local).AddTicks(1059), new DateTime(2026, 1, 18, 20, 38, 46, 261, DateTimeKind.Local).AddTicks(1059), true, "System" },
-                    { 8, null, "Shopping", "Expense", "System", new DateTime(2026, 1, 18, 20, 38, 46, 261, DateTimeKind.Local).AddTicks(1060), new DateTime(2026, 1, 18, 20, 38, 46, 261, DateTimeKind.Local).AddTicks(1061), true, "System" },
-                    { 9, null, "Hobbies", "Expense", "System", new DateTime(2026, 1, 18, 20, 38, 46, 261, DateTimeKind.Local).AddTicks(1062), new DateTime(2026, 1, 18, 20, 38, 46, 261, DateTimeKind.Local).AddTicks(1062), true, "System" },
-                    { 10, null, "Savings", "Savings", "System", new DateTime(2026, 1, 18, 20, 38, 46, 261, DateTimeKind.Local).AddTicks(1063), new DateTime(2026, 1, 18, 20, 38, 46, 261, DateTimeKind.Local).AddTicks(1064), true, "System" },
-                    { 11, null, "Investments", "Savings", "System", new DateTime(2026, 1, 18, 20, 38, 46, 261, DateTimeKind.Local).AddTicks(1065), new DateTime(2026, 1, 18, 20, 38, 46, 261, DateTimeKind.Local).AddTicks(1065), true, "System" },
-                    { 12, null, "Emergency Fund", "Savings", "System", new DateTime(2026, 1, 18, 20, 38, 46, 261, DateTimeKind.Local).AddTicks(1067), new DateTime(2026, 1, 18, 20, 38, 46, 261, DateTimeKind.Local).AddTicks(1067), true, "System" },
-                    { 13, null, "Other Expenses", "Expense", "System", new DateTime(2026, 1, 18, 20, 38, 46, 261, DateTimeKind.Local).AddTicks(1068), new DateTime(2026, 1, 18, 20, 38, 46, 261, DateTimeKind.Local).AddTicks(1069), true, "System" },
-                    { 14, null, "Salary", "Income", "System", new DateTime(2026, 1, 18, 20, 38, 46, 261, DateTimeKind.Local).AddTicks(1070), new DateTime(2026, 1, 18, 20, 38, 46, 261, DateTimeKind.Local).AddTicks(1070), true, "System" },
-                    { 15, null, "Freelance", "Income", "System", new DateTime(2026, 1, 18, 20, 38, 46, 261, DateTimeKind.Local).AddTicks(1071), new DateTime(2026, 1, 18, 20, 38, 46, 261, DateTimeKind.Local).AddTicks(1072), true, "System" },
-                    { 16, null, "Investment Income", "Income", "System", new DateTime(2026, 1, 18, 20, 38, 46, 261, DateTimeKind.Local).AddTicks(1073), new DateTime(2026, 1, 18, 20, 38, 46, 261, DateTimeKind.Local).AddTicks(1073), true, "System" },
-                    { 17, null, "Gift/Bonus", "Income", "System", new DateTime(2026, 1, 18, 20, 38, 46, 261, DateTimeKind.Local).AddTicks(1074), new DateTime(2026, 1, 18, 20, 38, 46, 261, DateTimeKind.Local).AddTicks(1075), true, "System" },
-                    { 18, null, "Other Income", "Income", "System", new DateTime(2026, 1, 18, 20, 38, 46, 261, DateTimeKind.Local).AddTicks(1076), new DateTime(2026, 1, 18, 20, 38, 46, 261, DateTimeKind.Local).AddTicks(1076), true, "System" }
+                    { 1, null, "Housing & Rent", "Expense", "System", new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1360), new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1386), true, "System" },
+                    { 2, null, "Groceries", "Expense", "System", new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1388), new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1388), true, "System" },
+                    { 3, null, "Utilities", "Expense", "System", new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1390), new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1391), true, "System" },
+                    { 4, null, "Transportation", "Expense", "System", new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1392), new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1393), true, "System" },
+                    { 5, null, "Healthcare", "Expense", "System", new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1395), new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1395), true, "System" },
+                    { 6, null, "Dining Out", "Expense", "System", new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1397), new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1398), true, "System" },
+                    { 7, null, "Entertainment", "Expense", "System", new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1399), new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1400), true, "System" },
+                    { 8, null, "Shopping", "Expense", "System", new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1402), new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1402), true, "System" },
+                    { 9, null, "Hobbies", "Expense", "System", new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1404), new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1404), true, "System" },
+                    { 10, null, "Savings", "Savings", "System", new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1406), new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1407), true, "System" },
+                    { 11, null, "Investments", "Savings", "System", new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1408), new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1409), true, "System" },
+                    { 12, null, "Emergency Fund", "Savings", "System", new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1410), new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1411), true, "System" },
+                    { 13, null, "Savings Goal", "Savings", "System", new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1413), new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1413), true, "System" },
+                    { 14, null, "Other Expenses", "Expense", "System", new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1415), new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1416), true, "System" },
+                    { 15, null, "Salary", "Income", "System", new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1417), new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1418), true, "System" },
+                    { 16, null, "Freelance", "Income", "System", new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1420), new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1420), true, "System" },
+                    { 17, null, "Investment Income", "Income", "System", new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1422), new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1422), true, "System" },
+                    { 18, null, "Gift/Bonus", "Income", "System", new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1424), new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1425), true, "System" },
+                    { 19, null, "Other Income", "Income", "System", new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1426), new DateTime(2026, 2, 1, 19, 45, 37, 688, DateTimeKind.Local).AddTicks(1427), true, "System" }
                 });
 
             migrationBuilder.InsertData(

@@ -1,45 +1,330 @@
 ﻿@page "/notifications"
+@rendermode InteractiveServer
 @layout UserLayout
-@using Microsoft.EntityFrameworkCore
-@using Microsoft.AspNetCore.Components.QuickGrid
-@using Project_PiggyPro.Components.Layout
+@attribute [Authorize]
+
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
 @using Project_PiggyPro.Domain
-@using Project_PiggyPro.Data
-@implements IAsyncDisposable
-@inject IDbContextFactory<Project_PiggyPro.Data.Project_PiggyProContext> DbFactory
+@using Project_PiggyPro.Services
+@inject IInAppNotificationService NotificationService
+@inject UserManager<Project_PiggyPro.Data.Project_PiggyProUser> UserManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
 
-<PageTitle>Index</PageTitle>
+<PageTitle>Notifications - PiggyPro</PageTitle>
 
-<h1>Index</h1>
+<div class="notifications-page">
+    <div class="page-header">
+        <div>
+            <h1>🔔 Notifications</h1>
+            <p class="subtitle">@GetSubtitleText()</p>
+        </div>
+        @if (unreadCount > 0)
+        {
+            <button class="btn-mark-all-read" @onclick="MarkAllAsRead">
+                <span>✓</span> Mark all as read
+            </button>
+        }
+    </div>
 
-<p>
-    <a href="notifications/create">Create New</a>
-</p>
+    <!-- Filter Tabs -->
+    <div class="filter-tabs">
+        <button class="filter-tab @(selectedFilter == "all" ? "active" : "")" @onclick="FilterAll">
+            All <span class="count">(@totalCount)</span>
+        </button>
+        <button class="filter-tab @(selectedFilter == "unread" ? "active" : "")" @onclick="FilterUnread">
+            Unread <span class="count">(@unreadCount)</span>
+        </button>
+        <button class="filter-tab @(selectedFilter == "budget" ? "active" : "")" @onclick="FilterBudget">
+            ⚠️ Budget
+        </button>
+        <button class="filter-tab @(selectedFilter == "goal" ? "active" : "")" @onclick="FilterGoal">
+            🎯 Goals
+        </button>
+    </div>
 
-<QuickGrid Class="table" Items="context.Notification">
-    <PropertyColumn Property="notification => notification.Title" />
-    <PropertyColumn Property="notification => notification.Message" />
-    <PropertyColumn Property="notification => notification.NotificationType" />
-    <PropertyColumn Property="notification => notification.AppUserId" />
-    <PropertyColumn Property="notification => notification.DateCreated" />
-    <PropertyColumn Property="notification => notification.DateUpdated" />
-    <PropertyColumn Property="notification => notification.CreatedBy" />
-    <PropertyColumn Property="notification => notification.UpdatedBy" />
+    <!-- Notifications List -->
+    <div class="notifications-list">
+        @if (isLoading)
+        {
+            <div class="loading-container">
+                <div class="loading-spinner"></div>
+                <p>Loading notifications...</p>
+            </div>
+        }
+        else if (filteredNotifications.Any())
+        {
+            @foreach (var notification in filteredNotifications)
+            {
+                var item = notification;
+                <div class="notification-card @(item.IsRead ? "read" : "unread") @GetPriorityClass(item.Priority)">
+                    <div class="notification-icon">
+                        @item.Icon
+                    </div>
+                    <div class="notification-content">
+                        <div class="notification-header">
+                            <h3 class="notification-title">@item.Title</h3>
+                            @if (!item.IsRead)
+                            {
+                                <span class="unread-badge">New</span>
+                            }
+                        </div>
+                        <p class="notification-message">@item.Message</p>
+                        <div class="notification-footer">
+                            <span class="notification-time">@GetTimeAgo(item.DateCreated)</span>
+                            <span class="notification-type-badge">@item.NotificationType</span>
+                        </div>
+                    </div>
+                    <div class="notification-actions">
+                        <button class="btn-view" @onclick="() => ViewDetails(item)" title="View details">
+                            <span>👁️</span>
+                        </button>
+                        @if (!item.IsRead)
+                        {
+                            <button class="btn-mark-read" @onclick="() => MarkAsRead(item.Id)" title="Mark as read">
+                                <span>✓</span>
+                            </button>
+                        }
+                        <button class="btn-delete" @onclick="() => ShowDeleteConfirm(item)" title="Delete">
+                            <span>🗑️</span>
+                        </button>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="empty-state">
+                <div class="empty-icon">🔕</div>
+                <h2>No notifications</h2>
+                <p>@GetEmptyStateMessage()</p>
+            </div>
+        }
+    </div>
+</div>
 
-    <TemplateColumn Context="notification">
-        <a href="@($"notifications/edit?id={notification.Id}")">Edit</a> |
-        <a href="@($"notifications/details?id={notification.Id}")">Details</a> |
-        <a href="@($"notifications/delete?id={notification.Id}")">Delete</a>
-    </TemplateColumn>
-</QuickGrid>
+<!-- Details Modal -->
+@if (showDetailsModal && selectedNotification != null)
+{
+    <div class="modal-overlay" @onclick="CloseModals">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2>Notification Details</h2>
+                <button class="btn-close" @onclick="CloseModals">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="detail-icon">@selectedNotification.Icon</div>
+                <h3>@selectedNotification.Title</h3>
+                <p class="detail-message">@selectedNotification.Message</p>
+                <div class="detail-info">
+                    <div class="info-item">
+                        <span class="info-label">Type:</span>
+                        <span class="info-value">@selectedNotification.NotificationType</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Priority:</span>
+                        <span class="info-value priority-@selectedNotification.Priority.ToLower()">@selectedNotification.Priority</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Received:</span>
+                        <span class="info-value">@selectedNotification.DateCreated.ToString("MMM dd, yyyy 'at' hh:mm tt")</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Status:</span>
+                        <span class="info-value">@(selectedNotification.IsRead ? "Read" : "Unread")</span>
+                    </div>
+                </div>
+                @if (!string.IsNullOrEmpty(selectedNotification.ActionUrl))
+                {
+                    <button class="btn-action-link" @onclick="() => GoToAction(selectedNotification.ActionUrl)">
+                        Go to Related Page →
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Delete Confirmation Modal -->
+@if (showDeleteConfirm && notificationToDelete != null)
+{
+    <div class="modal-overlay" @onclick="CloseModals">
+        <div class="modal-content modal-small" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2>Delete Notification?</h2>
+                <button class="btn-close" @onclick="CloseModals">×</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this notification? This action cannot be undone.</p>
+                <div class="modal-actions">
+                    <button class="btn-cancel" @onclick="CloseModals">Cancel</button>
+                    <button class="btn-confirm-delete" @onclick="ConfirmDelete">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
 @code {
-    private Project_PiggyProContext context = default!;
+    private List<Notification> allNotifications = new();
+    private List<Notification> filteredNotifications = new();
+    private string selectedFilter = "all";
+    private int unreadCount = 0;
+    private int totalCount = 0;
+    private bool isLoading = true;
+    private string currentUserId = string.Empty;
 
-    protected override void OnInitialized()
+    private bool showDetailsModal = false;
+    private bool showDeleteConfirm = false;
+    private Notification? selectedNotification = null;
+    private Notification? notificationToDelete = null;
+
+    protected override async Task OnInitializedAsync()
     {
-        context = DbFactory.CreateDbContext();
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user?.Identity?.IsAuthenticated == true)
+        {
+            currentUserId = UserManager.GetUserId(user) ?? string.Empty;
+            await LoadNotifications();
+        }
     }
 
-    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+    private async Task LoadNotifications()
+    {
+        isLoading = true;
+        allNotifications = await NotificationService.GetAllNotificationsAsync(currentUserId);
+        unreadCount = await NotificationService.GetUnreadCountAsync(currentUserId);
+        totalCount = allNotifications.Count;
+        ApplyFilter();
+        isLoading = false;
+    }
+
+    private void FilterAll() { SetFilter("all"); }
+    private void FilterUnread() { SetFilter("unread"); }
+    private void FilterBudget() { SetFilter("budget"); }
+    private void FilterGoal() { SetFilter("goal"); }
+    private void FilterTransaction() { SetFilter("transaction"); }
+
+    private void SetFilter(string filter)
+    {
+        selectedFilter = filter;
+        ApplyFilter();
+    }
+
+    private void ApplyFilter()
+    {
+        filteredNotifications = selectedFilter switch
+        {
+            "unread" => allNotifications.Where(n => !n.IsRead).ToList(),
+            "budget" => allNotifications.Where(n => n.NotificationType == "Budget").ToList(),
+            "goal" => allNotifications.Where(n => n.NotificationType == "Goal" || n.NotificationType == "Achievement").ToList(),
+            "transaction" => allNotifications.Where(n => n.NotificationType == "Transaction").ToList(),
+            _ => allNotifications
+        };
+    }
+
+    private async Task MarkAsRead(int notificationId)
+    {
+        await NotificationService.MarkAsReadAsync(notificationId);
+        await LoadNotifications();
+    }
+
+    private async Task MarkAllAsRead()
+    {
+        await NotificationService.MarkAllAsReadAsync(currentUserId);
+        await LoadNotifications();
+    }
+
+    private void ViewDetails(Notification notification)
+    {
+        selectedNotification = notification;
+        showDetailsModal = true;
+
+        // Mark as read when viewed
+        if (!notification.IsRead)
+        {
+            Task.Run(async () =>
+            {
+                await NotificationService.MarkAsReadAsync(notification.Id);
+                await InvokeAsync(async () =>
+                {
+                    await LoadNotifications();
+                    StateHasChanged();
+                });
+            });
+        }
+    }
+
+    private void ShowDeleteConfirm(Notification notification)
+    {
+        notificationToDelete = notification;
+        showDeleteConfirm = true;
+    }
+
+    private async Task ConfirmDelete()
+    {
+        if (notificationToDelete != null)
+        {
+            await NotificationService.DeleteNotificationAsync(notificationToDelete.Id);
+            await LoadNotifications();
+        }
+        CloseModals();
+    }
+
+    private void CloseModals()
+    {
+        showDetailsModal = false;
+        showDeleteConfirm = false;
+        selectedNotification = null;
+        notificationToDelete = null;
+    }
+
+    private void GoToAction(string actionUrl)
+    {
+        Navigation.NavigateTo(actionUrl);
+    }
+
+    private string GetTimeAgo(DateTime dateTime)
+    {
+        var timeSpan = DateTime.Now - dateTime;
+        if (timeSpan.TotalMinutes < 1) return "Just now";
+        if (timeSpan.TotalMinutes < 60) return $"{(int)timeSpan.TotalMinutes}m ago";
+        if (timeSpan.TotalHours < 24) return $"{(int)timeSpan.TotalHours}h ago";
+        if (timeSpan.TotalDays < 7) return $"{(int)timeSpan.TotalDays}d ago";
+        if (timeSpan.TotalDays < 30) return $"{(int)(timeSpan.TotalDays / 7)}w ago";
+        return dateTime.ToString("MMM dd");
+    }
+
+    private string GetPriorityClass(string priority)
+    {
+        return priority.ToLower() switch
+        {
+            "urgent" => "priority-urgent",
+            "high" => "priority-high",
+            "low" => "priority-low",
+            _ => "priority-normal"
+        };
+    }
+
+    private string GetSubtitleText()
+    {
+        if (unreadCount == 0) return "You're all caught up!";
+        if (unreadCount == 1) return "You have 1 unread notification";
+        return $"You have {unreadCount} unread notifications";
+    }
+
+    private string GetEmptyStateMessage()
+    {
+        return selectedFilter switch
+        {
+            "unread" => "All caught up! No unread notifications.",
+            "budget" => "No budget alerts yet.",
+            "goal" => "No goal updates yet.",
+            "transaction" => "No transaction notifications yet.",
+            _ => "You don't have any notifications yet."
+        };
+    }
 }

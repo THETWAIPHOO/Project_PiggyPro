@@ -31,8 +31,43 @@
                 <ValidationMessage For="() => Notification.NotificationType" class="text-danger" /> 
             </div>        
             <div class="mb-3">
+                <label for="icon" class="form-label">Icon:</label> 
+                <InputText id="icon" @bind-Value="Notification.Icon" class="form-control" /> 
+                <ValidationMessage For="() => Notification.Icon" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="actionurl" class="form-label">ActionUrl:</label> 
+                <InputText id="actionurl" @bind-Value="Notification.ActionUrl" class="form-control" /> 
+                <ValidationMessage For="() => Notification.ActionUrl" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="isread" class="form-label">IsRead:</label> 
+                <InputCheckbox id="isread" @bind-Value="Notification.IsRead" class="form-check-input" /> 
+                <ValidationMessage For="() => Notification.IsRead" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="readat" class="form-label">ReadAt:</label> 
+                <InputDate id="readat" @bind-Value="Notification.ReadAt" class="form-control" /> 
+                <ValidationMessage For="() => Notification.ReadAt" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="priority" class="form-label">Priority:</label> 
+                <InputText id="priority" @bind-Value="Notification.Priority" class="form-control" /> 
+                <ValidationMessage For="() => Notification.Priority" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="relatedentityid" class="form-label">RelatedEntityId:</label> 
+                <InputNumber id="relatedentityid" @bind-Value="Notification.RelatedEntityId" class="form-control" /> 
+                <ValidationMessage For="() => Notification.RelatedEntityId" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="relatedentitytype" class="form-label">RelatedEntityType:</label> 
+                <InputText id="relatedentitytype" @bind-Value="Notification.RelatedEntityType" class="form-control" /> 
+                <ValidationMessage For="() => Notification.RelatedEntityType" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
                 <label for="appuserid" class="form-label">AppUserId:</label> 
-                <InputNumber id="appuserid" @bind-Value="Notification.AppUserId" class="form-control" /> 
+                <InputText id="appuserid" @bind-Value="Notification.AppUserId" class="form-control" /> 
                 <ValidationMessage For="() => Notification.AppUserId" class="text-danger" /> 
             </div>        
             <div class="mb-3">
