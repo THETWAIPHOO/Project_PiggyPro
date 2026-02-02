@@ -67,7 +67,7 @@
             </div>
 
             <!-- Budget Allocation Warning for Expenses -->
-            @if (selectedType == "Expense" && Transaction.CategoryId > 0 && !isCategoryAllocated)
+            @if ((selectedType == "Expense" || selectedType =="Savings") && Transaction.CategoryId > 0 && !isCategoryAllocated)
             {
                 <div class="budget-warning-card">
                     <div class="warning-icon">⚠️</div>
@@ -180,9 +180,18 @@
 
     private void FilterCategories()
     {
-        filteredCategories = allCategories
-            .Where(c => c.CategoryType == selectedType)
-            .ToList();
+        if (selectedType == "Expense")
+        {
+            filteredCategories = allCategories
+                .Where(c => c.CategoryType == "Expense" || c.CategoryType == "Savings")
+                .ToList();
+        }
+        else
+        {
+            filteredCategories = allCategories
+                .Where(c => c.CategoryType == selectedType)
+                .ToList();
+        }
     }
 
     private async Task CheckCategoryAllocation()
